@@ -14,7 +14,7 @@ plotMetaAnalysisForest(logRr, logLb95Ci, logUb95Ci, labels,
 
 \item{logUb95Ci}{The upper bound of the 95 percent confidence interval on the log scale.}
 
-\item{labels}{A vector containing the labels ofor the various estimates.}
+\item{labels}{A vector containing the labels for the various estimates.}
 
 \item{xLabel}{The label on the x-axis: the name of the effect estimate.}
 

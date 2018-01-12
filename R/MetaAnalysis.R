@@ -25,7 +25,7 @@
 #' @param logRr      A numeric vector of effect estimates on the log scale.
 #' @param logLb95Ci  The lower bound of the 95 percent confidence interval on the log scale.
 #' @param logUb95Ci  The upper bound of the 95 percent confidence interval on the log scale.
-#' @param labels     A vector containing the labels ofor the various estimates.
+#' @param labels     A vector containing the labels for the various estimates.
 #' @param xLabel     The label on the x-axis: the name of the effect estimate.
 #' @param limits     The limits of the effect size axis.
 #' @param fileName   Name of the file where the plot should be saved, for example 'plot.png'. See the
@@ -41,7 +41,13 @@
 #'                        labels = c("Site A", "Site B", "Site C", "Site D", "Site E", "Site F"))
 #'
 #' @export
-plotMetaAnalysisForest <- function(logRr, logLb95Ci, logUb95Ci, labels, xLabel = "Relative risk", limits = c(0.1, 10), fileName = NULL) {
+plotMetaAnalysisForest <- function(logRr, 
+                                   logLb95Ci, 
+                                   logUb95Ci, 
+                                   labels, 
+                                   xLabel = "Relative risk", 
+                                   limits = c(0.1, 10), 
+                                   fileName = NULL) {
     seLogRr <- (logUb95Ci-logLb95Ci) / (2 * qnorm(0.975))
     meta <- meta::metagen(logRr, seLogRr, studlab = labels, sm = "RR")
     s <- summary(meta)
@@ -64,7 +70,7 @@ plotMetaAnalysisForest <- function(logRr, logLb95Ci, logUb95Ci, labels, xLabel =
                      type = "ma")
 
     d <- rbind(d1, d2, d3)
-    d$name <- factor(d$name, levels = c(summaryLabel, rev(sort(as.character(labels))), "Source"))
+    d$name <- factor(d$name, levels = c(summaryLabel, rev(as.character(labels)), "Source"))
 
     breaks <- c(0.1, 0.25, 0.5, 1, 2, 4, 6, 8, 10)
     p <- ggplot2::ggplot(d,ggplot2::aes(x = exp(logRr), y = name, xmin = exp(logLb95Ci), xmax = exp(logUb95Ci))) +
