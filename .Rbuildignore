@@ -1,0 +1,7 @@
+extras
+^.*\.Rproj$
+^\.Rproj\.user$
+^\R\Temp*
+^\.travis\.yml$
+^deploy_container.sh$
+^cran-comments.md$

@@ -1,0 +1,20 @@
+Package: EvidenceSynthesis
+Type: Package
+Title: An R package for combining evidence from multiple sources
+Version: 0.0.1
+Date: 2018-01-11
+Author: Martijn Schuemie, Marc Suchard
+Maintainer: Martijn Schuemie <schuemie@ohdsi.org>
+Description: Routines for combining evidence and diagnostics across multiple 
+   sources, such as multiple data sites in a distributed study. This includes functions
+   for performing meta-analysis and forest plots.
+VignetteBuilder: knitr
+Imports:
+    ggplot2 (>= 2.0.0),
+    gridExtra,
+    meta,
+	  EmpiricalCalibration
+License: Apache License 2.0
+URL: https://github.com/OHDSI/EvidenceSynthesis
+BugReports: https://github.com/OHDSI/EvidenceSynthesis/issues
+RoxygenNote: 6.0.1
