@@ -1,8 +1,8 @@
 # @file PackageMaintenance
 #
-# Copyright 2017 Observational Health Data Sciences and Informatics
+# Copyright 2018 Observational Health Data Sciences and Informatics
 #
-# This file is part of EmpiricalCalibration
+# This file is part of EvidenceSynthesis
 # 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,26 +18,9 @@
 
 # Format and check code:
 OhdsiRTools::formatRFolder()
-OhdsiRTools::checkUsagePackage("EmpiricalCalibration")
+OhdsiRTools::checkUsagePackage("EvidenceSynthesis")
 OhdsiRTools::updateCopyrightYearFolder()
 
 # Create manual and vignettes:
-shell("rm extras/EmpiricalCalibration.pdf")
-shell("R CMD Rd2pdf ./ --output=extras/EmpiricalCalibration.pdf")
-
-rmarkdown::render("vignettes/EmpiricalPCalibrationVignette.Rmd",
-                  output_file = "../inst/doc/EmpiricalPCalibrationVignette.pdf",
-                  rmarkdown::pdf_document(latex_engine = "pdflatex",
-                                          toc = TRUE,
-                                          number_sections = TRUE))
-
-rmarkdown::render("vignettes/EmpiricalCICalibrationVignette.Rmd",
-                  output_file = "../inst/doc/EmpiricalCiCalibrationVignette.pdf",
-                  rmarkdown::pdf_document(latex_engine = "pdflatex",
-                                          toc = TRUE,
-                                          number_sections = TRUE))
-
-# Release package:
-devtools::build_win()
-
-devtools::release()
+shell("rm extras/EvidenceSynthesis.pdf")
+shell("R CMD Rd2pdf ./ --output=extras/EvidenceSynthesis.pdf")
