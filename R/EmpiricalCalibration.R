@@ -91,7 +91,7 @@ plotEmpiricalNulls <- function(logRr,
   breaks <- c(0.1, 0.25, 0.5, 1, 2, 4, 6, 8, 10)
   plot <- ggplot2::ggplot(d, ggplot2::aes(group = label)) +
     ggplot2::geom_vline(xintercept = log(breaks), colour = "#AAAAAA", lty = 1, size = 0.2) + 
-    ggplot2::geom_vline(xintercept = 0, size = 1) +
+    ggplot2::geom_vline(xintercept = 0) +
     ggplot2::geom_ribbon(ggplot2::aes(x = x, ymax = yMax, ymin = yMin), color = rgb(0.8, 0, 0, alpha = 0), fill =  rgb(0.8, 0, 0), alpha = 0.4, data = dist) + 
     ggplot2::geom_errorbarh(ggplot2::aes(x = mean, xmax = xMax, xmin = xMin, y = y), height = 0.5, color = rgb(0, 0, 0), size = 0.5) + 
     ggplot2::geom_point(ggplot2::aes(x = mean, y = y), shape = 16, size = 2) + 

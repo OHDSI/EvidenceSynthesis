@@ -20,7 +20,7 @@
 #' \code{plotMetaAnalysisForest} performs a meta-analysis and creates a forest plot of effect size estimates.
 #'
 #' @details
-#' Creates a forest plot of effect size estimates (ratios). 
+#' Creates a forest plot of effect size estimates, and includes a meta-analysis estimate using a random effects model.
 #'
 #' @param logRr      A numeric vector of effect estimates on the log scale.
 #' @param logLb95Ci  The lower bound of the 95 percent confidence interval on the log scale.

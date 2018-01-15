@@ -30,7 +30,7 @@ A Ggplot object. Use the \code{ggsave} function to save to file.
 \code{plotMetaAnalysisForest} performs a meta-analysis and creates a forest plot of effect size estimates.
 }
 \details{
-Creates a forest plot of effect size estimates (ratios).
+Creates a forest plot of effect size estimates, and includes a meta-analysis estimate using a random effects model.
 }
 \examples{
 plotMetaAnalysisForest(logRr = c(0, 0.2, -0.2, 0, 0.2, -0.2),
