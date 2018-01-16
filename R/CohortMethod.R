@@ -63,8 +63,8 @@ plotCovariateBalances <- function(balances,
                          label = labels[i],
                          stringsAsFactors = FALSE)
     after <- data.frame(stdDiff = balances[[i]]$afterMatchingStdDiff,
-                         type = afterLabel,
-                         label = labels[i],
+                        type = afterLabel,
+                        label = labels[i],
                         stringsAsFactors = FALSE)
     return(rbind(before, after))
   }
@@ -164,3 +164,164 @@ plotCovariateBalances <- function(balances,
     ggplot2::ggsave(fileName, plot, width = 8, height = 1 + length(balances) * 0.4, dpi = 400)
   return(plot)
 }
+
+
+computePreferenceScore <- function(data, unfilteredData = NULL) {
+  if (is.null(unfilteredData)) {
+    proportion <- sum(data$treatment)/nrow(data)
+  } else {
+    proportion <- sum(unfilteredData$treatment)/nrow(unfilteredData)
+  }
+  propensityScore <- data$propensityScore
+  propensityScore[propensityScore > 0.9999999] <- 0.9999999
+  x <- exp(log(propensityScore/(1 - propensityScore)) - log(proportion/(1 - proportion)))
+  data$preferenceScore <- x/(x + 1)
+  return(data)
+}
+
+#' Prepare to plot the propensity score distribution
+#'
+#' @description
+#' \code{preparePsPlot} prepares to plot the propensity (or preference) score distribution. It computes
+#' the distribution, so the output does not contain person-level data.
+#'
+#' @param data              A data frame with at least the two columns described below
+#' @param unfilteredData    To be used when computing preference scores on data from which subjects
+#'                          have already been removed, e.g. through trimming and/or matching. This data
+#'                          frame should have the same structure as \code{data}.
+#' @param scale             The scale of the graph. Two scales are supported: \code{ scale =
+#'                          'propensity'} or \code{scale = 'preference'}. The preference score scale is
+#'                          defined by Walker et al (2013).
+#'
+#' @details
+#' The data frame should have a least the following two columns: \tabular{lll}{ \verb{treatment}
+#' \tab(integer) \tab Column indicating whether the person is in the treated (1) or comparator\cr \tab
+#' \tab (0) group \cr \verb{propensityScore} \tab(numeric) \tab Propensity score \cr }
+#'
+#' @return
+#' A data frame describing the propensity score (or preference score) distribution at 100 equally-spaced
+#' points.
+#'
+#' @examples
+#' treatment <- rep(0:1, each = 100)
+#' propensityScore <- c(rnorm(100, mean = 0.4, sd = 0.25), rnorm(100, mean = 0.6, sd = 0.25))
+#' data <- data.frame(treatment = treatment, propensityScore = propensityScore)
+#' data <- data[data$propensityScore > 0 & data$propensityScore < 1, ]
+#' preparedPlot <- preparePsPlot(data)
+#'
+#' @references
+#' Walker AM, Patrick AR, Lauer MS, Hornbrook MC, Marin MG, Platt R, Roger VL, Stang P, and
+#' Schneeweiss S. (2013) A tool for assessing the feasibility of comparative effectiveness research,
+#' Comparative Effective Research, 3, 11-20
+#'
+#' @export
+preparePsPlot <- function(data,
+                          unfilteredData = NULL,
+                          scale = "preference") {
+  if (!("treatment" %in% colnames(data)))
+    stop("Missing column treatment in data")
+  if (!("propensityScore" %in% colnames(data)))
+    stop("Missing column propensityScore in data")
+  if (!is.null(unfilteredData)) {
+    if (!("treatment" %in% colnames(unfilteredData)))
+      stop("Missing column treatment in unfilteredData")
+    if (!("propensityScore" %in% colnames(unfilteredData)))
+      stop("Missing column propensityScore in unfilteredData")
+  }
+  if (scale != "propensity" && scale != "preference")
+    stop(paste("Unknown scale '", scale, "', please choose either 'propensity' or 'preference'"),
+         sep = "")
+  
+  if (scale == "preference") {
+    data <- computePreferenceScore(data, unfilteredData)
+    d1 <- density(data$preferenceScore[data$treatment == 1], from = 0, to = 1, n = 100)
+    d0 <- density(data$preferenceScore[data$treatment == 0], from = 0, to = 1, n = 100)
+    d <- data.frame(preferenceScore = c(d1$x, d0$x), y = c(d1$y, d0$y), treatment = c(rep(1, length(d1$x)),
+                                                                                      rep(0, length(d0$x))))
+    d$y <- d$y/max(d$y)
+  } else {
+    d1 <- density(data$propensityScore[data$treatment == 1], from = 0, to = 1, n = 100)
+    d0 <- density(data$propensityScore[data$treatment == 0], from = 0, to = 1, n = 100)
+    d <- data.frame(propensityScore = c(d1$x, d0$x), y = c(d1$y, d0$y), treatment = c(rep(1, length(d1$x)),
+                                                                                      rep(0, length(d0$x))))
+    d$y <- d$y/max(d$y)
+  }
+  return(d)
+}
+
+#' Plot the propensity score distribution
+#' 
+#' @param preparedPsPlots     A list of prepared propensity score data as created by the 
+#'                          \code{\link{preparePsPlot}} function.
+#' @param labels            A vector containing the labels for the various sources.         
+#' @param treatmentLabel    A label to us for the treated cohort.
+#' @param comparatorLabel   A label to us for the comparator cohort.
+#' @param fileName          Name of the file where the plot should be saved, for example 'plot.png'.
+#'                          See the function \code{ggsave} in the ggplot2 package for supported file
+#'                          formats.
+#'                          
+#' @examples
+#' treatment <- rep(0:1, each = 100)
+#' propensityScore <- c(rnorm(100, mean = 0.4, sd = 0.25), rnorm(100, mean = 0.6, sd = 0.25))
+#' data <- data.frame(treatment = treatment, propensityScore = propensityScore)
+#' data <- data[data$propensityScore > 0 & data$propensityScore < 1, ]
+#' preparedPlot <- preparePsPlot(data)
+#' # Just reusing the same data three times for demonstration purposes:
+#' preparedPsPlots <- list(preparedPlot, preparedPlot, preparedPlot)
+#' labels <- c("Data site A", "Data site B", "Data site C")
+#'                          
+#' @return
+#' A ggplot object. Use the \code{\link[ggplot2]{ggsave}} function to save to file in a different
+#' format.
+#' 
+#' 
+plotPreparedPs <- function(preparedPsPlots,
+                           labels,
+                           treatmentLabel = "Treated",
+                           comparatorLabel = "Comparator",
+                           fileName = NULL) {
+  if (length(preparedPsPlots) != length(labels)) 
+    stop("The preparedPsPlots and labels arguments must have the same length")
+  
+  for (i in 1:length(preparedPsPlots)) {
+    preparedPsPlots[[i]]$label <- labels[i]
+  }
+  data <- do.call("rbind", preparedPsPlots)
+  data$GROUP <- "Target"
+  data$GROUP[data$treatment == 0] <- "Comparator"
+  data$GROUP <- factor(data$GROUP, levels = c("Target", "Comparator"))
+  if (!is.null(data$propensityScore)) {
+    xLabel <- "Propensity score"
+    data$x <- data$propensityScore
+  } else {
+    xLabel <- "Preference score"
+    data$x <- data$preferenceScore
+  }
+  plot <- ggplot2::ggplot(data, ggplot2::aes(x = x,
+                                             y = y,
+                                             color = GROUP,
+                                             group = GROUP,
+                                             fill = GROUP)) + 
+    ggplot2::geom_density(stat = "identity") + 
+    ggplot2::scale_fill_manual(values = c(rgb(0.8, 0, 0, alpha = 0.5), rgb(0, 0, 0.8, alpha = 0.5))) + 
+    ggplot2::scale_color_manual(values = c(rgb(0.8, 0, 0, alpha = 0.5), rgb(0, 0, 0.8, alpha = 0.5))) + 
+    ggplot2::scale_x_continuous(xLabel, limits = c(0, 1)) + 
+    ggplot2::scale_y_continuous("Density") + 
+    ggplot2::facet_grid(label~., switch="both") + 
+    ggplot2::theme(legend.title = ggplot2::element_blank(),
+                   legend.text = ggplot2::element_text(size = 11),
+                   legend.position = "top",
+                   strip.text.y = ggplot2::element_text(angle = 180, size = 11),
+                   strip.background = ggplot2::element_blank(),
+                   axis.title.y = ggplot2::element_blank(),
+                   axis.text.y = ggplot2::element_blank(),
+                   axis.ticks.y = ggplot2::element_blank(),
+                   axis.text.x = ggplot2::element_text(size = 11),
+                   axis.title.x = ggplot2::element_text(size = 11),
+                   panel.background = ggplot2::element_blank(),
+                   panel.grid = ggplot2::element_blank())
+  if (!is.null(fileName))
+    ggplot2::ggsave(fileName, plot, width = 3, height = 1 + length(preparedPsPlots) * 0.5, dpi = 400)
+  return(plot)
+}
+

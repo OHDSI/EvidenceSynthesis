@@ -30,7 +30,8 @@ A Ggplot object. Use the \code{ggsave} function to save to file.
 \code{plotMetaAnalysisForest} performs a meta-analysis and creates a forest plot of effect size estimates.
 }
 \details{
-Creates a forest plot of effect size estimates, and includes a meta-analysis estimate using a random effects model.
+Creates a forest plot of effect size estimates, and includes a meta-analysis estimate using a random effects model. 
+The DerSimonian-Laird estimate (1986) is used.
 }
 \examples{
 plotMetaAnalysisForest(logRr = c(0, 0.2, -0.2, 0, 0.2, -0.2),
@@ -38,4 +39,7 @@ plotMetaAnalysisForest(logRr = c(0, 0.2, -0.2, 0, 0.2, -0.2),
                        logUb95Ci = c(0.2, 0.6, 0.2, 0.2, 0.6, 0.2),
                        labels = c("Site A", "Site B", "Site C", "Site D", "Site E", "Site F"))
 
+}
+\references{
+DerSimonian R, Laird N (1986), Meta-analysis in clinical trials. Controlled Clinical Trials, 7, 177-188.
 }

@@ -20,7 +20,8 @@
 #' \code{plotMetaAnalysisForest} performs a meta-analysis and creates a forest plot of effect size estimates.
 #'
 #' @details
-#' Creates a forest plot of effect size estimates, and includes a meta-analysis estimate using a random effects model.
+#' Creates a forest plot of effect size estimates, and includes a meta-analysis estimate using a random effects model. 
+#' The DerSimonian-Laird estimate (1986) is used.
 #'
 #' @param logRr      A numeric vector of effect estimates on the log scale.
 #' @param logLb95Ci  The lower bound of the 95 percent confidence interval on the log scale.
@@ -33,6 +34,10 @@
 #'
 #' @return
 #' A Ggplot object. Use the \code{ggsave} function to save to file.
+#'
+#' @references 
+#' 
+#' DerSimonian R, Laird N (1986), Meta-analysis in clinical trials. Controlled Clinical Trials, 7, 177-188.
 #'
 #' @examples
 #' plotMetaAnalysisForest(logRr = c(0, 0.2, -0.2, 0, 0.2, -0.2),
