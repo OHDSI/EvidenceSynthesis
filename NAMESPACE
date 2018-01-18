@@ -3,6 +3,7 @@
 export(plotCovariateBalances)
 export(plotEmpiricalNulls)
 export(plotMetaAnalysisForest)
+export(plotPreparedPs)
 export(preparePsPlot)
 importFrom(grDevices,rgb)
 importFrom(stats,density)

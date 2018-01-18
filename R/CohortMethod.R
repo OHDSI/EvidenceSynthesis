@@ -274,7 +274,7 @@ preparePsPlot <- function(data,
 #' A ggplot object. Use the \code{\link[ggplot2]{ggsave}} function to save to file in a different
 #' format.
 #' 
-#' 
+#' @export
 plotPreparedPs <- function(preparedPsPlots,
                            labels,
                            treatmentLabel = "Treated",
