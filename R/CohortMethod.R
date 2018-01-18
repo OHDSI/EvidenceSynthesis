@@ -77,7 +77,7 @@ plotCovariateBalances <- function(balances,
   combis <- unique(balance[, c("type", "label", "y")])
   prepareAgg <- function(i) {
     subset <- balance[balance$type == combis$type[i] & balance$label == combis$label[i], ]
-    result <- quantile(subset$stdDiff, probs = c(0, 0.25, 0.5, 0.75, 1))
+    result <- quantile(subset$stdDiff, probs = c(0, 0.25, 0.5, 0.75, 1), na.rm = TRUE)
     result <- data.frame(type = combis$type[i],
                          label = combis$label[i],
                          y = combis$y[i],
