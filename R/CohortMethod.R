@@ -94,6 +94,8 @@ plotCovariateBalances <- function(balances,
   limits <- c(min(balance$stdDiff, na.rm = TRUE), max(balance$stdDiff, na.rm = TRUE))
   balance$type <- as.factor(balance$type)
   balance$type<- factor(balance$type, levels=rev(levels(balance$type)))
+  balance$label <- factor(balance$label, levels = labels)
+  agg$label <- factor(agg$label, levels = labels)
   plot <- ggplot2::ggplot(balance, ggplot2::aes(x = y, group = label)) +
     ggplot2::geom_point(ggplot2::aes(x = yDither, y = stdDiff), color = rgb(0, 0, 0.8, alpha = 0.3), shape = 16, size = 0.5) +
     ggplot2::geom_errorbar(ggplot2::aes(ymin = ymin, ymax = ymin), data = agg) +
@@ -297,6 +299,8 @@ plotPreparedPs <- function(preparedPsPlots,
     xLabel <- "Preference score"
     data$x <- data$preferenceScore
   }
+  data$label <- factor(data$label, levels = labels)
+  
   plot <- ggplot2::ggplot(data, ggplot2::aes(x = x,
                                              y = y,
                                              color = GROUP,
