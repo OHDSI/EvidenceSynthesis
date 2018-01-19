@@ -5,7 +5,7 @@
 \title{Plot empirical null distributions}
 \usage{
 plotEmpiricalNulls(logRr, seLogRr, labels, xLabel = "Relative risk",
-  limits = c(0.1, 10), fileName = NULL)
+  limits = c(0.1, 10), showCis = TRUE, fileName = NULL)
 }
 \arguments{
 \item{logRr}{A numeric vector of effect estimates for the negative controls on the log scale.}
@@ -20,6 +20,8 @@ og(<effect estimate>))/qnorm(0.025).}
 \item{xLabel}{The label on the x-axis: the name of the effect estimate.}
 
 \item{limits}{The limits of the effect size axis.}
+
+\item{showCis}{Show the 95 percent confidence intervals on the null distribution and distribution parameter estimates?}
 
 \item{fileName}{Name of the file where the plot should be saved, for example 'plot.png'. See the
 function \code{ggsave} in the ggplot2 package for supported file formats.}

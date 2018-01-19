@@ -30,7 +30,8 @@
 #' @param labels      A vector containing the labels for the various sources. Should be of equal length as 
 #'                    \code{logRr} and \code{seLogRr}.
 #' @param xLabel      The label on the x-axis: the name of the effect estimate.      
-#' @param limits     The limits of the effect size axis.              
+#' @param limits      The limits of the effect size axis.    
+#' @param showCis     Show the 95 percent confidence intervals on the null distribution and distribution parameter estimates?         
 #' @param fileName    Name of the file where the plot should be saved, for example 'plot.png'. See the
 #'                    function \code{ggsave} in the ggplot2 package for supported file formats.
 #'
@@ -57,6 +58,7 @@ plotEmpiricalNulls <- function(logRr,
                                labels,
                                xLabel = "Relative risk",
                                limits = c(0.1, 10),
+                               showCis = TRUE,
                                fileName = NULL) {
   if (length(logRr) != length(seLogRr)) 
     stop("The logRr and seLogRr arguments must have the same length")
@@ -68,32 +70,76 @@ plotEmpiricalNulls <- function(logRr,
                   sd = NA,
                   xMin = NA,
                   xMax = NA,
-                  y = length(unique(labels)) - (1:length(unique(labels))) + 1)
+                  meanLabel = "",
+                  sdLabel = "",
+                  y = length(unique(labels)) - (1:length(unique(labels))) + 1,
+                  stringsAsFactors = FALSE)
   dist <- data.frame(label = rep(unique(labels), each = 100),
                      x = seq(log(limits[1]), log(limits[2]), length.out = 100),
                      yMax = NA,
+                     yMaxUb = NA,
+                     yMaxLb = NA,
                      yMin = NA)
   for (i in 1:nrow(d)) {
     idx <- labels == d$label[i]
-    null <- EmpiricalCalibration::fitNull(logRr = logRr[idx], seLogRr = seLogRr[idx])
-    d$mean[i] <- null[1]
-    d$sd[i] <- null[2]
-    d$xMin[i] <- null[1] - null[2]
-    d$xMax[i] <- null[1] + null[2]
-    idx <- dist$label == d$label[i]
-    y <- dnorm(dist$x[idx], mean = null[1], sd = null[2])
-    y <- y/max(y)
-    y <- y * 0.7
-    dist$yMax[idx] <- d$y[i] - 0.35 + y
-    dist$yMin[idx] <- d$y[i] - 0.35
+    if (showCis) {
+      null <- EmpiricalCalibration::fitMcmcNull(logRr = logRr[idx], seLogRr = seLogRr[idx])
+      mcmc <- attr(null, "mcmc")
+      lb95Mean <- quantile(mcmc$chain[, 1], 0.025)
+      ub95Mean <- quantile(mcmc$chain[, 1], 0.975)
+      ub95Sd <- 1/sqrt(quantile(mcmc$chain[, 2], 0.025))
+      lb95Sd <- 1/sqrt(quantile(mcmc$chain[, 2], 0.975))
+      d$mean[i] <- null[1]
+      d$sd[i] <- 1/sqrt(null[2])
+      d$xMin[i] <- d$mean[i] - d$sd[i]
+      d$xMax[i] <- d$mean[i] + d$sd[i]
+      d$meanLabel[i] <- sprintf("% 1.2f (% 1.2f - % 1.2f)", d$mean[i], lb95Mean, ub95Mean)
+      d$sdLabel[i] <- sprintf("%1.2f (%1.2f - %1.2f)", d$sd[i], lb95Sd, ub95Sd)
+      idx <- dist$label == d$label[i]
+      compute <- function(x) {
+        yMcmc <- dnorm(rep(x, nrow(mcmc$chain)), mean = mcmc$chain[, 1], sd = 1/sqrt(mcmc$chain[, 2]))
+        return(quantile(yMcmc, c(0.025, 0.5, 0.975)))
+      }
+      ys <- sapply(dist$x[idx], compute)
+      y <- ys[2, ] 
+      yMaxLb <- ys[1, ] 
+      yMaxUb <- ys[3, ] 
+      normFactor <- max(ys[2, ])
+      yMaxUb[yMaxUb > normFactor] <- normFactor
+      y <- 0.7 * y / normFactor
+      yMaxLb <- 0.7 * yMaxLb / normFactor
+      yMaxUb <- 0.7 * yMaxUb / normFactor
+      dist$yMax[idx] <- d$y[i] - 0.35 + y
+      dist$yMaxLb[idx] <- d$y[i] - 0.35 + yMaxLb
+      dist$yMaxUb[idx] <- d$y[i] - 0.35 + yMaxUb
+      dist$yMin[idx] <- d$y[i] - 0.35
+    } else {
+      null <- EmpiricalCalibration::fitNull(logRr = logRr[idx], seLogRr = seLogRr[idx])
+      d$mean[i] <- null[1]
+      d$sd[i] <- null[2]
+      d$xMin[i] <- null[1] - null[2]
+      d$xMax[i] <- null[1] + null[2]
+      d$meanLabel[i] <- sprintf("% 1.2f", d$mean[i])
+      d$sdLabel[i] <- sprintf("%1.2f", d$sd[i])
+      idx <- dist$label == d$label[i]
+      y <- dnorm(dist$x[idx], mean = null[1], sd = null[2])
+      y <- y/max(y)
+      y <- y * 0.7
+      dist$yMax[idx] <- d$y[i] - 0.35 + y
+      dist$yMin[idx] <- d$y[i] - 0.35
+    }
   }
   
   breaks <- c(0.1, 0.25, 0.5, 1, 2, 4, 6, 8, 10)
   plot <- ggplot2::ggplot(d, ggplot2::aes(group = label)) +
     ggplot2::geom_vline(xintercept = log(breaks), colour = "#AAAAAA", lty = 1, size = 0.2) + 
     ggplot2::geom_vline(xintercept = 0) +
-    ggplot2::geom_ribbon(ggplot2::aes(x = x, ymax = yMax, ymin = yMin), color = rgb(0.8, 0, 0, alpha = 0), fill =  rgb(0.8, 0, 0), alpha = 0.4, data = dist) + 
-    ggplot2::geom_errorbarh(ggplot2::aes(x = mean, xmax = xMax, xmin = xMin, y = y), height = 0.5, color = rgb(0, 0, 0), size = 0.5) + 
+    ggplot2::geom_ribbon(ggplot2::aes(x = x, ymax = yMax, ymin = yMin), fill = rgb(1, 0, 0), alpha = 0.6, data = dist)
+  
+  if (showCis) {
+    plot <- plot + ggplot2::geom_ribbon(ggplot2::aes(x = x, ymax = yMaxUb, ymin = yMaxLb), fill = rgb(0.8, 0.2, 0.2), alpha = 0.3, data = dist) 
+  }
+  plot <- plot + ggplot2::geom_errorbarh(ggplot2::aes(x = mean, xmax = xMax, xmin = xMin, y = y), height = 0.5, color = rgb(0, 0, 0), size = 0.5) + 
     ggplot2::geom_point(ggplot2::aes(x = mean, y = y), shape = 16, size = 2) + 
     ggplot2::coord_cartesian(xlim = log(limits), ylim = c(0.5, (nrow(d) + 1))) + 
     ggplot2::scale_x_continuous(xLabel, breaks = log(breaks), labels = breaks) +
@@ -112,12 +158,12 @@ plotEmpiricalNulls <- function(logRr,
                    plot.margin = grid::unit(c(0,0,0.1,0), "lines"))
   
   text <- data.frame(y = rep(c(d$y, nrow(d) + 1), 3),
-                     x = rep(c(1,2,3), each = nrow(d) + 1),
+                     x = rep(c(1,2,3.2), each = nrow(d) + 1),
                      label = c(c(as.character(d$label), 
                                  "Source",
-                                 formatC(d$mean,  digits = 2, format = "f"), 
-                                 "Mean", 
-                                 formatC(d$sd,  digits = 2, format = "f"),
+                                 d$meanLabel, 
+                                 " Mean", 
+                                 d$sdLabel,
                                  "SD")),
                      dummy = "")
   
@@ -140,6 +186,6 @@ plotEmpiricalNulls <- function(logRr,
   plot <- gridExtra::grid.arrange(data_table, plot, ncol=2)
   
   if (!is.null(fileName))
-    ggplot2::ggsave(fileName, plot, width = 8, height = 1 + length(d) * 0.1, dpi = 400)
+    ggplot2::ggsave(fileName, plot, width = 8 + showCis*2, height = 1 + length(d) * 0.1, dpi = 400)
   return(plot)
 }

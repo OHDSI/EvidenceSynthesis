@@ -325,7 +325,7 @@ plotPreparedPs <- function(preparedPsPlots,
                    panel.background = ggplot2::element_blank(),
                    panel.grid = ggplot2::element_blank())
   if (!is.null(fileName))
-    ggplot2::ggsave(fileName, plot, width = 3, height = 1 + length(preparedPsPlots) * 0.5, dpi = 400)
+    ggplot2::ggsave(fileName, plot, width = 4, height = 1 + length(preparedPsPlots) * 0.75, dpi = 400)
   return(plot)
 }
 
