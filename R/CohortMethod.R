@@ -71,7 +71,7 @@ plotCovariateBalances <- function(balances,
   balances <- lapply(1:length(balances), prepare)
   balance <- do.call("rbind", balances)
   labelToY <- data.frame(label = labels,
-                         y = 1 + length(labels) - order(labels))
+                         y = 1 + length(labels) - (1:length(labels)))
   balance <- merge(balance, labelToY)
   balance$yDither <- balance$y + runif(nrow(balance), -0.3, 0.3)
   combis <- unique(balance[, c("type", "label", "y")])
