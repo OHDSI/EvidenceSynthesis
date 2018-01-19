@@ -279,7 +279,7 @@ preparePsPlot <- function(data,
 #' @export
 plotPreparedPs <- function(preparedPsPlots,
                            labels,
-                           treatmentLabel = "Treated",
+                           treatmentLabel = "Target",
                            comparatorLabel = "Comparator",
                            fileName = NULL) {
   if (length(preparedPsPlots) != length(labels)) 
@@ -289,9 +289,9 @@ plotPreparedPs <- function(preparedPsPlots,
     preparedPsPlots[[i]]$label <- labels[i]
   }
   data <- do.call("rbind", preparedPsPlots)
-  data$GROUP <- "Target"
-  data$GROUP[data$treatment == 0] <- "Comparator"
-  data$GROUP <- factor(data$GROUP, levels = c("Target", "Comparator"))
+  data$GROUP <- treatmentLabel
+  data$GROUP[data$treatment == 0] <- comparatorLabel
+  data$GROUP <- factor(data$GROUP, levels = c(treatmentLabel, comparatorLabel))
   if (!is.null(data$propensityScore)) {
     xLabel <- "Propensity score"
     data$x <- data$propensityScore
