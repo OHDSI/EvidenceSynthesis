@@ -29,6 +29,8 @@
 #' @param labels     A vector containing the labels for the various estimates.
 #' @param xLabel     The label on the x-axis: the name of the effect estimate.
 #' @param limits     The limits of the effect size axis.
+#' @param hakn	     A logical indicating whether method by Hartung and Knapp should be used to adjust 
+#'                   test statistics and confidence intervals.
 #' @param fileName   Name of the file where the plot should be saved, for example 'plot.png'. See the
 #'                   function \code{ggsave} in the ggplot2 package for supported file formats.
 #'
@@ -52,9 +54,10 @@ plotMetaAnalysisForest <- function(logRr,
                                    labels, 
                                    xLabel = "Relative risk", 
                                    limits = c(0.1, 10), 
+                                   hakn = TRUE,
                                    fileName = NULL) {
     seLogRr <- (logUb95Ci-logLb95Ci) / (2 * qnorm(0.975))
-    meta <- meta::metagen(logRr, seLogRr, studlab = labels, sm = "RR")
+    meta <- meta::metagen(logRr, seLogRr, studlab = labels, sm = "RR", hakn = hakn)
     s <- summary(meta)
     rnd <- s$random
     summaryLabel <- sprintf("Summary (I\u00B2 = %.2f)", s$I2$TE)

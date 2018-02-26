@@ -5,7 +5,8 @@
 \title{Perform a meta-analysis and create a forest plot}
 \usage{
 plotMetaAnalysisForest(logRr, logLb95Ci, logUb95Ci, labels,
-  xLabel = "Relative risk", limits = c(0.1, 10), fileName = NULL)
+  xLabel = "Relative risk", limits = c(0.1, 10), hakn = TRUE,
+  fileName = NULL)
 }
 \arguments{
 \item{logRr}{A numeric vector of effect estimates on the log scale.}
@@ -19,6 +20,9 @@ plotMetaAnalysisForest(logRr, logLb95Ci, logUb95Ci, labels,
 \item{xLabel}{The label on the x-axis: the name of the effect estimate.}
 
 \item{limits}{The limits of the effect size axis.}
+
+\item{hakn}{A logical indicating whether method by Hartung and Knapp should be used to adjust 
+test statistics and confidence intervals.}
 
 \item{fileName}{Name of the file where the plot should be saved, for example 'plot.png'. See the
 function \code{ggsave} in the ggplot2 package for supported file formats.}
