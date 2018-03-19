@@ -10,7 +10,7 @@ plotCovariateBalances(balances, labels, threshold = 0,
 }
 \arguments{
 \item{balances}{A list of covariate balance objects as created using the 
-\code{\link[CohortMethod]{computeCovariateBalance}} function in the 
+\code{computeCovariateBalance} function in the 
 \code{CohortMethod} package. Each balance object is expected to be a data.frame with 
 at least these two columns: \code{beforeMatchingStdDiff} and \code{afterMatchingStdDiff}.}
 

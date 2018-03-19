@@ -1,8 +1,8 @@
 Package: EvidenceSynthesis
 Type: Package
-Title: An R package for Combining Evidence from Multiple Sources
-Version: 0.0.2
-Date: 2018-02-26
+Title: An R Package for Combining Evidence from Multiple Sources
+Version: 0.0.3
+Date: 2018-03-19
 Author: Martijn Schuemie, Marc Suchard
 Maintainer: Martijn Schuemie <schuemie@ohdsi.org>
 Description: Routines for combining evidence and diagnostics across multiple 

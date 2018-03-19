@@ -24,7 +24,7 @@
 #' as box plots combined with scatterplots. 
 #'
 #' @param balances   A list of covariate balance objects as created using the 
-#'                   \code{\link[CohortMethod]{computeCovariateBalance}} function in the 
+#'                   \code{computeCovariateBalance} function in the 
 #'                   \code{CohortMethod} package. Each balance object is expected to be a data.frame with 
 #'                   at least these two columns: \code{beforeMatchingStdDiff} and \code{afterMatchingStdDiff}.
 #' @param labels     A vector containing the labels for the various sources.

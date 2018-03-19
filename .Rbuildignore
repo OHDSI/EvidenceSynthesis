@@ -5,3 +5,5 @@ extras
 ^\.travis\.yml$
 ^deploy_container.sh$
 ^cran-comments.md$
+deploy.sh
+compare_versions
