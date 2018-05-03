@@ -5,7 +5,7 @@
 \title{Perform a meta-analysis and create a forest plot}
 \usage{
 plotMetaAnalysisForest(logRr, logLb95Ci, logUb95Ci, labels,
-  xLabel = "Relative risk", limits = c(0.1, 10), hakn = TRUE,
+  xLabel = "Relative risk", limits = c(0.1, 10), hakn = FALSE,
   fileName = NULL)
 }
 \arguments{

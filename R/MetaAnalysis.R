@@ -54,7 +54,7 @@ plotMetaAnalysisForest <- function(logRr,
                                    labels, 
                                    xLabel = "Relative risk", 
                                    limits = c(0.1, 10), 
-                                   hakn = TRUE,
+                                   hakn = FALSE,
                                    fileName = NULL) {
     seLogRr <- (logUb95Ci-logLb95Ci) / (2 * qnorm(0.975))
     meta <- meta::metagen(logRr, seLogRr, studlab = labels, sm = "RR", hakn = hakn)
