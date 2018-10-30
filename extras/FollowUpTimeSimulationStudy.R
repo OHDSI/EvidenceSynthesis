@@ -1,3 +1,4 @@
+# Exploring how we can normalize results from observational studies to RCTs by correcting for differences in follow-up time distribution
 library(Cyclops)
 library(survival)
 library(CohortMethod)

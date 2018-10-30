@@ -1,3 +1,4 @@
+# Some exploration into coverage issues when using HKSJ random-effects model
 library(Cyclops)
 library(survival)
 library(meta)
