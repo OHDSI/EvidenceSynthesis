@@ -25,14 +25,14 @@ profileCoxLikelihood <- function(population) {
   return(result)
 }
 
-pseudoCoxLogLikelihood <- function(x, position, scale, skew, shape) {
-  return((1/scale)*(x - position) - log(exp(skew*(1/scale)*(x - position)) + shape))
+pseudoCoxLogLikelihood <- function(x, position, scale, skew) {
+  return((1/scale)*(x - position) - log(exp(skew*(1/scale)*(x - position)) + 1))
 }
 
 fitPseudoCox <- function(coxProfile) {
   
   sumSquares <- function(p, coxProfile) {
-    pseudoCoxLl <- pseudoCoxLogLikelihood(coxProfile$beta, p[1], p[2], p[3], p[4])
+    pseudoCoxLl <- pseudoCoxLogLikelihood(coxProfile$beta, p[1], p[2], p[3])
     coxLl <- coxProfile$ll
     
     # Scale to standard:
@@ -42,16 +42,15 @@ fitPseudoCox <- function(coxProfile) {
     pseudoCoxLl <- pseudoCoxLl / max(pseudoCoxLl)
     
     result <- sum((pseudoCoxLl - coxLl)^2)
-    print(paste(paste(p, collapse = ","), result))
+    # print(paste(paste(p, collapse = ","), result))
     return(result)
   }
   
-  fit <- optim(c(3,12,2.2,1), sumSquares, coxProfile = coxProfile)
+  fit <- optim(c(3,12,2.2), sumSquares, coxProfile = coxProfile)
   
   result <- data.frame(position = fit$par[1],
                        scale  = fit$par[2],
-                       skew = fit$par[3],
-                       shape = fit$par[4])
+                       skew = fit$par[3])
   return(result)
 }
 
@@ -59,8 +58,7 @@ plotLikelihoodFit <- function(coxProfile, pseudoCoxFit) {
   pseudoCoxLl <- pseudoCoxLogLikelihood(x = coxProfile$beta, 
                                         position = pseudoCoxFit$position,
                                         scale = pseudoCoxFit$scale,
-                                        skew = pseudoCoxFit$skew,
-                                        shape = pseudoCoxFit$shape)
+                                        skew = pseudoCoxFit$skew)
   mean <- attr(coxProfile, "mode")
   se <- attr(coxProfile, "se")
   normalLl <- dnorm(coxProfile$beta, mean, se, log = TRUE) 

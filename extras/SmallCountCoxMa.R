@@ -171,27 +171,43 @@ print(fit)
 
 
 # Cox likelihood function ---------------------------------------------------------------------
-set.seed(25)
-nrows <- 5000
-rr <- 2
-nstrata <- 5
-minBackgroundP = 0.0000002
-maxBackgroundP = 0.00002
+for (i in 8:25) {
+  print(i)
+  set.seed(i)
+  nrows <- 5000
+  rr <- 2
+  nstrata <- 5
+  minBackgroundP = 0.0000002
+  maxBackgroundP = 0.00002
+  
+  population <- data.frame(rowId = 1:nrows,
+                           stratumId = round(runif(nrows,min = 1,max = nstrata)),
+                           y = 0)
+  population$x = as.numeric(runif(nrows) < population$stratumId/(nstrata + 1))
+  strataBackgroundProb <- runif(nstrata, min = minBackgroundP, max = maxBackgroundP )
+  population$rate <-  strataBackgroundProb[population$stratumId]
+  population$rate[population$x == 1] <- population$rate[population$x == 1] * rr
+  population$timeToOutcome <- 1 + round(rexp(n = nrows, population$rate))
+  population$timeToCensor <- 1 + round(runif(n = nrows, min = 0, max = 499 - 400 * population$x))
+  population$time <- population$timeToOutcome
+  population$time[population$timeToCensor < population$timeToOutcome] <- population$timeToCensor[population$timeToCensor < population$timeToOutcome]
+  population$y <- as.integer(population$timeToCensor > population$timeToOutcome)
+  sum(population$y[population$x == 0])
+  sum(population$y[population$x == 1])
+  
+  coxProfile <- profileCoxLikelihood(population)
+  pseudoCoxFit <- fitPseudoCox(coxProfile)
+  plotLikelihoodFit(coxProfile, pseudoCoxFit)
+  ggsave(file.path("c:/temp/plots", sprintf("ll_seed_%s.png", i)))
+}
 
-population <- data.frame(rowId = 1:nrows,
-                         stratumId = round(runif(nrows,min = 1,max = nstrata)),
-                         y = 0)
-population$x = as.numeric(runif(nrows) < population$stratumId/(nstrata + 1))
-strataBackgroundProb <- runif(nstrata, min = minBackgroundP, max = maxBackgroundP )
-population$rate <-  strataBackgroundProb[population$stratumId]
-population$rate[population$x == 1] <- population$rate[population$x == 1] * rr
-population$timeToOutcome <- 1 + round(rexp(n = nrows, population$rate))
-population$timeToCensor <- 1 + round(runif(n = nrows, min = 0, max = 499 - 400 * population$x))
-population$time <- population$timeToOutcome
-population$time[population$timeToCensor < population$timeToOutcome] <- population$timeToCensor[population$timeToCensor < population$timeToOutcome]
-population$y <- as.integer(population$timeToCensor > population$timeToOutcome)
-sum(population$y[population$x == 0])
-sum(population$y[population$x == 1])
+# Lung data (subset) --------------------------
+library(survival)
+population <- data.frame(y = lung$status  == 2,
+                         x = lung$sex - 1,
+                         time = lung$time,
+                         stratumId = 1)
+population <- population[3:7, ]
 
 coxProfile <- profileCoxLikelihood(population)
 pseudoCoxFit <- fitPseudoCox(coxProfile)
