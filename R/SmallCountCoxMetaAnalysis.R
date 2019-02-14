@@ -46,7 +46,7 @@ fitPseudoCox <- function(coxProfile) {
     return(result)
   }
   
-  fit <- optim(c(3,12,2.2), sumSquares, coxProfile = coxProfile)
+  fit <- optim(c(0,1,1), sumSquares, coxProfile = coxProfile)
   
   result <- data.frame(position = fit$par[1],
                        scale  = fit$par[2],

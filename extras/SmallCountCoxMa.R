@@ -170,8 +170,12 @@ print(maEstimate)
 print(fit)
 
 
-# Cox likelihood function ---------------------------------------------------------------------
-for (i in 8:25) {
+# Pseudo Cox likelihood function ---------------------------------------------------------------------
+library(Cyclops)
+library(ggplot2)
+library(survival)
+
+for (i in 1:50) {
   print(i)
   set.seed(i)
   nrows <- 5000
@@ -195,10 +199,12 @@ for (i in 8:25) {
   sum(population$y[population$x == 0])
   sum(population$y[population$x == 1])
   
-  coxProfile <- profileCoxLikelihood(population)
-  pseudoCoxFit <- fitPseudoCox(coxProfile)
-  plotLikelihoodFit(coxProfile, pseudoCoxFit)
-  ggsave(file.path("c:/temp/plots", sprintf("ll_seed_%s.png", i)))
+  coxProfile <- tryCatch(profileCoxLikelihood(population), error = function(e) "Error")
+  if (coxProfile != "Error") {
+    pseudoCoxFit <- fitPseudoCox(coxProfile)
+    plotLikelihoodFit(coxProfile, pseudoCoxFit)
+    ggsave(file.path("c:/temp/plots", sprintf("ll_seed_%s.png", i)))
+  }
 }
 
 # Lung data (subset) --------------------------
