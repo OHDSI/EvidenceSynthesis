@@ -170,4 +170,72 @@ print(maEstimate)
 print(fit)
 
 
+# Cox likelihood function ---------------------------------------------------------------------
+set.seed(25)
+nrows <- 5000
+rr <- 2
+nstrata <- 5
+minBackgroundP = 0.0000002
+maxBackgroundP = 0.00002
 
+population <- data.frame(rowId = 1:nrows,
+                         stratumId = round(runif(nrows,min = 1,max = nstrata)),
+                         y = 0)
+population$x = as.numeric(runif(nrows) < population$stratumId/(nstrata + 1))
+strataBackgroundProb <- runif(nstrata, min = minBackgroundP, max = maxBackgroundP )
+population$rate <-  strataBackgroundProb[population$stratumId]
+population$rate[population$x == 1] <- population$rate[population$x == 1] * rr
+population$timeToOutcome <- 1 + round(rexp(n = nrows, population$rate))
+population$timeToCensor <- 1 + round(runif(n = nrows, min = 0, max = 499 - 400 * population$x))
+population$time <- population$timeToOutcome
+population$time[population$timeToCensor < population$timeToOutcome] <- population$timeToCensor[population$timeToCensor < population$timeToOutcome]
+population$y <- as.integer(population$timeToCensor > population$timeToOutcome)
+sum(population$y[population$x == 0])
+sum(population$y[population$x == 1])
+
+coxProfile <- profileCoxLikelihood(population)
+pseudoCoxFit <- fitPseudoCox(coxProfile)
+plotLikelihoodFit(coxProfile, pseudoCoxFit)
+
+# Real data with skew ---------------------------
+population <- readRDS("c:/temp/strataPop.rds")
+population$time <- population$survivalTime
+population$x <- population$treatment
+population$y <- as.numeric(population$outcomeCount != 0)
+population <- population[population$stratumId %in% unique(population$stratumId[population$y == 1]), ]
+# sum(population$y[population$x == 0])
+# sum(population$y[population$x == 1])
+# unique(population$stratumId)
+# subset <- population[population$stratumId == 9, ]
+# y <- sapply(x, ll, time = subset$time, y = subset$y, x = subset$x, stratumId = subset$stratumId)
+# plot(x,y)
+# sum(subset$y)
+# i <- which(subset$y == 1)
+# j <- which(subset$time >= subset$time[i])
+# mean(subset$x[j])
+# median(subset$time[subset$x == 1])
+# median(subset$time[subset$x == 0])
+# Plot likelihood per stratum:
+unique(population$stratumId)
+fit <- coxph(Surv(time, y) ~ x + strata(stratumId), population)
+lim <- confint(fit, level = 0.99)
+x <- seq(lim[1], lim[2], length.out = 100)
+subset <- population
+data <- data.frame(stratum = "All",
+                   x = x,
+                   y = sapply(x, ll, time = subset$time, y = subset$y, x = subset$x, stratumId = subset$stratumId),
+                   stringsAsFactors = FALSE)
+for (stratumId in unique(population$stratumId)) {
+  subset <- population[population$stratumId == stratumId, ]
+  data <- rbind(data, 
+                data.frame(stratum = paste("Stratum", stratumId),
+                           x = x,
+                           y = sapply(x, ll, time = subset$time, y = subset$y, x = subset$x, stratumId = subset$stratumId),
+                           stringsAsFactors = FALSE))
+}
+ggplot(data, aes(x = x, y = y)) +
+  geom_line() +
+  xlab("log(HR)") +
+  ylab("log(likelihood)") +
+  facet_wrap(~stratum, scales = "free")
+ggsave("c:/temp/ll.png")
