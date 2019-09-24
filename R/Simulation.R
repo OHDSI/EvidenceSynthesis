@@ -182,9 +182,7 @@ estimateUsingStandardMetaAnalysis <- function(simulation,
 
   estimates <- lapply(simulation, fitIndividualModel, useCyclops = useCyclops)
   estimates <- do.call("rbind", estimates)
-  # if (filterLargeSes) {
-  #   estimates <- estimates[estimates$seLogRr < 100, ]
-  # }
+  estimates <- estimates[estimates$seLogRr < 100, ]
   meta <- meta::metagen(TE = estimates$logRr, 
                         seTE = estimates$seLogRr, 
                         studlab = rep("", nrow(estimates)), 
@@ -192,10 +190,10 @@ estimateUsingStandardMetaAnalysis <- function(simulation,
                         sm = "RR")
   s <- summary(meta)
   rnd <- s$random
-  return(data.frame(rr = rnd$TE,
-                    ci95Lb = rnd$lower,
-                    ci95Ub = rnd$upper,
-                    logRr = log(rnd$TE),
+  return(data.frame(rr = exp(rnd$TE),
+                    ci95Lb = exp(rnd$lower),
+                    ci95Ub = exp(rnd$upper),
+                    logRr = rnd$TE,
                     seLogRr = rnd$seTE))
 }
 
@@ -260,4 +258,74 @@ evaluateMetaAnalysisApproach <- function(simulationSettings,
   return(result)
 }
 
-# x <- evaluateMetaAnalysisApproach(settings, 10, estimateByPooling, useCyclops = FALSE)
+plotLikelihood <- function(simulation) {
+  fitCyclopsModels <- function(population) {
+    cyclopsData <- Cyclops::createCyclopsData(Surv(time, y) ~ x + strata(stratumId), data = population, modelType = "cox")
+    fit <- Cyclops::fitCyclopsModel(cyclopsData)
+  }
+  models <- lapply(simulation, fitCyclopsModels)
+  
+  # getLimits <- function(fit) {
+  #   mode <- coef(fit)
+  #   ci99 <- confint(fit, 1, level = .99)
+  #   if (is.na(ci99[2])) {
+  #     ci99[2] <- mode - (ci99[3] - mode) * 2
+  #   }
+  #   if (is.na(ci99[3])) {
+  #     ci99[3] <- mode + (mode - ci99[2]) * 2
+  #   }
+  #   return(data.frame(lower = ci99[2], upper = ci99[3]))
+  # }
+  # limits <- lapply(models, getLimits)
+  # limits <- do.call("rbind", limits)
+  # x <- seq(from = min(limits$lower), to = max(limits$upper), length.out = 100)
+
+  getCis <- function(fit, level = 0.95) {
+    mode <- coef(fit)
+    ci95 <- confint(fit, 1, level = level)
+    if (is.na(ci95[2]) | is.na(ci95[3])) {
+      return(data.frame(lower = NA, mode = NA, upper = NA))
+    } else {
+      return(data.frame(lower = ci95[2], mode = mode, upper = ci95[3]))
+    }
+  }
+  limits <- lapply(models, getCis, level = 0.99)
+  limits <- do.call("rbind", limits)
+  x <- seq(from = min(limits$lower, na.rm = TRUE), to = max(limits$upper, na.rm = TRUE), length.out = 100)
+  
+  
+  cis <- lapply(models, getCis)
+  cis <- do.call("rbind", cis)
+  cis$site <- paste("Site", 1:nrow(cis))
+  
+  computeY <- function(i) {
+    y <- rep(0, 100)
+    for (j in 1:100) {
+      # Set starting coefficient, then tell Cyclops that it is fixed:
+      temp <- Cyclops::fitCyclopsModel(models[[i]]$cyclopsData, startingCoefficients = x[j], fixedCoefficients = 1)
+      y[j] <- temp$log_likelihood
+    }
+    return(data.frame(x = x, y = y - min(y), site = paste("Site", i)))
+  }
+  vizData <- lapply(1:length(models), computeY)
+  vizData <- do.call("rbind", vizData)
+  vizData$y <- vizData$y - min(vizData$y)
+  vizData$site <- factor(vizData$site, levels = paste("Site", 1:length(models)))
+  cis$site <- factor(cis$site, levels = paste("Site", 1:length(models)))
+    
+  plot <- ggplot2::ggplot(vizData, ggplot2::aes(x = x, y = y)) +
+    ggplot2::geom_area(color = rgb(0, 0, 0.8), fill = rgb(0, 0, 0.8), alpha = 0.5) +
+    ggplot2::geom_vline(size = 1, ggplot2::aes(xintercept = mode), data = cis) +
+    ggplot2::geom_vline(size = 1, linetype = "dotted", ggplot2::aes(xintercept = lower), data = cis) +
+    ggplot2::geom_vline(size = 1, linetype = "dotted", ggplot2::aes(xintercept = upper), data = cis) +
+    ggplot2::xlab("Beta") +
+    ggplot2::ylab("Log likelihood") +
+    ggplot2::facet_grid(site~., scales = "free_y") +
+    ggplot2::theme(axis.text.y = ggplot2::element_blank(),
+                   axis.ticks.y = ggplot2::element_blank(),
+                   axis.line.y = ggplot2::element_blank(),
+                   panel.grid.major.y = ggplot2::element_blank(),
+                   panel.grid.minor.y = ggplot2::element_blank(),
+                   strip.background = ggplot2::element_blank())
+  return(plot)
+}
