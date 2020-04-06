@@ -4,9 +4,16 @@
 \alias{plotMetaAnalysisForest}
 \title{Perform a meta-analysis and create a forest plot}
 \usage{
-plotMetaAnalysisForest(logRr, logLb95Ci, logUb95Ci, labels,
-  xLabel = "Relative risk", limits = c(0.1, 10), hakn = FALSE,
-  fileName = NULL)
+plotMetaAnalysisForest(
+  logRr,
+  logLb95Ci,
+  logUb95Ci,
+  labels,
+  xLabel = "Relative risk",
+  limits = c(0.1, 10),
+  hakn = FALSE,
+  fileName = NULL
+)
 }
 \arguments{
 \item{logRr}{A numeric vector of effect estimates on the log scale.}

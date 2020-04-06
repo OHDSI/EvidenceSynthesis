@@ -14,10 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#' EvidenceSynthesis
-#'
-#' @docType package
-#' @name EvidenceSynthesis
+#' @keywords internal
+"_PACKAGE"
+
 #' @importFrom grDevices rgb
 #' @importFrom stats density dnorm qnorm quantile runif
 NULL

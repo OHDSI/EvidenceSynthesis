@@ -1,9 +1,11 @@
-extras
 ^.*\.Rproj$
 ^\.Rproj\.user$
-^\R\Temp*
-^\.travis\.yml$
-^deploy_container.sh$
-^cran-comments.md$
+.gitattributes
+extras
+man-roxygen
+.travis.yml
 deploy.sh
 compare_versions
+^cran-comments.md$
+_pkgdown.yml
+docs

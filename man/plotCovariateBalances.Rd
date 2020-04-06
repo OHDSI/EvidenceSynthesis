@@ -4,9 +4,14 @@
 \alias{plotCovariateBalances}
 \title{Plot covariate balances}
 \usage{
-plotCovariateBalances(balances, labels, threshold = 0,
-  beforeLabel = "Before matching", afterLabel = "After matching",
-  fileName = NULL)
+plotCovariateBalances(
+  balances,
+  labels,
+  threshold = 0,
+  beforeLabel = "Before matching",
+  afterLabel = "After matching",
+  fileName = NULL
+)
 }
 \arguments{
 \item{balances}{A list of covariate balance objects as created using the 

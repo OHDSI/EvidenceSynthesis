@@ -4,8 +4,13 @@
 \alias{plotPreparedPs}
 \title{Plot the propensity score distribution}
 \usage{
-plotPreparedPs(preparedPsPlots, labels, treatmentLabel = "Target",
-  comparatorLabel = "Comparator", fileName = NULL)
+plotPreparedPs(
+  preparedPsPlots,
+  labels,
+  treatmentLabel = "Target",
+  comparatorLabel = "Comparator",
+  fileName = NULL
+)
 }
 \arguments{
 \item{preparedPsPlots}{A list of prepared propensity score data as created by the 

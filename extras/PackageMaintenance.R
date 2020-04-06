@@ -20,7 +20,10 @@
 OhdsiRTools::formatRFolder()
 OhdsiRTools::checkUsagePackage("EvidenceSynthesis")
 OhdsiRTools::updateCopyrightYearFolder()
+devtools::spell_check()
 
 # Create manual and vignettes:
-shell("rm extras/EvidenceSynthesis.pdf")
+unlink("extras/EvidenceSynthesis.pdf")
 shell("R CMD Rd2pdf ./ --output=extras/EvidenceSynthesis.pdf")
+
+pkgdown::build_site(preview = FALSE)

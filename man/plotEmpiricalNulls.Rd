@@ -4,8 +4,15 @@
 \alias{plotEmpiricalNulls}
 \title{Plot empirical null distributions}
 \usage{
-plotEmpiricalNulls(logRr, seLogRr, labels, xLabel = "Relative risk",
-  limits = c(0.1, 10), showCis = TRUE, fileName = NULL)
+plotEmpiricalNulls(
+  logRr,
+  seLogRr,
+  labels,
+  xLabel = "Relative risk",
+  limits = c(0.1, 10),
+  showCis = TRUE,
+  fileName = NULL
+)
 }
 \arguments{
 \item{logRr}{A numeric vector of effect estimates for the negative controls on the log scale.}
