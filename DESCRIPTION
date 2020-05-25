@@ -2,7 +2,7 @@ Package: EvidenceSynthesis
 Type: Package
 Title: An R Package for Combining Evidence from Multiple Sources
 Version: 0.0.5
-Date: 2020-04-06
+Date: 2020-05-25
 Authors@R: c(
   person("Martijn", "Schuemie", email = "schuemie@ohdsi.org", role = c("aut", "cre"))
   )
@@ -11,10 +11,10 @@ Description: Routines for combining evidence and diagnostics across multiple
    sources, such as multiple data sites in a distributed study. This includes functions
    for performing meta-analysis and forest plots.
 Imports:
-    ggplot2 (>= 2.0.0),
-    gridExtra,
-    meta,
-	EmpiricalCalibration
+  ggplot2 (>= 2.0.0),
+  gridExtra,
+  meta,
+  EmpiricalCalibration
 License: Apache License 2.0
 URL: https://github.com/OHDSI/EvidenceSynthesis
 BugReports: https://github.com/OHDSI/EvidenceSynthesis/issues
