@@ -14,9 +14,8 @@ plotCovariateBalances(
 )
 }
 \arguments{
-\item{balances}{A list of covariate balance objects as created using the 
-\code{computeCovariateBalance} function in the 
-\code{CohortMethod} package. Each balance object is expected to be a data.frame with 
+\item{balances}{A list of covariate balance objects as created using the
+\code{computeCovariateBalance()} function in the \code{CohortMethod} package. Each balance object is expected to be a data frame with
 at least these two columns: \code{beforeMatchingStdDiff} and \code{afterMatchingStdDiff}.}
 
 \item{labels}{A vector containing the labels for the various sources.}
@@ -28,13 +27,13 @@ at least these two columns: \code{beforeMatchingStdDiff} and \code{afterMatching
 \item{afterLabel}{Label for after matching / stratification / trimming.}
 
 \item{fileName}{Name of the file where the plot should be saved, for example 'plot.png'. See the
-function \code{ggsave} in the ggplot2 package for supported file formats.}
+function \link[ggplot2:ggsave]{ggplot2::ggsave} for supported file formats.}
 }
 \value{
-A Ggplot object. Use the \code{ggsave} function to save to file.
+A Ggplot object. Use the \link[ggplot2:ggsave]{ggplot2::ggsave}.
 }
 \description{
-\code{plotCovariateBalances} plots the covariate balance before and after matching for multiple data sources.
+Plots the covariate balance before and after matching for multiple data sources.
 }
 \details{
 Creates a plot showing the covariate balance before and after matching. Balance distributions are displayed

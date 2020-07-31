@@ -28,20 +28,20 @@ plotMetaAnalysisForest(
 
 \item{limits}{The limits of the effect size axis.}
 
-\item{hakn}{A logical indicating whether method by Hartung and Knapp should be used to adjust 
+\item{hakn}{A logical indicating whether method by Hartung and Knapp should be used to adjust
 test statistics and confidence intervals.}
 
 \item{fileName}{Name of the file where the plot should be saved, for example 'plot.png'. See the
-function \code{ggsave} in the ggplot2 package for supported file formats.}
+function \link[ggplot2:ggsave]{ggplot2::ggsave} ifor supported file formats.}
 }
 \value{
-A Ggplot object. Use the \code{ggsave} function to save to file.
+A Ggplot object. Use the \link[ggplot2:ggsave]{ggplot2::ggsave} function to save to file.
 }
 \description{
-\code{plotMetaAnalysisForest} performs a meta-analysis and creates a forest plot of effect size estimates.
+Perform a meta-analysis and creates a forest plot of effect size estimates.
 }
 \details{
-Creates a forest plot of effect size estimates, and includes a meta-analysis estimate using a random effects model. 
+Creates a forest plot of effect size estimates, and includes a meta-analysis estimate using a random effects model.
 The DerSimonian-Laird estimate (1986) is used.
 }
 \examples{

@@ -13,8 +13,8 @@ plotPreparedPs(
 )
 }
 \arguments{
-\item{preparedPsPlots}{A list of prepared propensity score data as created by the 
-\code{\link{preparePsPlot}} function.}
+\item{preparedPsPlots}{list of prepared propensity score data as created by the
+\code{\link[=preparePsPlot]{preparePsPlot()}} function.}
 
 \item{labels}{A vector containing the labels for the various sources.}
 
@@ -23,11 +23,11 @@ plotPreparedPs(
 \item{comparatorLabel}{A label to us for the comparator cohort.}
 
 \item{fileName}{Name of the file where the plot should be saved, for example 'plot.png'.
-See the function \code{ggsave} in the ggplot2 package for supported file
+See the function \link[ggplot2:ggsave]{ggplot2::ggsave} for supported file
 formats.}
 }
 \value{
-A ggplot object. Use the \code{\link[ggplot2]{ggsave}} function to save to file in a different
+A ggplot object. Use the \link[ggplot2:ggsave]{ggplot2::ggsave} function to save to file in a different
 format.
 }
 \description{

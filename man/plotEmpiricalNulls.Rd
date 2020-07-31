@@ -17,11 +17,11 @@ plotEmpiricalNulls(
 \arguments{
 \item{logRr}{A numeric vector of effect estimates for the negative controls on the log scale.}
 
-\item{seLogRr}{The standard error of the log of the effect estimates. 
-Hint: often the standard error = (log(<lower bound 95 percent confidence interval>) - l
-og(<effect estimate>))/qnorm(0.025).}
+\item{seLogRr}{The standard error of the log of the effect estimates.
+Hint: often the standard error = (log(lower bound 95 percent confidence interval) - l
+og(effect estimate))/qnorm(0.025).}
 
-\item{labels}{A vector containing the labels for the various sources. Should be of equal length as 
+\item{labels}{A vector containing the labels for the various sources. Should be of equal length as
 \code{logRr} and \code{seLogRr}.}
 
 \item{xLabel}{The label on the x-axis: the name of the effect estimate.}
@@ -31,13 +31,13 @@ og(<effect estimate>))/qnorm(0.025).}
 \item{showCis}{Show the 95 percent confidence intervals on the null distribution and distribution parameter estimates?}
 
 \item{fileName}{Name of the file where the plot should be saved, for example 'plot.png'. See the
-function \code{ggsave} in the ggplot2 package for supported file formats.}
+function \code{\link[ggplot2:ggsave]{ggplot2::ggsave()}} for supported file formats.}
 }
 \value{
-A Ggplot object. Use the \code{ggsave} function to save to file.
+A Ggplot object. Use the \code{\link[ggplot2:ggsave]{ggplot2::ggsave()}} function to save to file.
 }
 \description{
-\code{plotEmpiricalNulls} plots the empirical null distribution for multiple data sources.
+Plot the empirical null distribution for multiple data sources.
 }
 \details{
 Creates a plot showing the empirical null distributions. Distributions are shown as mean plus minus one

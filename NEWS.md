@@ -1,3 +1,11 @@
+EvidenceSynthesis 0.1.0
+=======================
+
+Changes
+
+1. Adding meta-analysis using local non-normal Cox likelihood approximations to avoid bias when sample size is small.
+
+
 EvidenceSynthesis 0.0.5
 =======================
 

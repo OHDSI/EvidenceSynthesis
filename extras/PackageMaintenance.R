@@ -26,4 +26,12 @@ devtools::spell_check()
 unlink("extras/EvidenceSynthesis.pdf")
 shell("R CMD Rd2pdf ./ --output=extras/EvidenceSynthesis.pdf")
 
-pkgdown::build_site(preview = FALSE)
+dir.create("inst/doc", recursive = TRUE)
+rmarkdown::render("vignettes/NonNormalMetaAnalyis.Rmd",
+                  output_file = "../inst/doc/NonNormalMetaAnalysis.pdf",
+                  rmarkdown::pdf_document(latex_engine = "pdflatex",
+                                          toc = TRUE,
+                                          number_sections = TRUE))
+unlink("inst/doc/NonNormalMetaAnalysis.tex")
+
+pkgdown::build_site()

@@ -21,5 +21,15 @@ Useful links:
 \author{
 \strong{Maintainer}: Martijn Schuemie \email{schuemie@ohdsi.org}
 
+Authors:
+\itemize{
+  \item Marc A. Suchard \email{msuchard@ucla.edu}
+}
+
+Other contributors:
+\itemize{
+  \item Observational Health Data Science and Informatics [copyright holder]
+}
+
 }
 \keyword{internal}

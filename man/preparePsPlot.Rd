@@ -13,8 +13,7 @@ preparePsPlot(data, unfilteredData = NULL, scale = "preference")
 have already been removed, e.g. through trimming and/or matching. This data
 frame should have the same structure as \code{data}.}
 
-\item{scale}{The scale of the graph. Two scales are supported: \code{ scale =
-'propensity'} or \code{scale = 'preference'}. The preference score scale is
+\item{scale}{The scale of the graph. Two scales are supported: \code{scale = 'propensity'} or \code{scale = 'preference'}. The preference score scale is
 defined by Walker et al (2013).}
 }
 \value{
@@ -22,13 +21,15 @@ A data frame describing the propensity score (or preference score) distribution 
 points.
 }
 \description{
-\code{preparePsPlot} prepares to plot the propensity (or preference) score distribution. It computes
+Prepare to plot the propensity (or preference) score distribution. It computes
 the distribution, so the output does not contain person-level data.
 }
 \details{
-The data frame should have a least the following two columns: \tabular{lll}{ \verb{treatment}
-\tab(integer) \tab Column indicating whether the person is in the treated (1) or comparator\cr \tab
-\tab (0) group \cr \verb{propensityScore} \tab(numeric) \tab Propensity score \cr }
+The data frame should have a least the following two columns:
+\itemize{
+\item \strong{treatment} (integer): Column indicating whether the person is in the treated (1) or comparator (0) group.
+\item \strong{propensityScore} (numeric): Propensity score.
+}
 }
 \examples{
 treatment <- rep(0:1, each = 100)

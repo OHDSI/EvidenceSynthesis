@@ -1,6 +1,7 @@
 pandoc: 2.7.3
 pkgdown: 1.5.1
 pkgdown_sha: ~
-articles: []
-last_built: 2020-05-25T13:44Z
+articles:
+  NonNormalMetaAnalyis: NonNormalMetaAnalyis.html
+last_built: 2020-07-31T13:43Z
 

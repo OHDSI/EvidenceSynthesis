@@ -17,7 +17,7 @@
 #' Plot empirical null distributions
 #'
 #' @description
-#' \code{plotEmpiricalNulls} plots the empirical null distribution for multiple data sources.
+#' Plot the empirical null distribution for multiple data sources.
 #'
 #' @details
 #' Creates a plot showing the empirical null distributions. Distributions are shown as mean plus minus one
@@ -25,18 +25,18 @@
 #'
 #' @param logRr	      A numeric vector of effect estimates for the negative controls on the log scale.
 #' @param seLogRr     The standard error of the log of the effect estimates. 
-#'                    Hint: often the standard error = (log(<lower bound 95 percent confidence interval>) - l
-#'                    og(<effect estimate>))/qnorm(0.025).
+#'                    Hint: often the standard error = (log(lower bound 95 percent confidence interval) - l
+#'                    og(effect estimate))/qnorm(0.025).
 #' @param labels      A vector containing the labels for the various sources. Should be of equal length as 
-#'                    \code{logRr} and \code{seLogRr}.
+#'                    `logRr` and `seLogRr`.
 #' @param xLabel      The label on the x-axis: the name of the effect estimate.      
 #' @param limits      The limits of the effect size axis.    
 #' @param showCis     Show the 95 percent confidence intervals on the null distribution and distribution parameter estimates?         
 #' @param fileName    Name of the file where the plot should be saved, for example 'plot.png'. See the
-#'                    function \code{ggsave} in the ggplot2 package for supported file formats.
+#'                    function [ggplot2::ggsave()] for supported file formats.
 #'
 #' @return
-#' A Ggplot object. Use the \code{ggsave} function to save to file.
+#' A Ggplot object. Use the [ggplot2::ggsave()] function to save to file.
 #'
 #' @examples
 #' # Some example data:
@@ -131,15 +131,15 @@ plotEmpiricalNulls <- function(logRr,
   }
   
   breaks <- c(0.1, 0.25, 0.5, 1, 2, 4, 6, 8, 10)
-  plot <- ggplot2::ggplot(d, ggplot2::aes(group = label)) +
+  plot <- ggplot2::ggplot(d, ggplot2::aes(group = .data$label)) +
     ggplot2::geom_vline(xintercept = log(breaks), colour = "#AAAAAA", lty = 1, size = 0.2) + 
     ggplot2::geom_vline(xintercept = 0) +
-    ggplot2::geom_ribbon(ggplot2::aes(x = x, ymax = yMax, ymin = yMin), fill = rgb(1, 0, 0), alpha = 0.6, data = dist)
+    ggplot2::geom_ribbon(ggplot2::aes(x = .data$x, ymax = .data$yMax, ymin = .data$yMin), fill = rgb(1, 0, 0), alpha = 0.6, data = dist)
   
   if (showCis) {
-    plot <- plot + ggplot2::geom_ribbon(ggplot2::aes(x = x, ymax = yMaxUb, ymin = yMaxLb), fill = rgb(0.8, 0.2, 0.2), alpha = 0.3, data = dist) 
+    plot <- plot + ggplot2::geom_ribbon(ggplot2::aes(x = .data$x, ymax = .data$yMaxUb, ymin = .data$yMaxLb), fill = rgb(0.8, 0.2, 0.2), alpha = 0.3, data = dist) 
   }
-  plot <- plot + ggplot2::geom_errorbarh(ggplot2::aes(x = mean, xmax = xMax, xmin = xMin, y = y), height = 0.5, color = rgb(0, 0, 0), size = 0.5) + 
+  plot <- plot + ggplot2::geom_errorbarh(ggplot2::aes(x = .data$mean, xmax = .data$xMax, xmin = .data$xMin, y = .data$y), height = 0.5, color = rgb(0, 0, 0), size = 0.5) + 
     ggplot2::geom_point(ggplot2::aes(x = mean, y = y), shape = 16, size = 2) + 
     ggplot2::coord_cartesian(xlim = log(limits), ylim = c(0.5, (nrow(d) + 1))) + 
     ggplot2::scale_x_continuous(xLabel, breaks = log(breaks), labels = breaks) +
@@ -167,23 +167,23 @@ plotEmpiricalNulls <- function(logRr,
                                  "SD")),
                      dummy = "")
   
-  data_table <- ggplot2::ggplot(text, ggplot2::aes(x = x, y = y, label = label)) +
-    ggplot2::geom_text(size = 4, hjust=0, vjust=0.5) +
-    ggplot2::geom_hline(ggplot2::aes(yintercept=nrow(d) + 0.5)) +
+  data_table <- ggplot2::ggplot(text, ggplot2::aes(x = .data$x, y = .data$y, label = .data$label)) +
+    ggplot2::geom_text(size = 4, hjust = 0, vjust = 0.5) +
+    ggplot2::geom_hline(ggplot2::aes(yintercept = nrow(d) + 0.5)) +
     ggplot2::theme(panel.grid.major = ggplot2::element_blank(),
                    panel.grid.minor = ggplot2::element_blank(),
                    legend.position = "none",
                    panel.border = ggplot2::element_blank(),
                    panel.background = ggplot2::element_blank(),
-                   axis.text.x = ggplot2::element_text(colour="white"),
+                   axis.text.x = ggplot2::element_text(colour = "white"),
                    axis.text.y = ggplot2::element_blank(),
-                   axis.ticks = ggplot2::element_line(colour="white"),
+                   axis.ticks = ggplot2::element_line(colour = "white"),
                    strip.background = ggplot2::element_blank(),
                    plot.margin = grid::unit(c(0,0,0.1,0), "lines")) +
-    ggplot2::labs(x="",y="") +
-    ggplot2::coord_cartesian(xlim=c(1,4), ylim = c(0.5, (nrow(d) + 1)))
+    ggplot2::labs(x = "",y = "") +
+    ggplot2::coord_cartesian(xlim = c(1,4), ylim = c(0.5, (nrow(d) + 1)))
   
-  plot <- gridExtra::grid.arrange(data_table, plot, ncol=2)
+  plot <- gridExtra::grid.arrange(data_table, plot, ncol = 2)
   
   if (!is.null(fileName))
     ggplot2::ggsave(fileName, plot, width = 8 + showCis*2, height = 1 + length(d) * 0.1, dpi = 400)
