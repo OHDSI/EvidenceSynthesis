@@ -40,7 +40,8 @@
 computeFixedEffectMetaAnalysis <- function(data, alpha = 0.05) {
   # Determine type based on data structure:
   if ("logRr" %in% colnames(data)) {
-    writeLines("Detected data following normal distribution")
+    inform("Detected data following normal distribution")
+    data <- cleanData(data, c("logRr", "seLogRr"), minValues = c(-100, 1e-5))
     m <- meta::metagen(data$logRr, data$seLogRr, level.comb = 1 - alpha)
     ffx <- summary(m)$fixed
     estimate <- data.frame(rr = ffx$TE,
@@ -51,14 +52,16 @@ computeFixedEffectMetaAnalysis <- function(data, alpha = 0.05) {
                            seLogRr = ffx$seTE)
     return(estimate)
   } else if ("gamma" %in% colnames(data)) {
-    writeLines("Detected data following custom parameric distribution")
+    inform("Detected data following custom parameric distribution")
+    data <- cleanData(data, c("mu", "sigma", "gamma"), minValues = c(-100, 1e-5, -100))
     estimate <- computeEstimateFromCombiLl(data, alpha = alpha, fun = customFunction)
     return(estimate)
   } else if ("alpha" %in% colnames(data)) {
-    writeLines("Detected data following skew normal distribution")
+    inform("Detected data following skew normal distribution")
+    data <- cleanData(data, c("mu", "sigma", "alpha"), minValues = c(-100, 1e-5, -100))
     estimate <- computeEstimateFromCombiLl(data, alpha = alpha, fun = skewNormal)
   } else if (is.list(data) && !is.data.frame(data)) {
-    writeLines("Detected (pooled) patient-level data")
+    inform("Detected (pooled) patient-level data")
     population <- poolPopulations(data)
     cyclopsData <- Cyclops::createCyclopsData(Surv(time, y) ~ x + strata(stratumId), data = population, modelType = "cox")
     cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
@@ -71,10 +74,10 @@ computeFixedEffectMetaAnalysis <- function(data, alpha = 0.05) {
                       seLogRr = (ci95[3] - ci95[2])/(2 * qnorm(0.975)))
     return(estimate)
   } else {
-    writeLines("Detected data following grid distribution")
+    inform("Detected data following grid distribution")
     x <- as.numeric(colnames(data))
     if (any(is.na(x))) {
-      stop("Expecting grid data, but not all column names are numeric") 
+      abort("Expecting grid data, but not all column names are numeric") 
     }
     estimate <- computeEstimateFromCombiGrids(data, alpha = alpha)
     return(estimate)
@@ -93,7 +96,7 @@ computeEstimateFromCombiLl <- function(fits, alpha = 0.05, fun = customFunction)
   } else if (all(c("mu", "sigma", "alpha") %in% colnames(fits)))  {
     fits <- fits[, c("mu", "sigma", "alpha")]
   } else {
-    stop("Expecting columns 'mu', 'sigma', and 'gamma' or 'alpha', but found columns '", paste(colnames(fits), collapse = "', '"), "'")
+    abort(paste0("Expecting columns 'mu', 'sigma', and 'gamma' or 'alpha', but found columns '", paste(colnames(fits), collapse = "', '"), "'"))
   }
   fit <- suppressWarnings(optim(0, function(x) -combineLogLikelihoodFunctions(x, fits, fun)))
   logRr <- fit$par           
@@ -109,21 +112,19 @@ computeEstimateFromCombiLl <- function(fits, alpha = 0.05, fun = customFunction)
     M <- L + (H - L)/2
     llM <- combineLogLikelihoodFunctions(M, fits, fun)
     metric <- threshold - llM
-    # writeLines(paste('M =', M, 'Metric = ',metric))
     if (metric > precision) {
       H <- M
     } else if (-metric > precision) {
       L <- M
     } else {
       ub <- M
-      # print(M)
       break
     }
     if (M == logRr) {
-      warning("Error finding upper bound")
+      warn("Error finding upper bound")
       break
     } else if (M == 10) {
-      warning("Confidence interval upper bound out of range")
+      warn("Confidence interval upper bound out of range")
       break
     }
   }
@@ -136,21 +137,19 @@ computeEstimateFromCombiLl <- function(fits, alpha = 0.05, fun = customFunction)
     M <- L + (H - L)/2
     llM <- combineLogLikelihoodFunctions(M, fits, fun)
     metric <- threshold - llM
-    # writeLines(paste('M =', M, 'Metric = ',metric))
     if (metric > precision) {
       L <- M
     } else if (-metric > precision) {
       H <- M
     } else {
       lb <- M
-      # print(M)
       break
     }
     if (M == logRr) {
-      warning("Error finding lower bound")
+      warn("Error finding lower bound")
       break
     } else if (M == -10) {
-      warning("Confidence interval lower bound out of range")
+      warn("Confidence interval lower bound out of range")
       break
     }
   }
@@ -165,9 +164,8 @@ computeEstimateFromCombiLl <- function(fits, alpha = 0.05, fun = customFunction)
 poolPopulations <- function(populations) {
   highestId <- 0
   for (i in 1:length(populations)) {
-    # Making sure stratum IDs are unique:
     populations[[i]]$stratumId <- populations[[i]]$stratumId + highestId
-    highestId <- max(populations[[i]]$stratumId)
+    highestId <- max(populations[[i]]$stratumId) + 1
   }
   pooledPop <- do.call("rbind", populations) 
   return(pooledPop)
@@ -180,12 +178,12 @@ computeEstimateFromCombiGrids <- function(grids, alpha = 0.05) {
   threshold <- grid[maxIdx] - qchisq(1 - alpha, df = 1) / 2
   lbIdx <- min(which(grid[1:maxIdx] > threshold))
   if (lbIdx == 1) {
-    warning("Lower bound of confidence interval out of range")
+    warn("Lower bound of confidence interval out of range")
   }
   lb <- as.numeric(names(grid)[lbIdx])
   ubIdx <- maxIdx + max(which(grid[(maxIdx + 1):length(grid)] > threshold))
   if (lbIdx == length(grid)) {
-    warning("Upper bound of confidence interval out of range")
+    warn("Upper bound of confidence interval out of range")
   }
   ub <- as.numeric(names(grid)[ubIdx])
   result <- data.frame(rr = exp(logRr),

@@ -4,15 +4,15 @@
 \name{EvidenceSynthesis-package}
 \alias{EvidenceSynthesis}
 \alias{EvidenceSynthesis-package}
-\title{EvidenceSynthesis: An R Package for Combining Evidence from Multiple Sources}
+\title{EvidenceSynthesis: Synthesizing Evidence on Causal Effects Across a Distributed Research Network}
 \description{
-Routines for combining evidence and diagnostics across multiple 
-   sources, such as multiple data sites in a distributed study. This includes functions
-   for performing meta-analysis and forest plots.
+Routines for combining causal effect estimates and diagnostics across multiple data sites in a distributed study. 
+  This includes functions for performing meta-analysis and forest plots.
 }
 \seealso{
 Useful links:
 \itemize{
+  \item \url{https://ohdsi.github.io/EvidenceSynthesis}
   \item \url{https://github.com/OHDSI/EvidenceSynthesis}
   \item Report bugs at \url{https://github.com/OHDSI/EvidenceSynthesis/issues}
 }

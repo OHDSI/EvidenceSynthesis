@@ -55,7 +55,7 @@ plotCovariateBalances <- function(balances,
                                   afterLabel = "After matching", 
                                   fileName = NULL) {
   if (length(balances) != length(labels)) 
-    stop("The balances and labels arguments must have the same length")
+    abort("The balances and labels arguments must have the same length")
   prepare <- function(i) {
     before <- data.frame(stdDiff = balances[[i]]$beforeMatchingStdDiff,
                          type = beforeLabel,
@@ -221,18 +221,17 @@ preparePsPlot <- function(data,
                           unfilteredData = NULL,
                           scale = "preference") {
   if (!("treatment" %in% colnames(data)))
-    stop("Missing column treatment in data")
+    abort("Missing column treatment in data")
   if (!("propensityScore" %in% colnames(data)))
-    stop("Missing column propensityScore in data")
+    abort("Missing column propensityScore in data")
   if (!is.null(unfilteredData)) {
     if (!("treatment" %in% colnames(unfilteredData)))
-      stop("Missing column treatment in unfilteredData")
+      abort("Missing column treatment in unfilteredData")
     if (!("propensityScore" %in% colnames(unfilteredData)))
-      stop("Missing column propensityScore in unfilteredData")
+      abort("Missing column propensityScore in unfilteredData")
   }
   if (scale != "propensity" && scale != "preference")
-    stop(paste("Unknown scale '", scale, "', please choose either 'propensity' or 'preference'"),
-         sep = "")
+    abort(paste0("Unknown scale '", scale, "', please choose either 'propensity' or 'preference'"))
   
   if (scale == "preference") {
     data <- computePreferenceScore(data, unfilteredData)
@@ -283,7 +282,7 @@ plotPreparedPs <- function(preparedPsPlots,
                            comparatorLabel = "Comparator",
                            fileName = NULL) {
   if (length(preparedPsPlots) != length(labels)) 
-    stop("The preparedPsPlots and labels arguments must have the same length")
+    abort("The preparedPsPlots and labels arguments must have the same length")
   
   for (i in 1:length(preparedPsPlots)) {
     preparedPsPlots[[i]]$label <- labels[i]

@@ -2,6 +2,8 @@
 ^\.Rproj\.user$
 .gitattributes
 extras
+.project
+.classpath
 man-roxygen
 .travis.yml
 deploy.sh

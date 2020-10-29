@@ -1,5 +1,5 @@
 ---
-title: "Meta-analysis using non-normal likelihood approximations"
+title: "Effect estimate synthesis using non-normal likelihood approximations"
 author: "Martijn J. Schuemie"
 date: "`r Sys.Date()`"
 output:
@@ -10,7 +10,7 @@ output:
     number_sections: yes
     toc: yes
 vignette: >
-  %\VignetteIndexEntry{Meta-analysis using non-normal likelihood approximations}
+  %\VignetteIndexEntry{Effect estimate using non-normal likelihood approximations}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

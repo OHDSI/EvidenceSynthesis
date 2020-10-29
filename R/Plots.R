@@ -49,27 +49,30 @@ plotLikelihoodFit <- function(approximation,
                               limits = c(0.1, 10), 
                               fileName = NULL) {
   if ("logRr" %in% colnames(approximation)) {
-    writeLines("Detected normal approximation")
+    inform("Detected normal approximation")
     x <- seq(log(limits[1]), log(limits[2]), length.out = 100)
     y <- dnorm(x, mean = approximation$mu, sd = approximation$sigma, log = TRUE)
   } else if ("gamma" %in% colnames(approximation)) {
-    writeLines("Detected custom parameric approximation")
+    inform("Detected custom parameric approximation")
     x <- seq(log(limits[1]), log(limits[2]), length.out = 100)
     y <- customFunction(x, mu = approximation$mu, sigma = approximation$sigma, gamma = approximation$gamma)
   } else if ("alpha" %in% colnames(approximation)) {
-    writeLines("Detected skew normal approximation")
+    inform("Detected skew normal approximation")
     x <- seq(log(limits[1]), log(limits[2]), length.out = 100)
     y <- skewNormal(x, mu = approximation$mu, sigma = approximation$sigma, alpha = approximation$alpha)
   } else {
-    writeLines("Detected grid approximation")
-    x <- as.numeric(colnames(approximation))
+    inform("Detected grid approximation")
+    x <- as.numeric(names(approximation))
     if (any(is.na(x))) {
-      stop("Expecting grid data, but not all column names are numeric") 
+      abort("Expecting grid data, but not all column names are numeric") 
     }
     y <- approximation
     
   }
-  ll <- Cyclops::getCyclopsProfileLogLikelihood(cyclopsFit, parameter, x)$value
+  ll <- getLikelihoodProfile(cyclopsFit, parameter, x)
+  x <- x[!is.nan(ll)]
+  y <- y[!is.nan(ll)]
+  ll <- ll[!is.nan(ll)]
   ll <- ll - max(ll)
   y <- y - max(y)
   plotData <- rbind(data.frame(x = x,
@@ -84,6 +87,7 @@ plotLikelihoodFit <- function(approximation,
     yLabel <- "Likelihood"
     plotData$ll <- exp(plotData$ll)
   }
+  plotData$type <- factor(plotData$type, levels = c("Likelihood", "Approximation"))
   breaks <- c(0.1, 0.25, 0.5, 1, 2, 4, 6, 8, 10)
   plot <- ggplot2::ggplot(plotData, ggplot2::aes(x = .data$x, y = .data$ll)) +
     ggplot2::geom_vline(xintercept = log(breaks), color = "#AAAAAA", lty = 1, size = 0.5) +
@@ -98,7 +102,6 @@ plotLikelihoodFit <- function(approximation,
                    panel.grid.major = ggplot2::element_blank(), 
                    legend.title = ggplot2::element_blank(), 
                    axis.ticks.x = ggplot2::element_blank(), 
-                   # axis.text.y = ggplot2::element_blank(), 
                    legend.position = "top")
   if (!is.null(fileName))
     ggplot2::ggsave(fileName, plot, width = 5, height = 5, dpi = 400)

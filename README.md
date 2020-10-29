@@ -2,13 +2,14 @@ EvidenceSynthesis
 =================
 
 [![Build Status](https://travis-ci.org/OHDSI/EvidenceSynthesis.svg?branch=master)](https://travis-ci.org/OHDSI/EvidenceSynthesis)
+[![codecov.io](https://codecov.io/github/OHDSI/EvidenceSynthesis/coverage.svg?branch=master)](https://codecov.io/github/OHDSI/EvidenceSynthesis?branch=master)
+
+EvidenceSynthesis is part of [HADES](https://ohdsi.github.io/Hades/).
 
 Introduction
 ============
 
-This R package contains routines for combining evidence and diagnostics across multiple 
-sources, such as multiple data sites in a distributed study. This includes functions
-for performing meta-analysis and forest plots.
+This R package contains routines for combining causal effect estimates and diagnostics across multiple data sites in a distributed study. This includes functions for performing meta-analysis and forest plots.
 
 Features
 ========
@@ -21,27 +22,29 @@ to do
 
 Technology
 ==========
-This is a pure R package.
+This an R package with some parts implemented in Java.
 
 System requirements
 ===================
-Requires R.
+Requires R and Java.
 
 Getting Started
 ===============
-To install the latest development version directly from GitHub, use:
+1. Make sure your R environment is properly configured. This means that Java must be installed. See [these instructions](https://ohdsi.github.io/MethodsLibrary/rSetup.html) for how to configure your R environment.
+2. In R, use the following commands to download and install EvidenceSynthesis:
 
-```r
-install.packages("remotes")
-library(remotes)
-install_github("ohdsi/EvidenceSynthesis")
-```
+    ```r
+    install.packages("remotes")
+    library(remotes)
+    install_github("ohdsi/EvidenceSynthesis")
+    ```
   
 User Documentation
 ==================
-Documentation can be found on the [package website](https://ohdsi.github.io/EvidenceSynthesis).
+Documentation can be found on the [package website](https://ohdsi.github.io/EvidenceSynthesis/).
 
 PDF versions of the documentation are also available:
+* Vignette: [Effect estimate using non-normal likelihood approximations](https://raw.githubusercontent.com/OHDSI/CaseControl/master/inst/doc/SingleStudies.pdf)
 * Package manual: [EvidenceSynthesis.pdf](https://raw.githubusercontent.com/OHDSI/EvidenceSynthesis/master/extras/EvidenceSynthesis.pdf) 
 
 Support

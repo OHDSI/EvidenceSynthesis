@@ -85,7 +85,7 @@ plotMetaAnalysisForest <- function(logRr,
         ggplot2::geom_vline(xintercept = breaks, colour = "#AAAAAA", lty = 1, size = 0.2) +
         ggplot2::geom_vline(xintercept = 1, size = 0.5) +
         ggplot2::geom_errorbarh(height = 0.15) +
-        ggplot2::geom_point(size=3, shape = 23, ggplot2::aes(fill = .data$type)) +
+        ggplot2::geom_point(size = 3, shape = 23, ggplot2::aes(fill = .data$type)) +
         ggplot2::scale_fill_manual(values = c("#000000", "#000000", "#FFFFFF")) +
         ggplot2::scale_x_continuous(xLabel, trans = "log10", breaks = breaks, labels = breaks) +
         ggplot2::coord_cartesian(xlim = limits) +

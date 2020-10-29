@@ -61,9 +61,9 @@ plotEmpiricalNulls <- function(logRr,
                                showCis = TRUE,
                                fileName = NULL) {
   if (length(logRr) != length(seLogRr)) 
-    stop("The logRr and seLogRr arguments must have the same length")
+    abort("The logRr and seLogRr arguments must have the same length")
   if (length(logRr) != length(labels)) 
-    stop("The logRr and labels arguments must have the same length")
+    abort("The logRr and labels arguments must have the same length")
   
   d <- data.frame(label = unique(labels),
                   mean = NA,

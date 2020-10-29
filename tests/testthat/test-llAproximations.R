@@ -3,7 +3,7 @@ library(testthat)
 createApproximations <- function(populations, approximation) {
   fitModelInDatabase <- function(population, approximation) {
     cyclopsData <- Cyclops::createCyclopsData(Surv(time, y) ~ x + strata(stratumId), data = population, modelType = "cox")
-    cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
+    cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData, fixedCoefficients = c(approximation != "normal"))
     approximation <-  approximateLikelihood(cyclopsFit, "x", approximation = approximation)
     return(approximation)
   }

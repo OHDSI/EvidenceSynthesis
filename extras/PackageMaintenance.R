@@ -27,11 +27,12 @@ unlink("extras/EvidenceSynthesis.pdf")
 shell("R CMD Rd2pdf ./ --output=extras/EvidenceSynthesis.pdf")
 
 dir.create("inst/doc", recursive = TRUE)
-rmarkdown::render("vignettes/NonNormalMetaAnalyis.Rmd",
-                  output_file = "../inst/doc/NonNormalMetaAnalysis.pdf",
+rmarkdown::render("vignettes/NonNormalEffectSynthesis.Rmd",
+                  output_file = "../inst/doc/NonNormalEffectSynthesis.pdf",
                   rmarkdown::pdf_document(latex_engine = "pdflatex",
                                           toc = TRUE,
                                           number_sections = TRUE))
-unlink("inst/doc/NonNormalMetaAnalysis.tex")
+unlink("inst/doc/NonNormalEffectSynthesis.tex")
 
 pkgdown::build_site()
+OhdsiRTools::fixHadesLogo()

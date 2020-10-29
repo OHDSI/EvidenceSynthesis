@@ -1,18 +1,36 @@
+/*******************************************************************************
+ * Copyright 2020 Observational Health Data Sciences and Informatics
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ ******************************************************************************/
 package org.ohdsi.metaAnalysis;
 
-import dr.inference.loggers.*;
+import java.util.ArrayList;
+import java.util.List;
+
+import dr.inference.loggers.ArrayLogFormatter;
+import dr.inference.loggers.LogFormatter;
+import dr.inference.loggers.Loggable;
+import dr.inference.loggers.Logger;
+import dr.inference.loggers.MCLogger;
 import dr.inference.markovchain.MarkovChain;
 import dr.inference.mcmc.MCMC;
 import dr.inference.mcmc.MCMCOptions;
 import dr.inference.model.Likelihood;
-import dr.inference.operators.*;
+import dr.inference.operators.OperatorSchedule;
 import dr.inference.trace.Trace;
 import dr.inference.trace.TraceCorrelation;
-import dr.inferencexml.MCMCParser;
 import dr.math.MathUtils;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class Runner {
 
@@ -150,7 +168,7 @@ public class Runner {
 		double adaptationTarget = 0.234;
 		boolean useSmoothAcceptanceRatio = false;
 		double temperature = 1.0;
-		long fullEvaluationCount = MCMCParser.DEFAULT_FULL_EVALUATION_COUNT;
+		long fullEvaluationCount = 1000;
 		double evaluationTestThreshold = MarkovChain.EVALUATION_TEST_THRESHOLD;
 		int minOperatorCountForFullEvaluation = 1;
 

@@ -15,27 +15,27 @@
 # limitations under the License.
 
 cleanData <- function(data, columns, minValues = rep(-100, length(columns)), maxValues = rep(100, length(columns))) {
-  for (i in length(columns)) {
+  for (i in 1:length(columns)) {
     column <- columns[i]
     if (any(is.infinite(data[,column]))) {
-      warning("Estimate(s) with infinite ", column, " detected. Removing before computing meta-analysis.")
+      warn(paste("Estimate(s) with infinite", column, "detected. Removing before computing meta-analysis."))
       data <- data[!is.infinite(data[ ,column]), ]
     }
     if (any(is.na(data[, column]))) {
-      warning("Estimate(s) with NA ", column, " detected. Removing before computing meta-analysis.")
+      warn(paste("Estimate(s) with NA", column, "detected. Removing before computing meta-analysis."))
       data <- data[!is.na(data[, column]), ]
     }
     if (any(data[, column] > maxValues[i])) {
-      warning(sprintf("Estimate(s) with extremely high %s (>%s) detected. Removing before computing meta-analysis.", column, maxValues[i]))
+      warn(sprintf("Estimate(s) with extremely high %s (>%s) detected. Removing before computing meta-analysis.", column, maxValues[i]))
       data <- data[data[, column] <= maxValues[i], ]
     }
     if (any(data[, column] < minValues[i])) {
-      warning(sprintf("Estimate(s) with extremely low %s (<%s) detected. Removing before computing meta-analysis.", column, minValues[i]))
+      warn(sprintf("Estimate(s) with extremely low %s (<%s) detected. Removing before computing meta-analysis.", column, minValues[i]))
       data <- data[data[, column] >=  minValues[i], ]
     }
   }
   if (nrow(data) == 0) {
-    warning("No estimates left after removing estimates with NA, infinite or extreme values") 
+    warn("No estimates left after removing estimates with NA, infinite or extreme values") 
   }
   return(data)
 }
@@ -98,7 +98,7 @@ computeBayesianMetaAnalysis <- function(data,
                                         alpha = 0.05) {
   # Determine type based on data structure:
   if ("logRr" %in% colnames(data)) {
-    writeLines("Detected data following normal distribution")
+    inform("Detected data following normal distribution")
     type <- "normal"
     data <- cleanData(data, c("logRr", "seLogRr"), minValues = c(-100, 1e-5))
     if (nrow(data) == 0)
@@ -109,7 +109,7 @@ computeBayesianMetaAnalysis <- function(data,
     }
     dataModel$finish()
   } else if ("gamma" %in% colnames(data)) {
-    writeLines("Detected data following custom parameric distribution")
+    inform("Detected data following custom parameric distribution")
     type <- "custom"
     data <- cleanData(data, c("mu", "sigma", "gamma"), minValues = c(-100, 1e-5, -100))
     if (nrow(data) == 0)
@@ -120,7 +120,7 @@ computeBayesianMetaAnalysis <- function(data,
     }
     dataModel$finish()
   } else if ("alpha" %in% colnames(data)) {
-    writeLines("Detected data following skew normal distribution")
+    inform("Detected data following skew normal distribution")
     type <- "skew normal"
     data <- cleanData(data, c("mu", "sigma", "alpha"), minValues = c(-100, 1e-5, -100))
     if (nrow(data) == 0)
@@ -131,7 +131,7 @@ computeBayesianMetaAnalysis <- function(data,
     }
     dataModel$finish()
   } else if (is.list(data) && !is.data.frame(data)) {
-    writeLines("Detected (pooled) patient-level data")
+    inform("Detected (pooled) patient-level data")
     type <- "pooled"
     dataModel <- rJava::.jnew("org.ohdsi.metaAnalysis.CoxDataModel")
     for (i in 1:length(data)) {
@@ -142,7 +142,7 @@ computeBayesianMetaAnalysis <- function(data,
     }
     dataModel$finish()
   } else {
-    writeLines("Detected data following grid distribution")
+    inform("Detected data following grid distribution")
     type <- "grid"
     dataModel <- rJava::.jnew("org.ohdsi.metaAnalysis.ExtendingEmpiricalDataModel")
     x <- as.numeric(colnames(data))
@@ -156,7 +156,7 @@ computeBayesianMetaAnalysis <- function(data,
     dataModel$finish()
   }
   
-  writeLines("Performing MCMC. This may take a while")
+  inform("Performing MCMC. This may take a while")
   
   prior <- rJava::.jnew("org.ohdsi.metaAnalysis.HalfNormalOnStdDevPrior", 0.0, as.numeric(priorSd[2]))
 

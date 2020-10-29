@@ -36,6 +36,8 @@
 #'                                           modelType = "cox")
 #' cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
 #' approximation <-  approximateLikelihood(cyclopsFit, "x")
+#' #            mu     sigma     gamma
+#' # 1 -0.09738447 0.7977671 0.1862877
 #' 
 #' @export
 approximateLikelihood <- function(cyclopsFit, 
@@ -49,7 +51,7 @@ approximateLikelihood <- function(cyclopsFit,
   
   if (approximation == "grid") {
     x <- log(seq(exp(bounds[1]), exp(bounds[2]), by = 0.01))
-    result <- Cyclops::getCyclopsProfileLogLikelihood(cyclopsFit, "x", x)$value
+    result <- getLikelihoodProfile(cyclopsFit, "x", x)
     names(result) <- x
     return(result)
   } else if (approximation == "normal") {
@@ -70,7 +72,7 @@ approximateLikelihood <- function(cyclopsFit,
     }
   } else {
     x <- seq(bounds[1], bounds[2], length.out = 100)
-    ll <- Cyclops::getCyclopsProfileLogLikelihood(cyclopsFit, parameter, x)$value
+    ll <- getLikelihoodProfile(cyclopsFit, parameter, x)
     if (approximation == "skew normal") {
       fun = skewNormal
     } else {
@@ -90,6 +92,10 @@ approximateLikelihood <- function(cyclopsFit,
 #' @param mu      The position parameter.
 #' @param sigma   The scale parameter.
 #' @param gamma   The skew parameter.
+#' 
+#' @examples
+#' customFunction(x = 0:3, mu = 0, sigma = 1, gamma = 0)
+#' # [1]  0.0 -0.5 -2.0 -4.5
 #'
 #' @return The approximate log likelihood for the given x.
 #' 
@@ -107,11 +113,18 @@ customFunction <- function(x, mu, sigma, gamma) {
 #' @param mu      The position parameter.
 #' @param sigma   The scale parameter.
 #' @param alpha   The skew parameter.
+#' 
+#' @examples
+#' skewNormal(x = 0:3, mu = 0, sigma = 1, alpha = 0)
+#' # [1] -0.9189385 -1.4189385 -2.9189385 -5.4189385
 #'
 #' @return The approximate log likehood for the given x.
 #' 
 #' @export
 skewNormal <- function(x, mu, sigma, alpha) {
+  if (is.infinite(sigma)) {
+    return(rep(0, length(x)))
+  }
   return(log(2) + dnorm(x, mu, sigma, log = TRUE) + pnorm(alpha*(x - mu), 0, sigma, log.p = TRUE))
 }
 
@@ -132,6 +145,9 @@ fitLogLikelihoodFunction <- function(beta, ll, weighByLikelihood = TRUE, fun = c
     return(result)
   }
   
+  beta <- beta[!is.nan(ll)]
+  ll <- ll[!is.nan(ll)]
+  
   # Scale to standard (translate in log space so max at 0):
   ll <- ll - max(ll)
   weights <- exp(ll)
@@ -141,6 +157,10 @@ fitLogLikelihoodFunction <- function(beta, ll, weighByLikelihood = TRUE, fun = c
   mode <- beta[ll == 0][1]
   if (mode == min(beta) || mode == max(beta)) {
     mode = 0
+  }
+  
+  if (min(ll) > -1e-6) {
+    return(data.frame(mu = 0, sigma = Inf, gamma = 0))
   }
   
   fit <- tryCatch({
@@ -192,8 +212,15 @@ fitLogLikelihoodFunction <- function(beta, ll, weighByLikelihood = TRUE, fun = c
   }
   threshold <- 0.05
   if (minimum / length(beta) > threshold) {
-    warning("Mean squared error greater than ", threshold, ". Probably bad fit.")
+    warn(paste("Mean squared error greater than ", threshold, ". Probably bad fit."))
   }
   result$sigma <- abs(result$sigma)
   return(result)
+}
+
+getLikelihoodProfile <- function(cyclopsFit, parameter, x) {
+  # Temporary workaround for Cyclops bug: prefix 1 to x , then remove first one from ll:
+  x <- c(1, x)
+  ll <- Cyclops::getCyclopsProfileLogLikelihood(cyclopsFit, parameter, x)$value
+  return(ll[-1])
 }
