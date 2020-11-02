@@ -26,7 +26,8 @@ Imports:
   methods
 Suggests:
   knitr,
-  testthat
+  testthat,
+  sn
 Remotes:
   ohdsi/Cyclops@develop
 License: Apache License 2.0

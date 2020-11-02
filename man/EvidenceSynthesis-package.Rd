@@ -12,7 +12,7 @@ Routines for combining causal effect estimates and diagnostics across multiple d
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://ohdsi.github.io/EvidenceSynthesis}
+  \item \url{https://ohdsi.github.io/EvidenceSynthesis/}
   \item \url{https://github.com/OHDSI/EvidenceSynthesis}
   \item Report bugs at \url{https://github.com/OHDSI/EvidenceSynthesis/issues}
 }
