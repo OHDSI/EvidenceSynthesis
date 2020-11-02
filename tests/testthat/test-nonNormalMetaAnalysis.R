@@ -1,5 +1,5 @@
 # Computing the gold standard takes a long time, so storing for quicker testing
-recomputeGoldStandard <- T
+recomputeGoldStandard <- FALSE
 # setwd("tests/testthat")
 
 library(testthat)
