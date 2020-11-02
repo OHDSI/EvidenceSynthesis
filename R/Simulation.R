@@ -27,9 +27,26 @@
 #' @param maxBackgroundHazard  Maximum background hazard. Either a single number, or a vector of length nSites.
 #' @param hazardRatio     Hazard ratio. 
 #' @param randomEffectSd  Standard deviation of the log(hazardRatio). Fixed effect if equal to 0.
+#' 
+#' @seealso [simulatePopulations]
 #'
 #' @return
-#' An object of type `simulationSettings`.
+#' An object of type `simulationSettings`, to be used in the [simulatePopulations()] function.
+#' 
+#' @examples 
+#' settings <- createSimulationSettings(nSites = 1, hazardRatio = 2)
+#' populations <- simulatePopulations(settings)
+#' 
+#' # Fit a Cox regression for the simulated data site:
+#' cyclopsData <- Cyclops::createCyclopsData(Surv(time, y) ~ x + strata(stratumId), 
+#'                                           data = populations[[1]], 
+#'                                           modelType = "cox")
+#' cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
+#' coef(cyclopsFit)
+#' #         x 
+#' # 0.8384493 
+#' 
+#' # (Estimates in this example will vary due to the random simulation)
 #' 
 #' @export
 createSimulationSettings <- function(nSites = 5,
@@ -69,8 +86,20 @@ createSimulationSettings <- function(nSites = 5,
 #' A object of class `simulation`, which is a list of populations, each a data frame with columns 
 #' `rowId`, `stratumId`, `x`, `time`, and `y`.
 #'
-#' @examples
-#' simulation <- simulatePopulations()
+#' @examples 
+#' settings <- createSimulationSettings(nSites = 1, hazardRatio = 2)
+#' populations <- simulatePopulations(settings)
+#' 
+#' # Fit a Cox regression for the simulated data site:
+#' cyclopsData <- Cyclops::createCyclopsData(Surv(time, y) ~ x + strata(stratumId), 
+#'                                           data = populations[[1]], 
+#'                                           modelType = "cox")
+#' cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
+#' coef(cyclopsFit)
+#' #         x 
+#' # 0.8384493 
+#' 
+#' # (Estimates in this example will vary due to the random simulation)
 #' 
 #' @export
 simulatePopulations <- function(settings = createSimulationSettings()) {

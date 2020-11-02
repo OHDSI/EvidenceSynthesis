@@ -21,8 +21,15 @@ The approximate log likehood for the given x.
 \description{
 The skew normal function to approximate a log likelihood function
 }
+\details{
+The skew normal function. When \code{alpha = 0} this
+function is the normal distribution.
+}
 \examples{
 skewNormal(x = 0:3, mu = 0, sigma = 1, alpha = 0)
 # [1] -0.9189385 -1.4189385 -2.9189385 -5.4189385
 
+}
+\references{
+Azzalini, A. (2013). The Skew-Normal and Related Families. Institute of Mathematical Statistics Monographs. Cambridge University Press.
 }

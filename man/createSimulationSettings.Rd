@@ -33,8 +33,27 @@ createSimulationSettings(
 \item{randomEffectSd}{Standard deviation of the log(hazardRatio). Fixed effect if equal to 0.}
 }
 \value{
-An object of type \code{simulationSettings}.
+An object of type \code{simulationSettings}, to be used in the \code{\link[=simulatePopulations]{simulatePopulations()}} function.
 }
 \description{
 Create an object specifying a simulation. Currently only Cox proportional hazard models are supported.
+}
+\examples{
+settings <- createSimulationSettings(nSites = 1, hazardRatio = 2)
+populations <- simulatePopulations(settings)
+
+# Fit a Cox regression for the simulated data site:
+cyclopsData <- Cyclops::createCyclopsData(Surv(time, y) ~ x + strata(stratumId), 
+                                          data = populations[[1]], 
+                                          modelType = "cox")
+cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
+coef(cyclopsFit)
+#         x 
+# 0.8384493 
+
+# (Estimates in this example will vary due to the random simulation)
+
+}
+\seealso{
+\link{simulatePopulations}
 }

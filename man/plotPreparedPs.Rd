@@ -34,13 +34,20 @@ format.
 Plot the propensity score distribution
 }
 \examples{
+# Simulate some data for this example:
 treatment <- rep(0:1, each = 100)
 propensityScore <- c(rnorm(100, mean = 0.4, sd = 0.25), rnorm(100, mean = 0.6, sd = 0.25))
 data <- data.frame(treatment = treatment, propensityScore = propensityScore)
 data <- data[data$propensityScore > 0 & data$propensityScore < 1, ]
 preparedPlot <- preparePsPlot(data)
+
 # Just reusing the same data three times for demonstration purposes:
 preparedPsPlots <- list(preparedPlot, preparedPlot, preparedPlot)
 labels <- c("Data site A", "Data site B", "Data site C")
-                         
+
+plotPreparedPs(preparedPsPlots, labels)
+
+}
+\seealso{
+\link{preparePsPlot}
 }

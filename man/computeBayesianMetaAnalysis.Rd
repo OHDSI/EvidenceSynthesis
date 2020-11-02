@@ -2,7 +2,7 @@
 % Please edit documentation in R/BayesianMetaAnalysis.R
 \name{computeBayesianMetaAnalysis}
 \alias{computeBayesianMetaAnalysis}
-\title{Compute a Bayesian meta-analysis}
+\title{Compute a Bayesian random-effects meta-analysis}
 \usage{
 computeBayesianMetaAnalysis(
   data,
@@ -36,21 +36,30 @@ Compute a Bayesian meta-analysis using the Markov chain Monte Carlo (MCMC) engin
 A normal and half-normal prior are used for the mu and tau parameters, respectively, with standard deviations as defined by the \code{priorSd} argument.
 }
 \examples{
+# Simulate some data for this example:
 populations <- simulatePopulations()
 
+# Fit a Cox regression at each data site, and approximate likelihood function:
 fitModelInDatabase <- function(population) {
   cyclopsData <- Cyclops::createCyclopsData(Surv(time, y) ~ x + strata(stratumId), 
                                             data = population, 
                                             modelType = "cox")
   cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
-  approximation <-  approximateLikelihood(cyclopsFit, "x")
+  approximation <-  approximateLikelihood(cyclopsFit, parameter = "x", approximation = "custom")
   return(approximation)
 }
 approximations <- lapply(populations, fitModelInDatabase)
 approximations <- do.call("rbind", approximations)
+
+# At study coordinating center, perform meta-analysis using per-site approximations:
 estimate <- computeBayesianMetaAnalysis(approximations)
 estimate
-# mu     mu95Lb    mu95Ub     muSe        tau      tau95Lb  tau95Ub
-# 0.0003129562 -0.1747429 0.1723472 0.089661 0.07759992 0.0002024991 0.301007
+# mu     mu95Lb   mu95Ub      muSe       tau     tau95Lb   tau95Ub     logRr   seLogRr
+# 1 0.5770562 -0.2451619 1.382396 0.4154986 0.2733942 0.004919128 0.7913512 0.5770562 0.4152011
 
+# (Estimates in this example will vary due to the random simulation)
+
+}
+\seealso{
+\link{approximateLikelihood}, \link{computeFixedEffectMetaAnalysis}
 }

@@ -34,6 +34,8 @@
 #' @param showCis     Show the 95 percent confidence intervals on the null distribution and distribution parameter estimates?         
 #' @param fileName    Name of the file where the plot should be saved, for example 'plot.png'. See the
 #'                    function [ggplot2::ggsave()] for supported file formats.
+#'                    
+#' @seealso [EmpiricalCalibration::fitNull], [EmpiricalCalibration::fitMcmcNull]
 #'
 #' @return
 #' A Ggplot object. Use the [ggplot2::ggsave()] function to save to file.
@@ -139,7 +141,7 @@ plotEmpiricalNulls <- function(logRr,
   if (showCis) {
     plot <- plot + ggplot2::geom_ribbon(ggplot2::aes(x = .data$x, ymax = .data$yMaxUb, ymin = .data$yMaxLb), fill = rgb(0.8, 0.2, 0.2), alpha = 0.3, data = dist) 
   }
-  plot <- plot + ggplot2::geom_errorbarh(ggplot2::aes(x = .data$mean, xmax = .data$xMax, xmin = .data$xMin, y = .data$y), height = 0.5, color = rgb(0, 0, 0), size = 0.5) + 
+  plot <- plot + ggplot2::geom_errorbarh(ggplot2::aes(xmax = .data$xMax, xmin = .data$xMin, y = .data$y), height = 0.5, color = rgb(0, 0, 0), size = 0.5) + 
     ggplot2::geom_point(ggplot2::aes(x = mean, y = y), shape = 16, size = 2) + 
     ggplot2::coord_cartesian(xlim = log(limits), ylim = c(0.5, (nrow(d) + 1))) + 
     ggplot2::scale_x_continuous(xLabel, breaks = log(breaks), labels = breaks) +

@@ -17,7 +17,7 @@
 #' Perform a meta-analysis and create a forest plot
 #'
 #' @description
-#' Perform a meta-analysis and creates a forest plot of effect size estimates.
+#' Perform a traditional meta-analysis (ie assuming normally distributed likelihood) and creates a forest plot of effect size estimates.
 #'
 #' @details
 #' Creates a forest plot of effect size estimates, and includes a meta-analysis estimate using a random effects model. 
@@ -38,7 +38,6 @@
 #' A Ggplot object. Use the [ggplot2::ggsave] function to save to file.
 #'
 #' @references 
-#' 
 #' DerSimonian R, Laird N (1986), Meta-analysis in clinical trials. Controlled Clinical Trials, 7, 177-188.
 #'
 #' @examples

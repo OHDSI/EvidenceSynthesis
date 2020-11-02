@@ -38,7 +38,7 @@ function \link[ggplot2:ggsave]{ggplot2::ggsave} ifor supported file formats.}
 A Ggplot object. Use the \link[ggplot2:ggsave]{ggplot2::ggsave} function to save to file.
 }
 \description{
-Perform a meta-analysis and creates a forest plot of effect size estimates.
+Perform a traditional meta-analysis (ie assuming normally distributed likelihood) and creates a forest plot of effect size estimates.
 }
 \details{
 Creates a forest plot of effect size estimates, and includes a meta-analysis estimate using a random effects model.

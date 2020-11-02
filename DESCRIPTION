@@ -9,8 +9,8 @@ Authors@R: c(
   person("Observational Health Data Science and Informatics", role = c("cph"))
   )
 Maintainer: Martijn Schuemie <schuemie@ohdsi.org>
-Description: Routines for combining causal effect estimates and diagnostics across multiple data sites in a distributed study. 
-  This includes functions for performing meta-analysis and forest plots.
+Description: Routines for combining causal effect estimates and diagnostics across multiple data sites in a distributed study, without sharing patient-level data. 
+  Allows for normal and non-normal approximations of the data-site likelihood of the effect parameter. 
 Depends:
   survival
 Imports:
@@ -20,15 +20,17 @@ Imports:
   EmpiricalCalibration,
   rJava,
   BeastJar,
-  Cyclops,
+  Cyclops (>= 3.1.0),
   HDInterval,
   rlang,
   methods
 Suggests:
   knitr,
   testthat
+Remotes:
+  ohdsi/Cyclops@develop
 License: Apache License 2.0
-URL: https://ohdsi.github.io/EvidenceSynthesis, https://github.com/OHDSI/EvidenceSynthesis
+URL: https://ohdsi.github.io/EvidenceSynthesis/, https://github.com/OHDSI/EvidenceSynthesis
 BugReports: https://github.com/OHDSI/EvidenceSynthesis/issues
 VignetteBuilder: knitr
 RoxygenNote: 7.1.1

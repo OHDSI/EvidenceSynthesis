@@ -53,7 +53,7 @@ createNaEstimate <- function(type) {
   return(estimate)
 }
 
-#' Compute a Bayesian meta-analysis
+#' Compute a Bayesian random-effects meta-analysis
 #' 
 #' @description 
 #' Compute a Bayesian meta-analysis using the Markov chain Monte Carlo (MCMC) engine BEAST. 
@@ -67,27 +67,35 @@ createNaEstimate <- function(type) {
 #' @param priorSd      A two-dimensional vector with the standard deviation of the prior for mu and tau, respectively.
 #' @param alpha        The alpha (expected type I error) used for the credible intervals.
 #' 
+#' @seealso [approximateLikelihood], [computeFixedEffectMetaAnalysis]
+#' 
 #' @return 
 #' A data frame with the point estimates and 95% credible intervals for the mu and tau parameters (the mean and standard deviation of the distribution 
 #' from which the per-site effect sizes are drawn). Attributes of the data frame contain the MCMC trace and the detected approximation type.
 #' 
 #' @examples
+#' # Simulate some data for this example:
 #' populations <- simulatePopulations()
 #' 
+#' # Fit a Cox regression at each data site, and approximate likelihood function:
 #' fitModelInDatabase <- function(population) {
 #'   cyclopsData <- Cyclops::createCyclopsData(Surv(time, y) ~ x + strata(stratumId), 
 #'                                             data = population, 
 #'                                             modelType = "cox")
 #'   cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
-#'   approximation <-  approximateLikelihood(cyclopsFit, "x")
+#'   approximation <-  approximateLikelihood(cyclopsFit, parameter = "x", approximation = "custom")
 #'   return(approximation)
 #' }
 #' approximations <- lapply(populations, fitModelInDatabase)
 #' approximations <- do.call("rbind", approximations)
+#' 
+#' # At study coordinating center, perform meta-analysis using per-site approximations:
 #' estimate <- computeBayesianMetaAnalysis(approximations)
 #' estimate
-#' # mu     mu95Lb    mu95Ub     muSe        tau      tau95Lb  tau95Ub
-#' # 0.0003129562 -0.1747429 0.1723472 0.089661 0.07759992 0.0002024991 0.301007
+#' # mu     mu95Lb   mu95Ub      muSe       tau     tau95Lb   tau95Ub     logRr   seLogRr
+#' # 1 0.5770562 -0.2451619 1.382396 0.4154986 0.2733942 0.004919128 0.7913512 0.5770562 0.4152011
+#' 
+#' # (Estimates in this example will vary due to the random simulation)
 #' 
 #' @export
 computeBayesianMetaAnalysis <- function(data, 
@@ -193,6 +201,8 @@ computeBayesianMetaAnalysis <- function(data,
                          tau = median(traces[, 2]),
                          tau95Lb = hdiTau[1],
                          tau95Ub = hdiTau[2],
+                         logRr = mu,
+                         seLogRr = sqrt(mean((traces[, 1] - mu)^2)),
                          row.names = NULL)
   attr(estimate, "traces") <- traces
   attr(estimate, "type") <- type

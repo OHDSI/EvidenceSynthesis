@@ -32,10 +32,12 @@ The data frame should have a least the following two columns:
 }
 }
 \examples{
+# Simulate some data for this example:
 treatment <- rep(0:1, each = 100)
 propensityScore <- c(rnorm(100, mean = 0.4, sd = 0.25), rnorm(100, mean = 0.6, sd = 0.25))
 data <- data.frame(treatment = treatment, propensityScore = propensityScore)
 data <- data[data$propensityScore > 0 & data$propensityScore < 1, ]
+
 preparedPlot <- preparePsPlot(data)
 
 }
@@ -43,4 +45,7 @@ preparedPlot <- preparePsPlot(data)
 Walker AM, Patrick AR, Lauer MS, Hornbrook MC, Marin MG, Platt R, Roger VL, Stang P, and
 Schneeweiss S. (2013) A tool for assessing the feasibility of comparative effectiveness research,
 Comparative Effective Research, 3, 11-20
+}
+\seealso{
+\link{plotPreparedPs}
 }

@@ -29,13 +29,21 @@ approximation. The approximation does not reveal person-level information, and c
 data sites. When counts are low, a normal approximation might not be appropriate.
 }
 \examples{
+# Simulate some data for this example:
 populations <- simulatePopulations()
+
 cyclopsData <- Cyclops::createCyclopsData(Surv(time, y) ~ x + strata(stratumId), 
                                           data = populations[[1]], 
                                           modelType = "cox")
 cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
 approximation <-  approximateLikelihood(cyclopsFit, "x")
+approximation
 #            mu     sigma     gamma
 # 1 -0.09738447 0.7977671 0.1862877
 
+# (Estimates in this example will vary  due to the random simulation)
+
+}
+\seealso{
+\link{computeFixedEffectMetaAnalysis}, \link{computeBayesianMetaAnalysis}
 }

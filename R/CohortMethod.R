@@ -90,11 +90,11 @@ plotCovariateBalances <- function(balances,
   }
   agg <- lapply(1:nrow(combis), prepareAgg)
   agg <- do.call("rbind", agg)
-  limits <- c(min(balance$stdDiff, na.rm = TRUE), max(balance$stdDiff, na.rm = TRUE))
-  balance$type <- as.factor(balance$type)
-  balance$type <- factor(balance$type, levels = rev(levels(balance$type)))
-  balance$label <- factor(balance$label, levels = labels)
+  agg$type <- factor(agg$type, levels = c(beforeLabel, afterLabel))
   agg$label <- factor(agg$label, levels = labels)
+  balance$type <- factor(balance$type, levels = c(beforeLabel, afterLabel))
+  balance$label <- factor(balance$label, levels = labels)
+  limits <- c(min(balance$stdDiff, na.rm = TRUE), max(balance$stdDiff, na.rm = TRUE))  
   plot <- ggplot2::ggplot(balance, ggplot2::aes(x = .data$y, group = .data$label)) +
     ggplot2::geom_point(ggplot2::aes(x = .data$yDither, y = .data$stdDiff), color = rgb(0, 0, 0.8, alpha = 0.3), shape = 16, size = 0.5) +
     ggplot2::geom_errorbar(ggplot2::aes(ymin = .data$ymin, ymax = .data$ymin), data = agg) +
@@ -199,16 +199,20 @@ computePreferenceScore <- function(data, unfilteredData = NULL) {
 #' 
 #' - **treatment** (integer): Column indicating whether the person is in the treated (1) or comparator (0) group.
 #' - **propensityScore** (numeric): Propensity score.
+#' 
+#' @seealso [plotPreparedPs]
 #'
 #' @return
 #' A data frame describing the propensity score (or preference score) distribution at 100 equally-spaced
 #' points.
 #'
 #' @examples
+#' # Simulate some data for this example:
 #' treatment <- rep(0:1, each = 100)
 #' propensityScore <- c(rnorm(100, mean = 0.4, sd = 0.25), rnorm(100, mean = 0.6, sd = 0.25))
 #' data <- data.frame(treatment = treatment, propensityScore = propensityScore)
 #' data <- data[data$propensityScore > 0 & data$propensityScore < 1, ]
+#' 
 #' preparedPlot <- preparePsPlot(data)
 #'
 #' @references
@@ -262,14 +266,20 @@ preparePsPlot <- function(data,
 #'                          formats.
 #'                          
 #' @examples
+#' # Simulate some data for this example:
 #' treatment <- rep(0:1, each = 100)
 #' propensityScore <- c(rnorm(100, mean = 0.4, sd = 0.25), rnorm(100, mean = 0.6, sd = 0.25))
 #' data <- data.frame(treatment = treatment, propensityScore = propensityScore)
 #' data <- data[data$propensityScore > 0 & data$propensityScore < 1, ]
 #' preparedPlot <- preparePsPlot(data)
+#' 
 #' # Just reusing the same data three times for demonstration purposes:
 #' preparedPsPlots <- list(preparedPlot, preparedPlot, preparedPlot)
 #' labels <- c("Data site A", "Data site B", "Data site C")
+#' 
+#' plotPreparedPs(preparedPsPlots, labels)
+#' 
+#' @seealso [preparePsPlot]
 #'                          
 #' @return
 #' A ggplot object. Use the [ggplot2::ggsave] function to save to file in a different
@@ -322,7 +332,8 @@ plotPreparedPs <- function(preparedPsPlots,
                    axis.text.x = ggplot2::element_text(size = 11),
                    axis.title.x = ggplot2::element_text(size = 11),
                    panel.background = ggplot2::element_blank(),
-                   panel.grid = ggplot2::element_blank())
+                   panel.grid = ggplot2::element_blank(),
+                   panel.grid.major.x = ggplot2::element_line(color = rgb(0.7, 0.7, 0.7)))
   if (!is.null(fileName))
     ggplot2::ggsave(fileName, plot, width = 4, height = 1 + length(preparedPsPlots) * 0.75, dpi = 400)
   return(plot)

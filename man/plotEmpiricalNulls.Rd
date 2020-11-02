@@ -58,3 +58,6 @@ plotEmpiricalNulls(logRr = sites$logRr,
                    labels = sites$label)            
                    
 }
+\seealso{
+\link[EmpiricalCalibration:fitNull]{EmpiricalCalibration::fitNull}, \link[EmpiricalCalibration:fitMcmcNull]{EmpiricalCalibration::fitMcmcNull}
+}

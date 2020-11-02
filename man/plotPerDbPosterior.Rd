@@ -27,3 +27,27 @@ A Ggplot object. Use the \link[ggplot2:ggsave]{ggplot2::ggsave} function to save
 \description{
 Plot posterior density per database
 }
+\details{
+Plot the density of the posterior distribution of the theta parameter (the estimated log hazard ratio) at each site.
+}
+\examples{
+# Simulate some data for this example:
+populations <- simulatePopulations()
+
+# Fit a Cox regression at each data site, and approximate likelihood function:
+fitModelInDatabase <- function(population) {
+  cyclopsData <- Cyclops::createCyclopsData(Surv(time, y) ~ x + strata(stratumId), 
+                                            data = population, 
+                                            modelType = "cox")
+  cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
+  approximation <-  approximateLikelihood(cyclopsFit, parameter = "x", approximation = "custom")
+  return(approximation)
+}
+approximations <- lapply(populations, fitModelInDatabase)
+approximations <- do.call("rbind", approximations)
+
+# At study coordinating center, perform meta-analysis using per-site approximations:
+estimate <- computeBayesianMetaAnalysis(approximations)
+plotPerDbPosterior(estimate)
+
+}

@@ -25,19 +25,26 @@
 #' @param parameter     The parameter in the `cyclopsFit` object to profile.
 #' @param approximation The type of approximation. Valid options are `'normal'`, `'skew normal'`, `'custom'`, or `'grid'`.
 #' @param bounds        The bounds on the effect size used to fit the approximation. 
+#' 
+#' @seealso [computeFixedEffectMetaAnalysis], [computeBayesianMetaAnalysis]
 #'
 #' @return
 #' A vector of parameters of the likelihood approximation.
 #' 
 #' @examples
+#' # Simulate some data for this example:
 #' populations <- simulatePopulations()
+#' 
 #' cyclopsData <- Cyclops::createCyclopsData(Surv(time, y) ~ x + strata(stratumId), 
 #'                                           data = populations[[1]], 
 #'                                           modelType = "cox")
 #' cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
 #' approximation <-  approximateLikelihood(cyclopsFit, "x")
+#' approximation
 #' #            mu     sigma     gamma
 #' # 1 -0.09738447 0.7977671 0.1862877
+#' 
+#' # (Estimates in this example will vary  due to the random simulation)
 #' 
 #' @export
 approximateLikelihood <- function(cyclopsFit, 
@@ -87,6 +94,10 @@ approximateLikelihood <- function(cyclopsFit,
 }
 
 #' A custom function to approximate a log likelihood function
+#' 
+#' @details 
+#' A custom parametric function designed to approximate the shape of the Cox log likelihood function. When `gamma = 0` this
+#' function is the normal distribution.
 #'
 #' @param x       The log(hazard ratio) for which to approximate the log likelihood.
 #' @param mu      The position parameter.
@@ -108,6 +119,10 @@ customFunction <- function(x, mu, sigma, gamma) {
 }
 
 #' The skew normal function to approximate a log likelihood function
+#' 
+#' @details 
+#' The skew normal function. When `alpha = 0` this
+#' function is the normal distribution.
 #'
 #' @param x       The log(hazard ratio) for which to approximate the log likelihood.
 #' @param mu      The position parameter.
@@ -119,6 +134,9 @@ customFunction <- function(x, mu, sigma, gamma) {
 #' # [1] -0.9189385 -1.4189385 -2.9189385 -5.4189385
 #'
 #' @return The approximate log likehood for the given x.
+#' 
+#' @references 
+#' Azzalini, A. (2013). The Skew-Normal and Related Families. Institute of Mathematical Statistics Monographs. Cambridge University Press.
 #' 
 #' @export
 skewNormal <- function(x, mu, sigma, alpha) {
@@ -152,7 +170,7 @@ fitLogLikelihoodFunction <- function(beta, ll, weighByLikelihood = TRUE, fun = c
   ll <- ll - max(ll)
   weights <- exp(ll)
   # Weights shouldn't be too small:
-  weights[weights < 1e-5] <- 1e-5
+  weights[weights < 1e-3] <- 1e-3
 
   mode <- beta[ll == 0][1]
   if (mode == min(beta) || mode == max(beta)) {
@@ -219,8 +237,6 @@ fitLogLikelihoodFunction <- function(beta, ll, weighByLikelihood = TRUE, fun = c
 }
 
 getLikelihoodProfile <- function(cyclopsFit, parameter, x) {
-  # Temporary workaround for Cyclops bug: prefix 1 to x , then remove first one from ll:
-  x <- c(1, x)
   ll <- Cyclops::getCyclopsProfileLogLikelihood(cyclopsFit, parameter, x)$value
-  return(ll[-1])
+  return(ll)
 }

@@ -15,6 +15,9 @@
 # limitations under the License.
 
 #' Plot the likelihood approximation
+#' 
+#' @details
+#' Plots the (log) likehood and the approximation of the likelihood. Allows for reviewing the approximation.
 #'
 #' @param approximation   An approximation of the likelihood function as fitted using the [approximateLikelihood()] function.
 #' @param cyclopsFit      A model fitted using the [Cyclops::fitCyclopsModel()] function.
@@ -32,11 +35,12 @@
 #' # Simulate a single database population:
 #' population <- simulatePopulations(createSimulationSettings(nSites = 1))[[1]]
 #' 
+#' # Approximate the likelihood:
 #' cyclopsData <- Cyclops::createCyclopsData(Surv(time, y) ~ x + strata(stratumId), 
 #'                                           data = population, 
 #'                                           modelType = "cox")
 #' cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
-#' approximation <-  approximateLikelihood(cyclopsFit, parameter = "x")
+#' approximation <-  approximateLikelihood(cyclopsFit, parameter = "x", approximation = "custom")
 #' 
 #' plotLikelihoodFit(approximation, cyclopsFit, parameter = "x")
 #' 
@@ -51,7 +55,7 @@ plotLikelihoodFit <- function(approximation,
   if ("logRr" %in% colnames(approximation)) {
     inform("Detected normal approximation")
     x <- seq(log(limits[1]), log(limits[2]), length.out = 100)
-    y <- dnorm(x, mean = approximation$mu, sd = approximation$sigma, log = TRUE)
+    y <- dnorm(x, mean = approximation$logRr, sd = approximation$seLogRr, log = TRUE)
   } else if ("gamma" %in% colnames(approximation)) {
     inform("Detected custom parameric approximation")
     x <- seq(log(limits[1]), log(limits[2]), length.out = 100)
@@ -108,14 +112,38 @@ plotLikelihoodFit <- function(approximation,
   return(plot)
 }
 
-
 #' Plot MCMC trace
+#' 
+#' @details 
+#' Plot the samples of the posterior distribution of the mu and tau parameters. Samples are taken using Markoc-chain Monte Carlo (MCMC).
 #'
 #' @param estimate   An object as generated using the [computeBayesianMetaAnalysis()] function.
 #' @param showEstimate  Show the parameter estimates (mode) and 95 percent confidence intervals?
 #' @param dataCutoff This fraction of the data at both tails will be removed.
 #' @param fileName   Name of the file where the plot should be saved, for example 'plot.png'. See the
 #'                   function [ggplot2::ggsave] in the ggplot2 package for supported file formats.
+#'                   
+#' @seealso [computeBayesianMetaAnalysis] 
+#' 
+#' @examples 
+#' # Simulate some data for this example:
+#' populations <- simulatePopulations()
+#' 
+#' # Fit a Cox regression at each data site, and approximate likelihood function:
+#' fitModelInDatabase <- function(population) {
+#'   cyclopsData <- Cyclops::createCyclopsData(Surv(time, y) ~ x + strata(stratumId), 
+#'                                             data = population, 
+#'                                             modelType = "cox")
+#'   cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
+#'   approximation <-  approximateLikelihood(cyclopsFit, parameter = "x", approximation = "custom")
+#'   return(approximation)
+#' }
+#' approximations <- lapply(populations, fitModelInDatabase)
+#' approximations <- do.call("rbind", approximations)
+#' 
+#' # At study coordinating center, perform meta-analysis using per-site approximations:
+#' estimate <- computeBayesianMetaAnalysis(approximations)
+#' plotMcmcTrace(estimate)
 #'
 #' @return
 #' A Ggplot object. Use the [ggplot2::ggsave] function to save to file.
@@ -156,15 +184,40 @@ plotMcmcTrace <- function(estimate, showEstimate = TRUE, dataCutoff = 0.01, file
 }
 
 #' Plot MCMC trace for individual databases
+#' 
+#' @details 
+#' Plot the samples of the posterior distribution of the theta parameter (the estimated log hazard ratio) at each site. Samples are taken using Markoc-chain Monte Carlo (MCMC).
 #'
 #' @param estimate   An object as generated using the [computeBayesianMetaAnalysis()] function.
 #' @param showEstimate  Show the parameter estimates (mode) and 95 percent confidence intervals?
 #' @param dataCutoff This fraction of the data at both tails will be removed.
 #' @param fileName   Name of the file where the plot should be saved, for example 'plot.png'. See the
 #'                   function [ggplot2::ggsave] in the ggplot2 package for supported file formats.
+#'                   
+#' @seealso [computeBayesianMetaAnalysis]
 #'
 #' @return
 #' A Ggplot object. Use the [ggplot2::ggsave] function to save to file.
+#' 
+#' @examples 
+#' # Simulate some data for this example:
+#' populations <- simulatePopulations()
+#' 
+#' # Fit a Cox regression at each data site, and approximate likelihood function:
+#' fitModelInDatabase <- function(population) {
+#'   cyclopsData <- Cyclops::createCyclopsData(Surv(time, y) ~ x + strata(stratumId), 
+#'                                             data = population, 
+#'                                             modelType = "cox")
+#'   cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
+#'   approximation <-  approximateLikelihood(cyclopsFit, parameter = "x", approximation = "custom")
+#'   return(approximation)
+#' }
+#' approximations <- lapply(populations, fitModelInDatabase)
+#' approximations <- do.call("rbind", approximations)
+#' 
+#' # At study coordinating center, perform meta-analysis using per-site approximations:
+#' estimate <- computeBayesianMetaAnalysis(approximations)
+#' plotPerDbMcmcTrace(estimate)
 #'
 #' @export
 plotPerDbMcmcTrace <- function(estimate, showEstimate = TRUE, dataCutoff = 0.01, fileName = NULL) {
@@ -209,15 +262,40 @@ plotPerDbMcmcTrace <- function(estimate, showEstimate = TRUE, dataCutoff = 0.01,
 }
 
 #' Plot posterior density
+#' 
+#' @details 
+#' Plot the density of the posterior distribution of the mu and tau parameters.
 #'
 #' @param estimate   An object as generated using the [computeBayesianMetaAnalysis()] function.
 #' @param showEstimate  Show the parameter estimates (mode) and 95 percent confidence intervals?
 #' @param dataCutoff This fraction of the data at both tails will be removed.
 #' @param fileName   Name of the file where the plot should be saved, for example 'plot.png'. See the
 #'                   function [ggplot2::ggsave] in the ggplot2 package for supported file formats.
+#'                   
+#' @seealso [computeBayesianMetaAnalysis]
 #'
 #' @return
 #' A Ggplot object. Use the [ggplot2::ggsave] function to save to file.
+#' 
+#' @examples 
+#' # Simulate some data for this example:
+#' populations <- simulatePopulations()
+#' 
+#' # Fit a Cox regression at each data site, and approximate likelihood function:
+#' fitModelInDatabase <- function(population) {
+#'   cyclopsData <- Cyclops::createCyclopsData(Surv(time, y) ~ x + strata(stratumId), 
+#'                                             data = population, 
+#'                                             modelType = "cox")
+#'   cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
+#'   approximation <-  approximateLikelihood(cyclopsFit, parameter = "x", approximation = "custom")
+#'   return(approximation)
+#' }
+#' approximations <- lapply(populations, fitModelInDatabase)
+#' approximations <- do.call("rbind", approximations)
+#' 
+#' # At study coordinating center, perform meta-analysis using per-site approximations:
+#' estimate <- computeBayesianMetaAnalysis(approximations)
+#' plotPosterior(estimate)
 #'
 #' @export
 plotPosterior <- function(estimate, showEstimate = TRUE, dataCutoff = 0.01, fileName = NULL) {
@@ -255,6 +333,9 @@ plotPosterior <- function(estimate, showEstimate = TRUE, dataCutoff = 0.01, file
 }
 
 #' Plot posterior density per database
+#' 
+#' @details 
+#' Plot the density of the posterior distribution of the theta parameter (the estimated log hazard ratio) at each site.
 #'
 #' @param estimate   An object as generated using the [computeBayesianMetaAnalysis()] function.
 #' @param showEstimate  Show the parameter estimates (mode) and 95 percent confidence intervals?
@@ -264,12 +345,32 @@ plotPosterior <- function(estimate, showEstimate = TRUE, dataCutoff = 0.01, file
 #'
 #' @return
 #' A Ggplot object. Use the [ggplot2::ggsave] function to save to file.
+#' 
+#' @examples 
+#' # Simulate some data for this example:
+#' populations <- simulatePopulations()
+#' 
+#' # Fit a Cox regression at each data site, and approximate likelihood function:
+#' fitModelInDatabase <- function(population) {
+#'   cyclopsData <- Cyclops::createCyclopsData(Surv(time, y) ~ x + strata(stratumId), 
+#'                                             data = population, 
+#'                                             modelType = "cox")
+#'   cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
+#'   approximation <-  approximateLikelihood(cyclopsFit, parameter = "x", approximation = "custom")
+#'   return(approximation)
+#' }
+#' approximations <- lapply(populations, fitModelInDatabase)
+#' approximations <- do.call("rbind", approximations)
+#' 
+#' # At study coordinating center, perform meta-analysis using per-site approximations:
+#' estimate <- computeBayesianMetaAnalysis(approximations)
+#' plotPerDbPosterior(estimate)
 #'
 #' @export
 plotPerDbPosterior <- function(estimate, showEstimate = TRUE, dataCutoff = 0.01, fileName = NULL) {
   traces <- attr(estimate, "traces") 
   getDbChain <- function(i) {
-    data <- data.frame(x = 1:nrow(traces), trace = .data$traces[, i], var = sprintf("Site %s", i - 2))
+    data <- data.frame(x = 1:nrow(traces), trace = traces[, i], var = sprintf("Site %s", i - 2))
     if (dataCutoff != 0) {
       lims <- quantile(data$trace, c(dataCutoff, 1 - dataCutoff))
       data <- data[data$trace > lims[1] & data$trace < lims[2], ]

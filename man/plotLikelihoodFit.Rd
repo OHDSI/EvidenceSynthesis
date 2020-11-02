@@ -36,15 +36,19 @@ A Ggplot object. Use the \link[ggplot2:ggsave]{ggplot2::ggsave} function to save
 \description{
 Plot the likelihood approximation
 }
+\details{
+Plots the (log) likehood and the approximation of the likelihood. Allows for reviewing the approximation.
+}
 \examples{
 # Simulate a single database population:
 population <- simulatePopulations(createSimulationSettings(nSites = 1))[[1]]
 
+# Approximate the likelihood:
 cyclopsData <- Cyclops::createCyclopsData(Surv(time, y) ~ x + strata(stratumId), 
                                           data = population, 
                                           modelType = "cox")
 cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
-approximation <-  approximateLikelihood(cyclopsFit, parameter = "x")
+approximation <-  approximateLikelihood(cyclopsFit, parameter = "x", approximation = "custom")
 
 plotLikelihoodFit(approximation, cyclopsFit, parameter = "x")
 
