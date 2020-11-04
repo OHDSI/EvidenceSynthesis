@@ -81,6 +81,7 @@ computeFixedEffectMetaAnalysis <- function(data, alpha = 0.05) {
     inform("Detected data following skew normal distribution")
     data <- cleanData(data, c("mu", "sigma", "alpha"), minValues = c(-100, 1e-5, -100), maxValues = c(100, 1e4, 1e4))
     estimate <- computeEstimateFromCombiLl(data, alpha = alpha, fun = skewNormal)
+    return(estimate)
   } else if (is.list(data) && !is.data.frame(data)) {
     inform("Detected (pooled) patient-level data")
     population <- poolPopulations(data)
