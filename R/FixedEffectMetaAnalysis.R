@@ -59,12 +59,17 @@ computeFixedEffectMetaAnalysis <- function(data, alpha = 0.05) {
   if ("logRr" %in% colnames(data)) {
     inform("Detected data following normal distribution")
     data <- cleanData(data, c("logRr", "seLogRr"), minValues = c(-100, 1e-5))
-    m <- meta::metagen(data$logRr, data$seLogRr, level.comb = 1 - alpha)
+    m <- meta::metagen(TE = data$logRr, 
+                       seTE = data$seLogRr, 
+                       studlab = rep("", nrow(data)), 
+                       byvar = NULL,
+                       sm = "RR",
+                       level.comb = 1 - alpha)
     ffx <- summary(m)$fixed
-    estimate <- data.frame(rr = ffx$TE,
-                           lb = ffx$lower,
-                           ub = ffx$upper,
-                           logRr = log(ffx$TE),
+    estimate <- data.frame(rr = exp(ffx$TE),
+                           lb = exp(ffx$lower),
+                           ub = exp(ffx$upper),
+                           logRr = ffx$TE,
                            seLogRr = ffx$seTE)
     return(estimate)
   } else if ("gamma" %in% colnames(data)) {
@@ -74,7 +79,7 @@ computeFixedEffectMetaAnalysis <- function(data, alpha = 0.05) {
     return(estimate)
   } else if ("alpha" %in% colnames(data)) {
     inform("Detected data following skew normal distribution")
-    data <- cleanData(data, c("mu", "sigma", "alpha"), minValues = c(-100, 1e-5, -100))
+    data <- cleanData(data, c("mu", "sigma", "alpha"), minValues = c(-100, 1e-5, -100), maxValues = c(100, 1e4, 1e4))
     estimate <- computeEstimateFromCombiLl(data, alpha = alpha, fun = skewNormal)
   } else if (is.list(data) && !is.data.frame(data)) {
     inform("Detected (pooled) patient-level data")
@@ -84,10 +89,10 @@ computeFixedEffectMetaAnalysis <- function(data, alpha = 0.05) {
     mode <- coef(cyclopsFit)
     ci95 <- confint(cyclopsFit, 1, level = .95)
     estimate <- data.frame(rr = exp(mode),
-                      lb = exp(ci95[2]),
-                      ub = exp(ci95[3]),
-                      logRr = mode,
-                      seLogRr = (ci95[3] - ci95[2])/(2 * qnorm(0.975)))
+                           lb = exp(ci95[2]),
+                           ub = exp(ci95[3]),
+                           logRr = mode,
+                           seLogRr = (ci95[3] - ci95[2])/(2 * qnorm(0.975)))
     return(estimate)
   } else {
     inform("Detected data following grid distribution")
@@ -186,7 +191,7 @@ poolPopulations <- function(populations) {
   pooledPop <- do.call("rbind", populations) 
   return(pooledPop)
 }
-  
+
 computeEstimateFromCombiGrids <- function(grids, alpha = 0.05) {
   grid <- apply(grids, 2, sum)
   maxIdx <- which(grid == max(grid))[1]
