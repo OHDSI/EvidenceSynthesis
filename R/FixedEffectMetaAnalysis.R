@@ -79,7 +79,7 @@ computeFixedEffectMetaAnalysis <- function(data, alpha = 0.05) {
     return(estimate)
   } else if ("alpha" %in% colnames(data)) {
     inform("Detected data following skew normal distribution")
-    data <- cleanData(data, c("mu", "sigma", "alpha"), minValues = c(-100, 1e-5, -100), maxValues = c(100, 1e4, 1e4))
+    data <- cleanData(data, c("mu", "sigma", "alpha"), minValues = c(-100, 1e-5, -1e4), maxValues = c(100, 1e4, 1e4))
     estimate <- computeEstimateFromCombiLl(data, alpha = alpha, fun = skewNormal)
     return(estimate)
   } else if (is.list(data) && !is.data.frame(data)) {

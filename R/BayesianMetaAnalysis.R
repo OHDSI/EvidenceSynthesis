@@ -130,7 +130,7 @@ computeBayesianMetaAnalysis <- function(data,
   } else if ("alpha" %in% colnames(data)) {
     inform("Detected data following skew normal distribution")
     type <- "skew normal"
-    data <- cleanData(data, c("mu", "sigma", "alpha"), minValues = c(-100, 1e-5, -100), maxValues = c(100, 1e4, 1e4))
+    data <- cleanData(data, c("mu", "sigma", "alpha"), minValues = c(-100, 1e-5, -1e4), maxValues = c(100, 1e4, 1e4))
     if (nrow(data) == 0)
       return(createNaEstimate(type))
     dataModel <- rJava::.jnew("org.ohdsi.metaAnalysis.SkewNormalDataModel")
