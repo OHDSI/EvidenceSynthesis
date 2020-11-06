@@ -67,7 +67,7 @@ Documentation can be found on the [package website](https://ohdsi.github.io/Evid
 
 PDF versions of the documentation are also available:
 
-* Vignette: [Effect estimate using non-normal likelihood approximations](https://raw.githubusercontent.com/OHDSI/EvidenceSynthesis/master/inst/doc/NonNormalEffectSynthesis.pdf)
+* Vignette: [Effect estimate using non-normal likelihood approximations](https://raw.githubusercontent.com/OHDSI/EvidenceSynthesis/master/extras/NonNormalEffectSynthesis.pdf)
 * Package manual: [EvidenceSynthesis.pdf](https://raw.githubusercontent.com/OHDSI/EvidenceSynthesis/master/extras/EvidenceSynthesis.pdf) 
 
 Support
