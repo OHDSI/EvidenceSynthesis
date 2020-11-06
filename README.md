@@ -73,7 +73,7 @@ PDF versions of the documentation are also available:
 Support
 =======
 * Developer questions/comments/feedback: <a href="http://forums.ohdsi.org/c/developers">OHDSI Forum</a>
-* We use the <a href=""https://github.com/OHDSI/EvidenceSynthesis/issues"">GitHub issue tracker</a> for all bugs/issues/enhancements
+* We use the <a href="https://github.com/OHDSI/EvidenceSynthesis/issues">GitHub issue tracker</a> for all bugs/issues/enhancements
 
 Contributing
 ============
