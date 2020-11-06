@@ -15,7 +15,8 @@ plotLikelihoodFit(
 )
 }
 \arguments{
-\item{approximation}{An approximation of the likelihood function as fitted using the \code{\link[=approximateLikelihood]{approximateLikelihood()}} function.}
+\item{approximation}{An approximation of the likelihood function as fitted using the
+\code{\link[=approximateLikelihood]{approximateLikelihood()}} function.}
 
 \item{cyclopsFit}{A model fitted using the \code{\link[Cyclops:fitCyclopsModel]{Cyclops::fitCyclopsModel()}} function.}
 
@@ -27,8 +28,9 @@ plotLikelihoodFit(
 
 \item{limits}{The limits on the x-axis.}
 
-\item{fileName}{Name of the file where the plot should be saved, for example 'plot.png'. See the
-function \link[ggplot2:ggsave]{ggplot2::ggsave} in the ggplot2 package for supported file formats.}
+\item{fileName}{Name of the file where the plot should be saved, for example 'plot.png'. See
+the function \link[ggplot2:ggsave]{ggplot2::ggsave} in the ggplot2 package for supported file
+formats.}
 }
 \value{
 A Ggplot object. Use the \link[ggplot2:ggsave]{ggplot2::ggsave} function to save to file.
@@ -37,18 +39,19 @@ A Ggplot object. Use the \link[ggplot2:ggsave]{ggplot2::ggsave} function to save
 Plot the likelihood approximation
 }
 \details{
-Plots the (log) likehood and the approximation of the likelihood. Allows for reviewing the approximation.
+Plots the (log) likehood and the approximation of the likelihood. Allows for reviewing the
+approximation.
 }
 \examples{
 # Simulate a single database population:
 population <- simulatePopulations(createSimulationSettings(nSites = 1))[[1]]
 
 # Approximate the likelihood:
-cyclopsData <- Cyclops::createCyclopsData(Surv(time, y) ~ x + strata(stratumId), 
-                                          data = population, 
+cyclopsData <- Cyclops::createCyclopsData(Surv(time, y) ~ x + strata(stratumId),
+                                          data = population,
                                           modelType = "cox")
 cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
-approximation <-  approximateLikelihood(cyclopsFit, parameter = "x", approximation = "custom")
+approximation <- approximateLikelihood(cyclopsFit, parameter = "x", approximation = "custom")
 
 plotLikelihoodFit(approximation, cyclopsFit, parameter = "x")
 

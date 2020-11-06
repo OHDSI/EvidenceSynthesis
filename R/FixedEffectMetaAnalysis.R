@@ -15,53 +15,55 @@
 # limitations under the License.
 
 #' Compute a fixed-effect meta-analysis
-#' 
-#' @description 
+#'
+#' @description
 #' Compute a fixed-effect meta-analysis using a choice of various likelihood approximations.
 #'
-#' @param data        A data frame containing either normal, skew-normal, custom parametric, or grid likelihood data. One row per database.
-#' @param alpha       The alpha (expected type I error) used for the confidence intervals.
-#' 
-#' @seealso [approximateLikelihood], [computeBayesianMetaAnalysis]
-#' 
-#' @return 
-#' The meta-anlytic estimate, expressed as the point estimate hazard ratio (rr), its 95 percent confidence interval (lb, ub), as well
-#' as the log of the point estimate (logRr), and the standard error (seLogRr).
-#' 
-#' @examples 
+#' @param data    A data frame containing either normal, skew-normal, custom parametric, or grid
+#'                likelihood data. One row per database.
+#' @param alpha   The alpha (expected type I error) used for the confidence intervals.
+#'
+#' @seealso
+#' [approximateLikelihood], [computeBayesianMetaAnalysis]
+#'
+#' @return
+#' The meta-anlytic estimate, expressed as the point estimate hazard ratio (rr), its 95 percent
+#' confidence interval (lb, ub), as well as the log of the point estimate (logRr), and the standard
+#' error (seLogRr).
+#'
+#' @examples
 #' # Simulate some data for this example:
 #' populations <- simulatePopulations()
-#' 
+#'
 #' # Fit a Cox regression at each data site, and approximate likelihood function:
 #' fitModelInDatabase <- function(population) {
-#'   cyclopsData <- Cyclops::createCyclopsData(Surv(time, y) ~ x + strata(stratumId), 
-#'                                             data = population, modelType = "cox")
+#'   cyclopsData <- Cyclops::createCyclopsData(Surv(time, y) ~ x + strata(stratumId),
+#'                                             data = population,
+#'                                             modelType = "cox")
 #'   cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
-#'   approximation <-  approximateLikelihood(cyclopsFit, 
-#'                                           parameter = "x", 
-#'                                           approximation = "custom")
+#'   approximation <- approximateLikelihood(cyclopsFit, parameter = "x", approximation = "custom")
 #'   return(approximation)
 #' }
 #' approximations <- lapply(populations, fitModelInDatabase)
 #' approximations <- do.call("rbind", approximations)
-#' 
+#'
 #' # At study coordinating center, perform meta-analysis using per-site approximations:
 #' computeFixedEffectMetaAnalysis(approximations)
 #' # Detected data following custom parameric distribution
-#' # rr        lb       ub     logRr   seLogRr
+#' #        rr        lb       ub     logRr   seLogRr
 #' # 1 1.72852 0.9388496 3.037601 0.5472656 0.2995381
-#' 
-#' # (Estimates in this example will vary  due to the random simulation)
+#'
+#' # (Estimates in this example will vary due to the random simulation)
 #'
 #' @export
 computeFixedEffectMetaAnalysis <- function(data, alpha = 0.05) {
   # Determine type based on data structure:
   if ("logRr" %in% colnames(data)) {
     inform("Detected data following normal distribution")
-    data <- cleanData(data, c("logRr", "seLogRr"), minValues = c(-100, 1e-5))
-    m <- meta::metagen(TE = data$logRr, 
-                       seTE = data$seLogRr, 
-                       studlab = rep("", nrow(data)), 
+    data <- cleanData(data, c("logRr", "seLogRr"), minValues = c(-100, 1e-05))
+    m <- meta::metagen(TE = data$logRr,
+                       seTE = data$seLogRr,
+                       studlab = rep("", nrow(data)),
                        byvar = NULL,
                        sm = "RR",
                        level.comb = 1 - alpha)
@@ -74,21 +76,26 @@ computeFixedEffectMetaAnalysis <- function(data, alpha = 0.05) {
     return(estimate)
   } else if ("gamma" %in% colnames(data)) {
     inform("Detected data following custom parameric distribution")
-    data <- cleanData(data, c("mu", "sigma", "gamma"), minValues = c(-100, 1e-5, -100))
+    data <- cleanData(data, c("mu", "sigma", "gamma"), minValues = c(-100, 1e-05, -100))
     estimate <- computeEstimateFromCombiLl(data, alpha = alpha, fun = customFunction)
     return(estimate)
   } else if ("alpha" %in% colnames(data)) {
     inform("Detected data following skew normal distribution")
-    data <- cleanData(data, c("mu", "sigma", "alpha"), minValues = c(-100, 1e-5, -1e4), maxValues = c(100, 1e4, 1e4))
+    data <- cleanData(data,
+                      c("mu", "sigma", "alpha"),
+                      minValues = c(-100, 1e-05, -10000),
+                      maxValues = c(100, 10000, 10000))
     estimate <- computeEstimateFromCombiLl(data, alpha = alpha, fun = skewNormal)
     return(estimate)
   } else if (is.list(data) && !is.data.frame(data)) {
     inform("Detected (pooled) patient-level data")
     population <- poolPopulations(data)
-    cyclopsData <- Cyclops::createCyclopsData(Surv(time, y) ~ x + strata(stratumId), data = population, modelType = "cox")
+    cyclopsData <- Cyclops::createCyclopsData(Surv(time, y) ~ x + strata(stratumId),
+                                              data = population,
+                                              modelType = "cox")
     cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
     mode <- coef(cyclopsFit)
-    ci95 <- confint(cyclopsFit, 1, level = .95)
+    ci95 <- confint(cyclopsFit, 1, level = 0.95)
     estimate <- data.frame(rr = exp(mode),
                            lb = exp(ci95[2]),
                            ub = exp(ci95[3]),
@@ -99,7 +106,7 @@ computeFixedEffectMetaAnalysis <- function(data, alpha = 0.05) {
     inform("Detected data following grid distribution")
     x <- as.numeric(colnames(data))
     if (any(is.na(x))) {
-      abort("Expecting grid data, but not all column names are numeric") 
+      abort("Expecting grid data, but not all column names are numeric")
     }
     estimate <- computeEstimateFromCombiGrids(data, alpha = alpha)
     return(estimate)
@@ -113,19 +120,21 @@ combineLogLikelihoodFunctions <- function(x, fits, fun = customFunction) {
 }
 
 computeEstimateFromCombiLl <- function(fits, alpha = 0.05, fun = customFunction) {
-  if (all(c("mu", "sigma", "gamma") %in% colnames(fits)))  {
+  if (all(c("mu", "sigma", "gamma") %in% colnames(fits))) {
     fits <- fits[, c("mu", "sigma", "gamma")]
-  } else if (all(c("mu", "sigma", "alpha") %in% colnames(fits)))  {
+  } else if (all(c("mu", "sigma", "alpha") %in% colnames(fits))) {
     fits <- fits[, c("mu", "sigma", "alpha")]
   } else {
-    abort(paste0("Expecting columns 'mu', 'sigma', and 'gamma' or 'alpha', but found columns '", paste(colnames(fits), collapse = "', '"), "'"))
+    abort(paste0("Expecting columns 'mu', 'sigma', and 'gamma' or 'alpha', but found columns '",
+                 paste(colnames(fits), collapse = "', '"),
+                 "'"))
   }
   fit <- suppressWarnings(optim(0, function(x) -combineLogLikelihoodFunctions(x, fits, fun)))
-  logRr <- fit$par           
-  threshold <- -fit$value - qchisq(1 - alpha, df = 1) / 2
-  
-  precision = 1e-07
-  
+  logRr <- fit$par
+  threshold <- -fit$value - qchisq(1 - alpha, df = 1)/2
+
+  precision <- 1e-07
+
   # Binary search for upper bound
   L <- logRr
   H <- 10
@@ -150,8 +159,8 @@ computeEstimateFromCombiLl <- function(fits, alpha = 0.05, fun = customFunction)
       break
     }
   }
-  
-  # Binary search for lower bound  
+
+  # Binary search for lower bound
   L <- -10
   H <- logRr
   lb <- -Inf
@@ -179,7 +188,7 @@ computeEstimateFromCombiLl <- function(fits, alpha = 0.05, fun = customFunction)
                        lb = exp(lb),
                        ub = exp(ub),
                        logRr = logRr,
-                       seLogRr = (ub - lb)/(2*qnorm(0.975)))
+                       seLogRr = (ub - lb)/(2 * qnorm(0.975)))
   return(result)
 }
 
@@ -189,7 +198,7 @@ poolPopulations <- function(populations) {
     populations[[i]]$stratumId <- populations[[i]]$stratumId + highestId
     highestId <- max(populations[[i]]$stratumId) + 1
   }
-  pooledPop <- do.call("rbind", populations) 
+  pooledPop <- do.call("rbind", populations)
   return(pooledPop)
 }
 
@@ -197,7 +206,7 @@ computeEstimateFromCombiGrids <- function(grids, alpha = 0.05) {
   grid <- apply(grids, 2, sum)
   maxIdx <- which(grid == max(grid))[1]
   logRr <- as.numeric(names(grid)[maxIdx])
-  threshold <- grid[maxIdx] - qchisq(1 - alpha, df = 1) / 2
+  threshold <- grid[maxIdx] - qchisq(1 - alpha, df = 1)/2
   lbIdx <- min(which(grid[1:maxIdx] > threshold))
   if (lbIdx == 1) {
     warn("Lower bound of confidence interval out of range")
@@ -212,6 +221,6 @@ computeEstimateFromCombiGrids <- function(grids, alpha = 0.05) {
                        lb = exp(lb),
                        ub = exp(ub),
                        logRr = logRr,
-                       seLogRr = (ub - lb)/(2*qnorm(0.975)))
+                       seLogRr = (ub - lb)/(2 * qnorm(0.975)))
   return(result)
 }

@@ -22,11 +22,11 @@ The approximate log likelihood for the given x.
 A custom function to approximate a log likelihood function
 }
 \details{
-A custom parametric function designed to approximate the shape of the Cox log likelihood function. When \code{gamma = 0} this
-function is the normal distribution.
+A custom parametric function designed to approximate the shape of the Cox log likelihood function.
+When \code{gamma = 0} this function is the normal distribution.
 }
 \examples{
 customFunction(x = 0:3, mu = 0, sigma = 1, gamma = 0)
-# [1]  0.0 -0.5 -2.0 -4.5
+# [1] 0.0 -0.5 -2.0 -4.5
 
 }

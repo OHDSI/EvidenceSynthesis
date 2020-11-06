@@ -17,18 +17,19 @@ plotEmpiricalNulls(
 \arguments{
 \item{logRr}{A numeric vector of effect estimates for the negative controls on the log scale.}
 
-\item{seLogRr}{The standard error of the log of the effect estimates.
-Hint: often the standard error = (log(lower bound 95 percent confidence interval) - l
-og(effect estimate))/qnorm(0.025).}
+\item{seLogRr}{The standard error of the log of the effect estimates. Hint: often the standard
+error = (log(lower bound 95 percent confidence interval) - l og(effect
+estimate))/qnorm(0.025).}
 
-\item{labels}{A vector containing the labels for the various sources. Should be of equal length as
-\code{logRr} and \code{seLogRr}.}
+\item{labels}{A vector containing the labels for the various sources. Should be of equal length
+as \code{logRr} and \code{seLogRr}.}
 
 \item{xLabel}{The label on the x-axis: the name of the effect estimate.}
 
 \item{limits}{The limits of the effect size axis.}
 
-\item{showCis}{Show the 95 percent confidence intervals on the null distribution and distribution parameter estimates?}
+\item{showCis}{Show the 95 percent confidence intervals on the null distribution and distribution
+parameter estimates?}
 
 \item{fileName}{Name of the file where the plot should be saved, for example 'plot.png'. See the
 function \code{\link[ggplot2:ggsave]{ggplot2::ggsave()}} for supported file formats.}
@@ -40,8 +41,8 @@ A Ggplot object. Use the \code{\link[ggplot2:ggsave]{ggplot2::ggsave()}} functio
 Plot the empirical null distribution for multiple data sources.
 }
 \details{
-Creates a plot showing the empirical null distributions. Distributions are shown as mean plus minus one
-standard deviation, as well as a distribution plot.
+Creates a plot showing the empirical null distributions. Distributions are shown as mean plus minus
+one standard deviation, as well as a distribution plot.
 }
 \examples{
 # Some example data:
@@ -53,10 +54,8 @@ site3 <- EmpiricalCalibration::simulateControls(n = 50, mean = 0.15, sd = 0.25, 
 site3$label <- "Site 3"
 sites <- rbind(site1, site2, site3)
 
-plotEmpiricalNulls(logRr = sites$logRr,
-                   seLogRr = sites$seLogRr,      
-                   labels = sites$label)            
-                   
+plotEmpiricalNulls(logRr = sites$logRr, seLogRr = sites$seLogRr, labels = sites$label)
+
 }
 \seealso{
 \link[EmpiricalCalibration:fitNull]{EmpiricalCalibration::fitNull}, \link[EmpiricalCalibration:fitMcmcNull]{EmpiricalCalibration::fitMcmcNull}

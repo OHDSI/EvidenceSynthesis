@@ -7,13 +7,15 @@
 computeFixedEffectMetaAnalysis(data, alpha = 0.05)
 }
 \arguments{
-\item{data}{A data frame containing either normal, skew-normal, custom parametric, or grid likelihood data. One row per database.}
+\item{data}{A data frame containing either normal, skew-normal, custom parametric, or grid
+likelihood data. One row per database.}
 
 \item{alpha}{The alpha (expected type I error) used for the confidence intervals.}
 }
 \value{
-The meta-anlytic estimate, expressed as the point estimate hazard ratio (rr), its 95 percent confidence interval (lb, ub), as well
-as the log of the point estimate (logRr), and the standard error (seLogRr).
+The meta-anlytic estimate, expressed as the point estimate hazard ratio (rr), its 95 percent
+confidence interval (lb, ub), as well as the log of the point estimate (logRr), and the standard
+error (seLogRr).
 }
 \description{
 Compute a fixed-effect meta-analysis using a choice of various likelihood approximations.
@@ -24,12 +26,11 @@ populations <- simulatePopulations()
 
 # Fit a Cox regression at each data site, and approximate likelihood function:
 fitModelInDatabase <- function(population) {
-  cyclopsData <- Cyclops::createCyclopsData(Surv(time, y) ~ x + strata(stratumId), 
-                                            data = population, modelType = "cox")
+  cyclopsData <- Cyclops::createCyclopsData(Surv(time, y) ~ x + strata(stratumId),
+                                            data = population,
+                                            modelType = "cox")
   cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
-  approximation <-  approximateLikelihood(cyclopsFit, 
-                                          parameter = "x", 
-                                          approximation = "custom")
+  approximation <- approximateLikelihood(cyclopsFit, parameter = "x", approximation = "custom")
   return(approximation)
 }
 approximations <- lapply(populations, fitModelInDatabase)
@@ -38,10 +39,10 @@ approximations <- do.call("rbind", approximations)
 # At study coordinating center, perform meta-analysis using per-site approximations:
 computeFixedEffectMetaAnalysis(approximations)
 # Detected data following custom parameric distribution
-# rr        lb       ub     logRr   seLogRr
+#        rr        lb       ub     logRr   seLogRr
 # 1 1.72852 0.9388496 3.037601 0.5472656 0.2995381
 
-# (Estimates in this example will vary  due to the random simulation)
+# (Estimates in this example will vary due to the random simulation)
 
 }
 \seealso{

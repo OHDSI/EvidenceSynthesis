@@ -18,15 +18,20 @@ createSimulationSettings(
 \arguments{
 \item{nSites}{Number of database sites to simulate.}
 
-\item{n}{Number of subjects per site. Either a single number, or a vector of length nSites.}
+\item{n}{Number of subjects per site. Either a single number, or a vector of
+length nSites.}
 
-\item{treatedFraction}{Fraction of subjects that is treated. Either a single number, or a vector of length nSites.}
+\item{treatedFraction}{Fraction of subjects that is treated. Either a single number, or a
+vector of length nSites.}
 
-\item{nStrata}{Number of strata per site. Either a single number, or a vector of length nSites.}
+\item{nStrata}{Number of strata per site. Either a single number, or a vector of
+length nSites.}
 
-\item{minBackgroundHazard}{Minimum background hazard. Either a single number, or a vector of length nSites.}
+\item{minBackgroundHazard}{Minimum background hazard. Either a single number, or a vector of
+length nSites.}
 
-\item{maxBackgroundHazard}{Maximum background hazard. Either a single number, or a vector of length nSites.}
+\item{maxBackgroundHazard}{Maximum background hazard. Either a single number, or a vector of
+length nSites.}
 
 \item{hazardRatio}{Hazard ratio.}
 
@@ -36,20 +41,21 @@ createSimulationSettings(
 An object of type \code{simulationSettings}, to be used in the \code{\link[=simulatePopulations]{simulatePopulations()}} function.
 }
 \description{
-Create an object specifying a simulation. Currently only Cox proportional hazard models are supported.
+Create an object specifying a simulation. Currently only Cox proportional hazard models are
+supported.
 }
 \examples{
 settings <- createSimulationSettings(nSites = 1, hazardRatio = 2)
 populations <- simulatePopulations(settings)
 
 # Fit a Cox regression for the simulated data site:
-cyclopsData <- Cyclops::createCyclopsData(Surv(time, y) ~ x + strata(stratumId), 
-                                          data = populations[[1]], 
+cyclopsData <- Cyclops::createCyclopsData(Surv(time, y) ~ x + strata(stratumId),
+                                          data = populations[[1]],
                                           modelType = "cox")
 cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
 coef(cyclopsFit)
 #         x 
-# 0.8384493 
+# 0.8384493
 
 # (Estimates in this example will vary due to the random simulation)
 

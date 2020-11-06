@@ -18,8 +18,9 @@ plotMcmcTrace(
 
 \item{dataCutoff}{This fraction of the data at both tails will be removed.}
 
-\item{fileName}{Name of the file where the plot should be saved, for example 'plot.png'. See the
-function \link[ggplot2:ggsave]{ggplot2::ggsave} in the ggplot2 package for supported file formats.}
+\item{fileName}{Name of the file where the plot should be saved, for example 'plot.png'. See
+the function \link[ggplot2:ggsave]{ggplot2::ggsave} in the ggplot2 package for supported file
+formats.}
 }
 \value{
 A Ggplot object. Use the \link[ggplot2:ggsave]{ggplot2::ggsave} function to save to file.
@@ -28,7 +29,8 @@ A Ggplot object. Use the \link[ggplot2:ggsave]{ggplot2::ggsave} function to save
 Plot MCMC trace
 }
 \details{
-Plot the samples of the posterior distribution of the mu and tau parameters. Samples are taken using Markoc-chain Monte Carlo (MCMC).
+Plot the samples of the posterior distribution of the mu and tau parameters. Samples are taken
+using Markoc-chain Monte Carlo (MCMC).
 }
 \examples{
 # Simulate some data for this example:
@@ -36,11 +38,11 @@ populations <- simulatePopulations()
 
 # Fit a Cox regression at each data site, and approximate likelihood function:
 fitModelInDatabase <- function(population) {
-  cyclopsData <- Cyclops::createCyclopsData(Surv(time, y) ~ x + strata(stratumId), 
-                                            data = population, 
+  cyclopsData <- Cyclops::createCyclopsData(Surv(time, y) ~ x + strata(stratumId),
+                                            data = population,
                                             modelType = "cox")
   cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
-  approximation <-  approximateLikelihood(cyclopsFit, parameter = "x", approximation = "custom")
+  approximation <- approximateLikelihood(cyclopsFit, parameter = "x", approximation = "custom")
   return(approximation)
 }
 approximations <- lapply(populations, fitModelInDatabase)

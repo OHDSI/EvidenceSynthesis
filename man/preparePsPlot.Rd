@@ -9,26 +9,27 @@ preparePsPlot(data, unfilteredData = NULL, scale = "preference")
 \arguments{
 \item{data}{A data frame with at least the two columns described below}
 
-\item{unfilteredData}{To be used when computing preference scores on data from which subjects
-have already been removed, e.g. through trimming and/or matching. This data
-frame should have the same structure as \code{data}.}
+\item{unfilteredData}{To be used when computing preference scores on data from which subjects have
+already been removed, e.g. through trimming and/or matching. This data frame
+should have the same structure as \code{data}.}
 
-\item{scale}{The scale of the graph. Two scales are supported: \code{scale = 'propensity'} or \code{scale = 'preference'}. The preference score scale is
-defined by Walker et al (2013).}
+\item{scale}{The scale of the graph. Two scales are supported: \code{scale = 'propensity'} or
+\code{scale = 'preference'}. The preference score scale is defined by Walker et
+al (2013).}
 }
 \value{
-A data frame describing the propensity score (or preference score) distribution at 100 equally-spaced
-points.
+A data frame describing the propensity score (or preference score) distribution at 100
+equally-spaced points.
 }
 \description{
-Prepare to plot the propensity (or preference) score distribution. It computes
-the distribution, so the output does not contain person-level data.
+Prepare to plot the propensity (or preference) score distribution. It computes the distribution, so
+the output does not contain person-level data.
 }
 \details{
 The data frame should have a least the following two columns:
 \itemize{
-\item \strong{treatment} (integer): Column indicating whether the person is in the treated (1) or comparator (0) group.
-\item \strong{propensityScore} (numeric): Propensity score.
+\item \strong{treatment} (integer): Column indicating whether the person is in the treated (1) or comparator
+(0) group. - \strong{propensityScore} (numeric): Propensity score.
 }
 }
 \examples{

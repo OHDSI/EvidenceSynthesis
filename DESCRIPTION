@@ -12,7 +12,8 @@ Maintainer: Martijn Schuemie <schuemie@ohdsi.org>
 Description: Routines for combining causal effect estimates and study diagnostics across multiple data sites in a distributed study, without sharing patient-level data. 
   Allows for normal and non-normal approximations of the data-site likelihood of the effect parameter. 
 Depends:
-  survival
+  survival,
+  R (>= 3.5.0)
 Imports:
   ggplot2,
   gridExtra,

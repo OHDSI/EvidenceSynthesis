@@ -16,7 +16,8 @@ approximateLikelihood(
 
 \item{parameter}{The parameter in the \code{cyclopsFit} object to profile.}
 
-\item{approximation}{The type of approximation. Valid options are \code{'normal'}, \code{'skew normal'}, \code{'custom'}, or \code{'grid'}.}
+\item{approximation}{The type of approximation. Valid options are \code{'normal'}, \code{'skew normal'},
+\code{'custom'}, or \code{'grid'}.}
 
 \item{bounds}{The bounds on the effect size used to fit the approximation.}
 }
@@ -24,24 +25,24 @@ approximateLikelihood(
 A vector of parameters of the likelihood approximation.
 }
 \description{
-Approximate the likelihood function using a parametric (normal, skew-normal, or custom parametric), or grid
-approximation. The approximation does not reveal person-level information, and can therefore be shared amongst
-data sites. When counts are low, a normal approximation might not be appropriate.
+Approximate the likelihood function using a parametric (normal, skew-normal, or custom parametric),
+or grid approximation. The approximation does not reveal person-level information, and can
+therefore be shared amongst data sites. When counts are low, a normal approximation might not be
+appropriate.
 }
 \examples{
 # Simulate some data for this example:
 populations <- simulatePopulations()
 
-cyclopsData <- Cyclops::createCyclopsData(Surv(time, y) ~ x + strata(stratumId), 
-                                          data = populations[[1]], 
+cyclopsData <- Cyclops::createCyclopsData(Surv(time, y) ~ x + strata(stratumId),
+                                          data = populations[[1]],
                                           modelType = "cox")
 cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
-approximation <-  approximateLikelihood(cyclopsFit, "x")
+approximation <- approximateLikelihood(cyclopsFit, "x")
 approximation
-#            mu     sigma     gamma
-# 1 -0.09738447 0.7977671 0.1862877
+# mu sigma gamma 1 -0.09738447 0.7977671 0.1862877
 
-# (Estimates in this example will vary  due to the random simulation)
+# (Estimates in this example will vary due to the random simulation)
 
 }
 \seealso{

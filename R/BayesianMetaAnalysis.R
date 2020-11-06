@@ -14,28 +14,39 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cleanData <- function(data, columns, minValues = rep(-100, length(columns)), maxValues = rep(100, length(columns))) {
+cleanData <- function(data,
+                      columns,
+                      minValues = rep(-100, length(columns)),
+                      maxValues = rep(100, length(columns))) {
   for (i in 1:length(columns)) {
     column <- columns[i]
-    if (any(is.infinite(data[,column]))) {
-      warn(paste("Estimate(s) with infinite", column, "detected. Removing before computing meta-analysis."))
-      data <- data[!is.infinite(data[ ,column]), ]
+    if (any(is.infinite(data[, column]))) {
+      warn(paste("Estimate(s) with infinite",
+                 column,
+                 "detected. Removing before computing meta-analysis."))
+      data <- data[!is.infinite(data[, column]), ]
     }
     if (any(is.na(data[, column]))) {
-      warn(paste("Estimate(s) with NA", column, "detected. Removing before computing meta-analysis."))
+      warn(paste("Estimate(s) with NA",
+                 column,
+                 "detected. Removing before computing meta-analysis."))
       data <- data[!is.na(data[, column]), ]
     }
     if (any(data[, column] > maxValues[i])) {
-      warn(sprintf("Estimate(s) with extremely high %s (>%s) detected. Removing before computing meta-analysis.", column, maxValues[i]))
+      warn(sprintf("Estimate(s) with extremely high %s (>%s) detected. Removing before computing meta-analysis.",
+                   column,
+                   maxValues[i]))
       data <- data[data[, column] <= maxValues[i], ]
     }
     if (any(data[, column] < minValues[i])) {
-      warn(sprintf("Estimate(s) with extremely low %s (<%s) detected. Removing before computing meta-analysis.", column, minValues[i]))
-      data <- data[data[, column] >=  minValues[i], ]
+      warn(sprintf("Estimate(s) with extremely low %s (<%s) detected. Removing before computing meta-analysis.",
+                   column,
+                   minValues[i]))
+      data <- data[data[, column] >= minValues[i], ]
     }
   }
   if (nrow(data) == 0) {
-    warn("No estimates left after removing estimates with NA, infinite or extreme values") 
+    warn("No estimates left after removing estimates with NA, infinite or extreme values")
   }
   return(data)
 }
@@ -54,88 +65,98 @@ createNaEstimate <- function(type) {
 }
 
 #' Compute a Bayesian random-effects meta-analysis
-#' 
-#' @description 
-#' Compute a Bayesian meta-analysis using the Markov chain Monte Carlo (MCMC) engine BEAST. 
-#' 
-#' A normal and half-normal prior are used for the mu and tau parameters, respectively, with standard deviations as defined by the `priorSd` argument.
 #'
-#' @param data         A data frame containing either normal, skew-normal, custom parametric, or grid likelihood data, with one row per database. 
-#' @param chainLength  Number of MCMC iterations.
-#' @param burnIn       Number of MCMC iterations to consider as burn in.
-#' @param subSampleFrequency Subsample frequency for the MCMC.
-#' @param priorSd      A two-dimensional vector with the standard deviation of the prior for mu and tau, respectively.
-#' @param alpha        The alpha (expected type I error) used for the credible intervals.
-#' 
-#' @seealso [approximateLikelihood], [computeFixedEffectMetaAnalysis]
-#' 
-#' @return 
-#' A data frame with the point estimates and 95% credible intervals for the mu and tau parameters (the mean and standard deviation of the distribution 
-#' from which the per-site effect sizes are drawn). Attributes of the data frame contain the MCMC trace and the detected approximation type.
-#' 
+#' @description
+#' Compute a Bayesian meta-analysis using the Markov chain Monte Carlo (MCMC) engine BEAST.
+#' A normal and half-normal prior are used for the mu and tau parameters, respectively, with standard
+#' deviations as defined by the `priorSd` argument.
+#'
+#' @param data                 A data frame containing either normal, skew-normal, custom parametric,
+#'                             or grid likelihood data, with one row per database.
+#' @param chainLength          Number of MCMC iterations.
+#' @param burnIn               Number of MCMC iterations to consider as burn in.
+#' @param subSampleFrequency   Subsample frequency for the MCMC.
+#' @param priorSd              A two-dimensional vector with the standard deviation of the prior for mu
+#'                             and tau, respectively.
+#' @param alpha                The alpha (expected type I error) used for the credible intervals.
+#'
+#' @seealso
+#' [approximateLikelihood], [computeFixedEffectMetaAnalysis]
+#'
+#' @return
+#' A data frame with the point estimates and 95% credible intervals for the mu and tau parameters (the
+#' mean and standard deviation of the distribution from which the per-site effect sizes are drawn).
+#' Attributes of the data frame contain the MCMC trace and the detected approximation type.
+#'
 #' @examples
 #' # Simulate some data for this example:
 #' populations <- simulatePopulations()
-#' 
+#'
 #' # Fit a Cox regression at each data site, and approximate likelihood function:
 #' fitModelInDatabase <- function(population) {
-#'   cyclopsData <- Cyclops::createCyclopsData(Surv(time, y) ~ x + strata(stratumId), 
-#'                                             data = population, 
+#'   cyclopsData <- Cyclops::createCyclopsData(Surv(time, y) ~ x + strata(stratumId),
+#'                                             data = population,
 #'                                             modelType = "cox")
 #'   cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
-#'   approximation <-  approximateLikelihood(cyclopsFit, parameter = "x", approximation = "custom")
+#'   approximation <- approximateLikelihood(cyclopsFit, parameter = "x", approximation = "custom")
 #'   return(approximation)
 #' }
 #' approximations <- lapply(populations, fitModelInDatabase)
 #' approximations <- do.call("rbind", approximations)
-#' 
+#'
 #' # At study coordinating center, perform meta-analysis using per-site approximations:
 #' estimate <- computeBayesianMetaAnalysis(approximations)
 #' estimate
-#' # mu     mu95Lb   mu95Ub      muSe       tau     tau95Lb   tau95Ub     logRr   seLogRr
+#' #          mu     mu95Lb   mu95Ub      muSe       tau     tau95Lb   tau95Ub     logRr   seLogRr
 #' # 1 0.5770562 -0.2451619 1.382396 0.4154986 0.2733942 0.004919128 0.7913512 0.5770562 0.4152011
-#' 
+#'
 #' # (Estimates in this example will vary due to the random simulation)
-#' 
+#'
 #' @export
-computeBayesianMetaAnalysis <- function(data, 
-                                        chainLength = 1100000, 
-                                        burnIn = 100000, 
-                                        subSampleFrequency = 100, 
+computeBayesianMetaAnalysis <- function(data,
+                                        chainLength = 1100000,
+                                        burnIn = 1e+05,
+                                        subSampleFrequency = 100,
                                         priorSd = c(2, 0.5),
                                         alpha = 0.05) {
   # Determine type based on data structure:
   if ("logRr" %in% colnames(data)) {
     inform("Detected data following normal distribution")
     type <- "normal"
-    data <- cleanData(data, c("logRr", "seLogRr"), minValues = c(-100, 1e-5))
+    data <- cleanData(data, c("logRr", "seLogRr"), minValues = c(-100, 1e-05))
     if (nrow(data) == 0)
       return(createNaEstimate(type))
     dataModel <- rJava::.jnew("org.ohdsi.metaAnalysis.NormalDataModel")
     for (i in 1:nrow(data)) {
-      dataModel$addLikelihoodParameters(as.numeric(c(data$logRr[i], data$seLogRr[i])), as.numeric(c(NA, NA)))
+      dataModel$addLikelihoodParameters(as.numeric(c(data$logRr[i], data$seLogRr[i])),
+                                        as.numeric(c(NA, NA)))
     }
     dataModel$finish()
   } else if ("gamma" %in% colnames(data)) {
     inform("Detected data following custom parameric distribution")
     type <- "custom"
-    data <- cleanData(data, c("mu", "sigma", "gamma"), minValues = c(-100, 1e-5, -100))
+    data <- cleanData(data, c("mu", "sigma", "gamma"), minValues = c(-100, 1e-05, -100))
     if (nrow(data) == 0)
       return(createNaEstimate(type))
     dataModel <- rJava::.jnew("org.ohdsi.metaAnalysis.ParametricDataModel")
     for (i in 1:nrow(data)) {
-      dataModel$addLikelihoodParameters(as.numeric(c(data$mu[i], data$sigma[i], data$gamma[i])), as.numeric(c(NA, NA)))
+      dataModel$addLikelihoodParameters(as.numeric(c(data$mu[i], data$sigma[i], data$gamma[i])),
+                                        as.numeric(c(NA, NA)))
     }
     dataModel$finish()
   } else if ("alpha" %in% colnames(data)) {
     inform("Detected data following skew normal distribution")
     type <- "skew normal"
-    data <- cleanData(data, c("mu", "sigma", "alpha"), minValues = c(-100, 1e-5, -1e4), maxValues = c(100, 1e4, 1e4))
+    data <- cleanData(data,
+                      c("mu", "sigma", "alpha"),
+                      minValues = c(-100, 1e-05, -10000),
+                      maxValues = c(100, 10000, 10000))
     if (nrow(data) == 0)
       return(createNaEstimate(type))
     dataModel <- rJava::.jnew("org.ohdsi.metaAnalysis.SkewNormalDataModel")
     for (i in 1:nrow(data)) {
-      dataModel$addLikelihoodParameters(as.numeric(c(data$mu[i], data$sigma[i], data$alpha[i])), as.numeric(c(NA, NA)))
+      dataModel$addLikelihoodParameters(as.numeric(c(data$mu[i], data$sigma[i], data$alpha[i])),
+                                        as.numeric(c(NA, NA)))
     }
     dataModel$finish()
   } else if (is.list(data) && !is.data.frame(data)) {
@@ -155,7 +176,7 @@ computeBayesianMetaAnalysis <- function(data,
     dataModel <- rJava::.jnew("org.ohdsi.metaAnalysis.ExtendingEmpiricalDataModel")
     x <- as.numeric(colnames(data))
     if (any(is.na(x))) {
-      stop("Expecting grid data, but not all column names are numeric") 
+      stop("Expecting grid data, but not all column names are numeric")
     }
     data <- as.matrix(data)
     for (i in 1:nrow(data)) {
@@ -166,20 +187,15 @@ computeBayesianMetaAnalysis <- function(data,
   
   inform("Performing MCMC. This may take a while")
   
-  prior <- rJava::.jnew("org.ohdsi.metaAnalysis.HalfNormalOnStdDevPrior", 0.0, as.numeric(priorSd[2]))
-
+  prior <- rJava::.jnew("org.ohdsi.metaAnalysis.HalfNormalOnStdDevPrior", 0, as.numeric(priorSd[2]))
+  
   metaAnalysis <- rJava::.jnew("org.ohdsi.metaAnalysis.Runner",
-                               rJava::.jcast(
-                                 rJava::.jnew(
-                                   "org.ohdsi.metaAnalysis.MetaAnalysis",
-                                   rJava::.jcast(dataModel, "org.ohdsi.metaAnalysis.DataModel"),
-                                   rJava::.jcast(prior, "org.ohdsi.metaAnalysis.ScalePrior"),
-                                   as.numeric(priorSd[1])
-                                 ),
-                                 "org.ohdsi.metaAnalysis.Analysis"
-                               ),
-                               as.integer(chainLength), 
-                               as.integer(burnIn), 
+                               rJava::.jcast(rJava::.jnew("org.ohdsi.metaAnalysis.MetaAnalysis",
+                                                          rJava::.jcast(dataModel, "org.ohdsi.metaAnalysis.DataModel"),
+                                                          rJava::.jcast(prior, "org.ohdsi.metaAnalysis.ScalePrior"),
+                                                          as.numeric(priorSd[1])), "org.ohdsi.metaAnalysis.Analysis"),
+                               as.integer(chainLength),
+                               as.integer(burnIn),
                                as.integer(subSampleFrequency))
   metaAnalysis$setConsoleWidth(getOption("width"))
   metaAnalysis$run()

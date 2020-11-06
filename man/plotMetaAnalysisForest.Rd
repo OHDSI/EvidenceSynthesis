@@ -38,11 +38,12 @@ function \link[ggplot2:ggsave]{ggplot2::ggsave} ifor supported file formats.}
 A Ggplot object. Use the \link[ggplot2:ggsave]{ggplot2::ggsave} function to save to file.
 }
 \description{
-Perform a traditional meta-analysis (ie assuming normally distributed likelihood) and creates a forest plot of effect size estimates.
+Perform a traditional meta-analysis (ie assuming normally distributed likelihood) and creates a
+forest plot of effect size estimates.
 }
 \details{
-Creates a forest plot of effect size estimates, and includes a meta-analysis estimate using a random effects model.
-The DerSimonian-Laird estimate (1986) is used.
+Creates a forest plot of effect size estimates, and includes a meta-analysis estimate using a
+random effects model. The DerSimonian-Laird estimate (1986) is used.
 }
 \examples{
 plotMetaAnalysisForest(logRr = c(0, 0.2, -0.2, 0, 0.2, -0.2),
@@ -52,5 +53,6 @@ plotMetaAnalysisForest(logRr = c(0, 0.2, -0.2, 0, 0.2, -0.2),
 
 }
 \references{
-DerSimonian R, Laird N (1986), Meta-analysis in clinical trials. Controlled Clinical Trials, 7, 177-188.
+DerSimonian R, Laird N (1986), Meta-analysis in clinical trials. Controlled Clinical Trials, 7,
+177-188.
 }

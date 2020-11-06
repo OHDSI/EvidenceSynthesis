@@ -18,16 +18,16 @@
 "_PACKAGE"
 
 #' @importFrom grDevices rgb
-#' @importFrom stats density dnorm qnorm quantile runif coef confint median nlm optim pnorm printCoefmat qchisq rexp rnorm
+#' @importFrom stats density dnorm qnorm quantile runif coef confint median nlm optim pnorm
+#' printCoefmat qchisq rexp rnorm
 #' @importFrom rlang .data abort warn inform
 #' @importFrom methods is
 #' @import BeastJar
 #' @import survival
-#' 
+#'
 NULL
 
 .onLoad <- function(libname, pkgname) {
   beastLocation <- system.file("java/beast.jar", package = "BeastJar")
-  rJava::.jpackage(pkgname, lib.loc = libname,
-                   morePaths = beastLocation)
+  rJava::.jpackage(pkgname, lib.loc = libname, morePaths = beastLocation)
 }
