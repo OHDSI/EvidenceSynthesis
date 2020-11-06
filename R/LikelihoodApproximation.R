@@ -19,7 +19,7 @@
 #' @description
 #' Approximate the likelihood function using a parametric (normal, skew-normal, or custom parametric),
 #' or grid approximation. The approximation does not reveal person-level information, and can
-#' therefore be shared amongst data sites. When counts are low, a normal approximation might not be
+#' therefore be shared among data sites. When counts are low, a normal approximation might not be
 #' appropriate.
 #'
 #' @param cyclopsFit      A model fitted using the [Cyclops::fitCyclopsModel()] function.

@@ -40,8 +40,8 @@
 
 
 <meta property="og:title" content="Prepare to plot the propensity score distribution — preparePsPlot" />
-<meta property="og:description" content="Prepare to plot the propensity (or preference) score distribution. It computes
-the distribution, so the output does not contain person-level data." />
+<meta property="og:description" content="Prepare to plot the propensity (or preference) score distribution. It computes the distribution, so
+the output does not contain person-level data." />
 
 
 
@@ -88,6 +88,9 @@ the distribution, so the output does not contain person-level data." />
 <li>
   <a href="../reference/index.html">Reference</a>
 </li>
+<li>
+  <a href="../news/index.html">Changelog</a>
+</li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
     Articles
@@ -96,16 +99,16 @@ the distribution, so the output does not contain person-level data." />
   </a>
   <ul class="dropdown-menu" role="menu">
     <li>
-      <a href="../articles/NonNormalMetaAnalyis.html">Meta-analysis using non-normal likelihood approximations</a>
+      <a href="../articles/NonNormalEffectSynthesis.html">Effect estimate synthesis using non-normal likelihood approximations</a>
     </li>
   </ul>
-</li>
-<li>
-  <a href="../news/index.html">Changelog</a>
 </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li>
+  <a href="https://ohdsi.github.io/Hades"><img src='https://ohdsi.github.io/Hades/images/hadesMini.png' width=80 height=17 style='vertical-align: top;'></a>
+</li>
+<li>
   <a href="https://github.com/OHDSI/EvidenceSynthesis/">
     <span class="fab fa fab fa-github fa-lg"></span>
      
@@ -130,11 +133,11 @@ the distribution, so the output does not contain person-level data." />
     </div>
 
     <div class="ref-description">
-    <p>Prepare to plot the propensity (or preference) score distribution. It computes
-the distribution, so the output does not contain person-level data.</p>
+    <p>Prepare to plot the propensity (or preference) score distribution. It computes the distribution, so
+the output does not contain person-level data.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>preparePsPlot</span>(<span class='no'>data</span>, <span class='kw'>unfilteredData</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>scale</span> <span class='kw'>=</span> <span class='st'>"preference"</span>)</pre>
+    <pre class="usage"><span class='fu'>preparePsPlot</span><span class='op'>(</span><span class='va'>data</span>, unfilteredData <span class='op'>=</span> <span class='cn'>NULL</span>, scale <span class='op'>=</span> <span class='st'>"preference"</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -145,26 +148,27 @@ the distribution, so the output does not contain person-level data.</p>
     </tr>
     <tr>
       <th>unfilteredData</th>
-      <td><p>To be used when computing preference scores on data from which subjects
-have already been removed, e.g. through trimming and/or matching. This data
-frame should have the same structure as <code>data</code>.</p></td>
+      <td><p>To be used when computing preference scores on data from which subjects have
+already been removed, e.g. through trimming and/or matching. This data frame
+should have the same structure as <code>data</code>.</p></td>
     </tr>
     <tr>
       <th>scale</th>
-      <td><p>The scale of the graph. Two scales are supported: <code>scale = 'propensity'</code> or <code>scale = 'preference'</code>. The preference score scale is
-defined by Walker et al (2013).</p></td>
+      <td><p>The scale of the graph. Two scales are supported: <code>scale = 'propensity'</code> or
+<code>scale = 'preference'</code>. The preference score scale is defined by Walker et
+al. (2013).</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>A data frame describing the propensity score (or preference score) distribution at 100 equally-spaced
-points.</p>
+    <p>A data frame describing the propensity score (or preference score) distribution at 100
+equally-spaced points.</p>
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
     <p>The data frame should have a least the following two columns:</p><ul>
-<li><p><strong>treatment</strong> (integer): Column indicating whether the person is in the treated (1) or comparator (0) group.</p></li>
-<li><p><strong>propensityScore</strong> (numeric): Propensity score.</p></li>
+<li><p><strong>treatment</strong> (integer): Column indicating whether the person is in the treated (1) or comparator
+(0) group. - <strong>propensityScore</strong> (numeric): Propensity score.</p></li>
 </ul>
 
     <h2 class="hasAnchor" id="references"><a class="anchor" href="#references"></a>References</h2>
@@ -172,13 +176,20 @@ points.</p>
     <p>Walker AM, Patrick AR, Lauer MS, Hornbrook MC, Marin MG, Platt R, Roger VL, Stang P, and
 Schneeweiss S. (2013) A tool for assessing the feasibility of comparative effectiveness research,
 Comparative Effective Research, 3, 11-20</p>
+    <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
+
+    <div class='dont-index'><p><a href='plotPreparedPs.html'>plotPreparedPs</a></p></div>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='no'>treatment</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/rep.html'>rep</a></span>(<span class='fl'>0</span>:<span class='fl'>1</span>, <span class='kw'>each</span> <span class='kw'>=</span> <span class='fl'>100</span>)
-<span class='no'>propensityScore</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='fu'><a href='https://rdrr.io/r/stats/Normal.html'>rnorm</a></span>(<span class='fl'>100</span>, <span class='kw'>mean</span> <span class='kw'>=</span> <span class='fl'>0.4</span>, <span class='kw'>sd</span> <span class='kw'>=</span> <span class='fl'>0.25</span>), <span class='fu'><a href='https://rdrr.io/r/stats/Normal.html'>rnorm</a></span>(<span class='fl'>100</span>, <span class='kw'>mean</span> <span class='kw'>=</span> <span class='fl'>0.6</span>, <span class='kw'>sd</span> <span class='kw'>=</span> <span class='fl'>0.25</span>))
-<span class='no'>data</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/data.frame.html'>data.frame</a></span>(<span class='kw'>treatment</span> <span class='kw'>=</span> <span class='no'>treatment</span>, <span class='kw'>propensityScore</span> <span class='kw'>=</span> <span class='no'>propensityScore</span>)
-<span class='no'>data</span> <span class='kw'>&lt;-</span> <span class='no'>data</span>[<span class='no'>data</span>$<span class='no'>propensityScore</span> <span class='kw'>&gt;</span> <span class='fl'>0</span> <span class='kw'>&amp;</span> <span class='no'>data</span>$<span class='no'>propensityScore</span> <span class='kw'>&lt;</span> <span class='fl'>1</span>, ]
-<span class='no'>preparedPlot</span> <span class='kw'>&lt;-</span> <span class='fu'>preparePsPlot</span>(<span class='no'>data</span>)</div></pre>
+    <pre class="examples"><div class='input'><span class='co'># Simulate some data for this example:</span>
+<span class='va'>treatment</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/rep.html'>rep</a></span><span class='op'>(</span><span class='fl'>0</span><span class='op'>:</span><span class='fl'>1</span>, each <span class='op'>=</span> <span class='fl'>100</span><span class='op'>)</span>
+<span class='va'>propensityScore</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/r/stats/Normal.html'>rnorm</a></span><span class='op'>(</span><span class='fl'>100</span>, mean <span class='op'>=</span> <span class='fl'>0.4</span>, sd <span class='op'>=</span> <span class='fl'>0.25</span><span class='op'>)</span>, <span class='fu'><a href='https://rdrr.io/r/stats/Normal.html'>rnorm</a></span><span class='op'>(</span><span class='fl'>100</span>, mean <span class='op'>=</span> <span class='fl'>0.6</span>, sd <span class='op'>=</span> <span class='fl'>0.25</span><span class='op'>)</span><span class='op'>)</span>
+<span class='va'>data</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/data.frame.html'>data.frame</a></span><span class='op'>(</span>treatment <span class='op'>=</span> <span class='va'>treatment</span>, propensityScore <span class='op'>=</span> <span class='va'>propensityScore</span><span class='op'>)</span>
+<span class='va'>data</span> <span class='op'>&lt;-</span> <span class='va'>data</span><span class='op'>[</span><span class='va'>data</span><span class='op'>$</span><span class='va'>propensityScore</span> <span class='op'>&gt;</span> <span class='fl'>0</span> <span class='op'>&amp;</span> <span class='va'>data</span><span class='op'>$</span><span class='va'>propensityScore</span> <span class='op'>&lt;</span> <span class='fl'>1</span>, <span class='op'>]</span>
+
+<span class='va'>preparedPlot</span> <span class='op'>&lt;-</span> <span class='fu'>preparePsPlot</span><span class='op'>(</span><span class='va'>data</span><span class='op'>)</span>
+
+</div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">
@@ -194,7 +205,7 @@ Comparative Effective Research, 3, 11-20</p>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
 </div>
 
       </footer>

@@ -87,6 +87,9 @@
 <li>
   <a href="../reference/index.html">Reference</a>
 </li>
+<li>
+  <a href="../news/index.html">Changelog</a>
+</li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
     Articles
@@ -95,16 +98,16 @@
   </a>
   <ul class="dropdown-menu" role="menu">
     <li>
-      <a href="../articles/NonNormalMetaAnalyis.html">Meta-analysis using non-normal likelihood approximations</a>
+      <a href="../articles/NonNormalEffectSynthesis.html">Effect estimate synthesis using non-normal likelihood approximations</a>
     </li>
   </ul>
-</li>
-<li>
-  <a href="../news/index.html">Changelog</a>
 </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li>
+  <a href="https://ohdsi.github.io/Hades"><img src='https://ohdsi.github.io/Hades/images/hadesMini.png' width=80 height=17 style='vertical-align: top;'></a>
+</li>
+<li>
   <a href="https://github.com/OHDSI/EvidenceSynthesis/">
     <span class="fab fa fab fa-github fa-lg"></span>
      
@@ -132,22 +135,23 @@
     <p>Plot the likelihood approximation</p>
     </div>
 
-    <pre class="usage"><span class='fu'>plotLikelihoodFit</span>(
-  <span class='no'>approximation</span>,
-  <span class='no'>cyclopsFit</span>,
-  <span class='kw'>parameter</span> <span class='kw'>=</span> <span class='st'>"x"</span>,
-  <span class='kw'>logScale</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
-  <span class='kw'>xLabel</span> <span class='kw'>=</span> <span class='st'>"Hazard Ratio"</span>,
-  <span class='kw'>limits</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='fl'>0.1</span>, <span class='fl'>10</span>),
-  <span class='kw'>fileName</span> <span class='kw'>=</span> <span class='kw'>NULL</span>
-)</pre>
+    <pre class="usage"><span class='fu'>plotLikelihoodFit</span><span class='op'>(</span>
+  <span class='va'>approximation</span>,
+  <span class='va'>cyclopsFit</span>,
+  parameter <span class='op'>=</span> <span class='st'>"x"</span>,
+  logScale <span class='op'>=</span> <span class='cn'>TRUE</span>,
+  xLabel <span class='op'>=</span> <span class='st'>"Hazard Ratio"</span>,
+  limits <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>0.1</span>, <span class='fl'>10</span><span class='op'>)</span>,
+  fileName <span class='op'>=</span> <span class='cn'>NULL</span>
+<span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
       <th>approximation</th>
-      <td><p>An approximation of the likelihood function as fitted using the <code><a href='approximateLikelihood.html'>approximateLikelihood()</a></code> function.</p></td>
+      <td><p>An approximation of the likelihood function as fitted using the
+<code><a href='approximateLikelihood.html'>approximateLikelihood()</a></code> function.</p></td>
     </tr>
     <tr>
       <th>cyclopsFit</th>
@@ -171,26 +175,33 @@
     </tr>
     <tr>
       <th>fileName</th>
-      <td><p>Name of the file where the plot should be saved, for example 'plot.png'. See the
-function <a href='https://ggplot2.tidyverse.org/reference/ggsave.html'>ggplot2::ggsave</a> in the ggplot2 package for supported file formats.</p></td>
+      <td><p>Name of the file where the plot should be saved, for example 'plot.png'. See
+the function <a href='https://ggplot2.tidyverse.org/reference/ggsave.html'>ggplot2::ggsave</a> in the ggplot2 package for supported file
+formats.</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
     <p>A Ggplot object. Use the <a href='https://ggplot2.tidyverse.org/reference/ggsave.html'>ggplot2::ggsave</a> function to save to file.</p>
+    <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
+
+    <p>Plots the (log) likelihood and the approximation of the likelihood. Allows for reviewing the
+approximation.</p>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
     <pre class="examples"><div class='input'><span class='co'># Simulate a single database population:</span>
-<span class='no'>population</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='simulatePopulations.html'>simulatePopulations</a></span>(<span class='fu'><a href='createSimulationSettings.html'>createSimulationSettings</a></span>(<span class='kw'>nSites</span> <span class='kw'>=</span> <span class='fl'>1</span>))<span class='kw'>[[</span><span class='fl'>1</span>]]
+<span class='va'>population</span> <span class='op'>&lt;-</span> <span class='fu'><a href='simulatePopulations.html'>simulatePopulations</a></span><span class='op'>(</span><span class='fu'><a href='createSimulationSettings.html'>createSimulationSettings</a></span><span class='op'>(</span>nSites <span class='op'>=</span> <span class='fl'>1</span><span class='op'>)</span><span class='op'>)</span><span class='op'>[[</span><span class='fl'>1</span><span class='op'>]</span><span class='op'>]</span>
 
-<span class='no'>cyclopsData</span> <span class='kw'>&lt;-</span> <span class='kw pkg'>Cyclops</span><span class='kw ns'>::</span><span class='fu'><a href='https://rdrr.io/pkg/Cyclops/man/createCyclopsData.html'>createCyclopsData</a></span>(<span class='fu'>Surv</span>(<span class='no'>time</span>, <span class='no'>y</span>) ~ <span class='no'>x</span> + <span class='fu'>strata</span>(<span class='no'>stratumId</span>),
-                                          <span class='kw'>data</span> <span class='kw'>=</span> <span class='no'>population</span>,
-                                          <span class='kw'>modelType</span> <span class='kw'>=</span> <span class='st'>"cox"</span>)
-<span class='no'>cyclopsFit</span> <span class='kw'>&lt;-</span> <span class='kw pkg'>Cyclops</span><span class='kw ns'>::</span><span class='fu'><a href='https://rdrr.io/pkg/Cyclops/man/fitCyclopsModel.html'>fitCyclopsModel</a></span>(<span class='no'>cyclopsData</span>)
-<span class='no'>approximation</span> <span class='kw'>&lt;-</span>  <span class='fu'><a href='approximateLikelihood.html'>approximateLikelihood</a></span>(<span class='no'>cyclopsFit</span>, <span class='kw'>parameter</span> <span class='kw'>=</span> <span class='st'>"x"</span>)
+<span class='co'># Approximate the likelihood:</span>
+<span class='va'>cyclopsData</span> <span class='op'>&lt;-</span> <span class='fu'>Cyclops</span><span class='fu'>::</span><span class='fu'><a href='https://rdrr.io/pkg/Cyclops/man/createCyclopsData.html'>createCyclopsData</a></span><span class='op'>(</span><span class='fu'>Surv</span><span class='op'>(</span><span class='va'>time</span>, <span class='va'>y</span><span class='op'>)</span> <span class='op'>~</span> <span class='va'>x</span> <span class='op'>+</span> <span class='fu'>strata</span><span class='op'>(</span><span class='va'>stratumId</span><span class='op'>)</span>,
+                                          data <span class='op'>=</span> <span class='va'>population</span>,
+                                          modelType <span class='op'>=</span> <span class='st'>"cox"</span><span class='op'>)</span>
+<span class='va'>cyclopsFit</span> <span class='op'>&lt;-</span> <span class='fu'>Cyclops</span><span class='fu'>::</span><span class='fu'><a href='https://rdrr.io/pkg/Cyclops/man/fitCyclopsModel.html'>fitCyclopsModel</a></span><span class='op'>(</span><span class='va'>cyclopsData</span><span class='op'>)</span>
+<span class='va'>approximation</span> <span class='op'>&lt;-</span> <span class='fu'><a href='approximateLikelihood.html'>approximateLikelihood</a></span><span class='op'>(</span><span class='va'>cyclopsFit</span>, parameter <span class='op'>=</span> <span class='st'>"x"</span>, approximation <span class='op'>=</span> <span class='st'>"custom"</span><span class='op'>)</span>
 
-<span class='fu'>plotLikelihoodFit</span>(<span class='no'>approximation</span>, <span class='no'>cyclopsFit</span>, <span class='kw'>parameter</span> <span class='kw'>=</span> <span class='st'>"x"</span>)</div><div class='output co'>#&gt; Detected custom parameric approximation</div><div class='img'><img src='plotLikelihoodFit-1.png' alt='' width='700' height='433' /></div><div class='input'>
+<span class='fu'>plotLikelihoodFit</span><span class='op'>(</span><span class='va'>approximation</span>, <span class='va'>cyclopsFit</span>, parameter <span class='op'>=</span> <span class='st'>"x"</span><span class='op'>)</span>
+</div><div class='output co'>#&gt; <span class='message'>Detected custom parameric approximation</span></div><div class='img'><img src='plotLikelihoodFit-1.png' alt='' width='700' height='433' /></div><div class='input'>
 </div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
@@ -207,7 +218,7 @@ function <a href='https://ggplot2.tidyverse.org/reference/ggsave.html'>ggplot2::
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
 </div>
 
       </footer>

@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>EvidenceSynthesis: An R Package for Combining Evidence from Multiple Sources — EvidenceSynthesis-package • EvidenceSynthesis</title>
+<title>EvidenceSynthesis: Synthesizing Evidence on Causal Effects Across a Distributed Research Network — EvidenceSynthesis-package • EvidenceSynthesis</title>
 
 
 <!-- jquery -->
@@ -39,10 +39,9 @@
 
 
 
-<meta property="og:title" content="EvidenceSynthesis: An R Package for Combining Evidence from Multiple Sources — EvidenceSynthesis-package" />
-<meta property="og:description" content="Routines for combining evidence and diagnostics across multiple 
-   sources, such as multiple data sites in a distributed study. This includes functions
-   for performing meta-analysis and forest plots." />
+<meta property="og:title" content="EvidenceSynthesis: Synthesizing Evidence on Causal Effects Across a Distributed Research Network — EvidenceSynthesis-package" />
+<meta property="og:description" content="Routines for combining causal effect estimates and study diagnostics across multiple data sites in a distributed study, without sharing patient-level data. 
+  Allows for normal and non-normal approximations of the data-site likelihood of the effect parameter." />
 
 
 
@@ -89,6 +88,9 @@
 <li>
   <a href="../reference/index.html">Reference</a>
 </li>
+<li>
+  <a href="../news/index.html">Changelog</a>
+</li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
     Articles
@@ -97,16 +99,16 @@
   </a>
   <ul class="dropdown-menu" role="menu">
     <li>
-      <a href="../articles/NonNormalMetaAnalyis.html">Meta-analysis using non-normal likelihood approximations</a>
+      <a href="../articles/NonNormalEffectSynthesis.html">Effect estimate synthesis using non-normal likelihood approximations</a>
     </li>
   </ul>
-</li>
-<li>
-  <a href="../news/index.html">Changelog</a>
 </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li>
+  <a href="https://ohdsi.github.io/Hades"><img src='https://ohdsi.github.io/Hades/images/hadesMini.png' width=80 height=17 style='vertical-align: top;'></a>
+</li>
+<li>
   <a href="https://github.com/OHDSI/EvidenceSynthesis/">
     <span class="fab fa fab fa-github fa-lg"></span>
      
@@ -125,15 +127,14 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>EvidenceSynthesis: An R Package for Combining Evidence from Multiple Sources</h1>
+    <h1>EvidenceSynthesis: Synthesizing Evidence on Causal Effects Across a Distributed Research Network</h1>
     <small class="dont-index">Source: <a href='https://github.com/OHDSI/EvidenceSynthesis/blob/master/R/EvidenceSynthesis.R'><code>R/EvidenceSynthesis.R</code></a></small>
     <div class="hidden name"><code>EvidenceSynthesis-package.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Routines for combining evidence and diagnostics across multiple 
-   sources, such as multiple data sites in a distributed study. This includes functions
-   for performing meta-analysis and forest plots.</p>
+    <p>Routines for combining causal effect estimates and study diagnostics across multiple data sites in a distributed study, without sharing patient-level data. 
+  Allows for normal and non-normal approximations of the data-site likelihood of the effect parameter.</p>
     </div>
 
 
@@ -141,11 +142,24 @@
     <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
 
     <div class='dont-index'><p>Useful links:</p><ul>
+<li><p><a href='https://ohdsi.github.io/EvidenceSynthesis/'>https://ohdsi.github.io/EvidenceSynthesis/</a></p></li>
 <li><p><a href='https://github.com/OHDSI/EvidenceSynthesis'>https://github.com/OHDSI/EvidenceSynthesis</a></p></li>
 <li><p>Report bugs at <a href='https://github.com/OHDSI/EvidenceSynthesis/issues'>https://github.com/OHDSI/EvidenceSynthesis/issues</a></p></li>
 </ul>
 
 </div>
+    <h2 class="hasAnchor" id="author"><a class="anchor" href="#author"></a>Author</h2>
+
+    <p><strong>Maintainer</strong>: Martijn Schuemie <a href='mailto:schuemie@ohdsi.org'>schuemie@ohdsi.org</a></p>
+<p>Authors:</p><ul>
+<li><p>Marc A. Suchard <a href='mailto:msuchard@ucla.edu'>msuchard@ucla.edu</a></p></li>
+</ul>
+
+<p>Other contributors:</p><ul>
+<li><p>Observational Health Data Science and Informatics [copyright holder]</p></li>
+</ul>
+
+
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
@@ -162,7 +176,7 @@
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
 </div>
 
       </footer>

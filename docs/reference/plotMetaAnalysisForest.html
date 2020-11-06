@@ -40,7 +40,8 @@
 
 
 <meta property="og:title" content="Perform a meta-analysis and create a forest plot — plotMetaAnalysisForest" />
-<meta property="og:description" content="Perform a meta-analysis and creates a forest plot of effect size estimates." />
+<meta property="og:description" content="Perform a traditional meta-analysis (ie assuming normally distributed likelihood) and creates a
+forest plot of effect size estimates." />
 
 
 
@@ -87,6 +88,9 @@
 <li>
   <a href="../reference/index.html">Reference</a>
 </li>
+<li>
+  <a href="../news/index.html">Changelog</a>
+</li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
     Articles
@@ -95,16 +99,16 @@
   </a>
   <ul class="dropdown-menu" role="menu">
     <li>
-      <a href="../articles/NonNormalMetaAnalyis.html">Meta-analysis using non-normal likelihood approximations</a>
+      <a href="../articles/NonNormalEffectSynthesis.html">Effect estimate synthesis using non-normal likelihood approximations</a>
     </li>
   </ul>
-</li>
-<li>
-  <a href="../news/index.html">Changelog</a>
 </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li>
+  <a href="https://ohdsi.github.io/Hades"><img src='https://ohdsi.github.io/Hades/images/hadesMini.png' width=80 height=17 style='vertical-align: top;'></a>
+</li>
+<li>
   <a href="https://github.com/OHDSI/EvidenceSynthesis/">
     <span class="fab fa fab fa-github fa-lg"></span>
      
@@ -129,19 +133,20 @@
     </div>
 
     <div class="ref-description">
-    <p>Perform a meta-analysis and creates a forest plot of effect size estimates.</p>
+    <p>Perform a traditional meta-analysis (ie assuming normally distributed likelihood) and creates a
+forest plot of effect size estimates.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>plotMetaAnalysisForest</span>(
-  <span class='no'>logRr</span>,
-  <span class='no'>logLb95Ci</span>,
-  <span class='no'>logUb95Ci</span>,
-  <span class='no'>labels</span>,
-  <span class='kw'>xLabel</span> <span class='kw'>=</span> <span class='st'>"Relative risk"</span>,
-  <span class='kw'>limits</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='fl'>0.1</span>, <span class='fl'>10</span>),
-  <span class='kw'>hakn</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>fileName</span> <span class='kw'>=</span> <span class='kw'>NULL</span>
-)</pre>
+    <pre class="usage"><span class='fu'>plotMetaAnalysisForest</span><span class='op'>(</span>
+  <span class='va'>logRr</span>,
+  <span class='va'>logLb95Ci</span>,
+  <span class='va'>logUb95Ci</span>,
+  <span class='va'>labels</span>,
+  xLabel <span class='op'>=</span> <span class='st'>"Relative risk"</span>,
+  limits <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>0.1</span>, <span class='fl'>10</span><span class='op'>)</span>,
+  hakn <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  fileName <span class='op'>=</span> <span class='cn'>NULL</span>
+<span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -187,17 +192,19 @@ function <a href='https://ggplot2.tidyverse.org/reference/ggsave.html'>ggplot2::
     <p>A Ggplot object. Use the <a href='https://ggplot2.tidyverse.org/reference/ggsave.html'>ggplot2::ggsave</a> function to save to file.</p>
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
-    <p>Creates a forest plot of effect size estimates, and includes a meta-analysis estimate using a random effects model.
-The DerSimonian-Laird estimate (1986) is used.</p>
+    <p>Creates a forest plot of effect size estimates, and includes a meta-analysis estimate using a
+random effects model. The DerSimonian-Laird estimate (1986) is used.</p>
     <h2 class="hasAnchor" id="references"><a class="anchor" href="#references"></a>References</h2>
 
-    <p>DerSimonian R, Laird N (1986), Meta-analysis in clinical trials. Controlled Clinical Trials, 7, 177-188.</p>
+    <p>DerSimonian R, Laird N (1986), Meta-analysis in clinical trials. Controlled Clinical Trials, 7,
+177-188.</p>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='fu'>plotMetaAnalysisForest</span>(<span class='kw'>logRr</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='fl'>0</span>, <span class='fl'>0.2</span>, -<span class='fl'>0.2</span>, <span class='fl'>0</span>, <span class='fl'>0.2</span>, -<span class='fl'>0.2</span>),
-                       <span class='kw'>logLb95Ci</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(-<span class='fl'>0.2</span>, -<span class='fl'>0.2</span>, -<span class='fl'>0.6</span>, -<span class='fl'>0.2</span>, -<span class='fl'>0.2</span>, -<span class='fl'>0.6</span>),
-                       <span class='kw'>logUb95Ci</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='fl'>0.2</span>, <span class='fl'>0.6</span>, <span class='fl'>0.2</span>, <span class='fl'>0.2</span>, <span class='fl'>0.6</span>, <span class='fl'>0.2</span>),
-                       <span class='kw'>labels</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='st'>"Site A"</span>, <span class='st'>"Site B"</span>, <span class='st'>"Site C"</span>, <span class='st'>"Site D"</span>, <span class='st'>"Site E"</span>, <span class='st'>"Site F"</span>))</div><div class='img'><img src='plotMetaAnalysisForest-1.png' alt='' width='700' height='433' /></div><div class='output co'>#&gt; TableGrob (1 x 2) "arrange": 2 grobs
+    <pre class="examples"><div class='input'><span class='fu'>plotMetaAnalysisForest</span><span class='op'>(</span>logRr <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>0</span>, <span class='fl'>0.2</span>, <span class='op'>-</span><span class='fl'>0.2</span>, <span class='fl'>0</span>, <span class='fl'>0.2</span>, <span class='op'>-</span><span class='fl'>0.2</span><span class='op'>)</span>,
+                       logLb95Ci <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='op'>-</span><span class='fl'>0.2</span>, <span class='op'>-</span><span class='fl'>0.2</span>, <span class='op'>-</span><span class='fl'>0.6</span>, <span class='op'>-</span><span class='fl'>0.2</span>, <span class='op'>-</span><span class='fl'>0.2</span>, <span class='op'>-</span><span class='fl'>0.6</span><span class='op'>)</span>,
+                       logUb95Ci <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>0.2</span>, <span class='fl'>0.6</span>, <span class='fl'>0.2</span>, <span class='fl'>0.2</span>, <span class='fl'>0.6</span>, <span class='fl'>0.2</span><span class='op'>)</span>,
+                       labels <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"Site A"</span>, <span class='st'>"Site B"</span>, <span class='st'>"Site C"</span>, <span class='st'>"Site D"</span>, <span class='st'>"Site E"</span>, <span class='st'>"Site F"</span><span class='op'>)</span><span class='op'>)</span>
+</div><div class='img'><img src='plotMetaAnalysisForest-1.png' alt='' width='700' height='433' /></div><div class='output co'>#&gt; TableGrob (1 x 2) "arrange": 2 grobs
 #&gt;   z     cells    name           grob
 #&gt; 1 1 (1-1,1-1) arrange gtable[layout]
 #&gt; 2 2 (1-1,2-2) arrange gtable[layout]</div><div class='input'>
@@ -217,7 +224,7 @@ The DerSimonian-Laird estimate (1986) is used.</p>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
 </div>
 
       </footer>

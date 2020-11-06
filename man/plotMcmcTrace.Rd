@@ -30,7 +30,7 @@ Plot MCMC trace
 }
 \details{
 Plot the samples of the posterior distribution of the mu and tau parameters. Samples are taken
-using Markoc-chain Monte Carlo (MCMC).
+using Markov-chain Monte Carlo (MCMC).
 }
 \examples{
 # Simulate some data for this example:

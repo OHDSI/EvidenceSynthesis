@@ -30,7 +30,7 @@ Plot MCMC trace for individual databases
 }
 \details{
 Plot the samples of the posterior distribution of the theta parameter (the estimated log hazard
-ratio) at each site. Samples are taken using Markoc-chain Monte Carlo (MCMC).
+ratio) at each site. Samples are taken using Markov-chain Monte Carlo (MCMC).
 }
 \examples{
 # Simulate some data for this example:

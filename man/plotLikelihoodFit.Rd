@@ -39,7 +39,7 @@ A Ggplot object. Use the \link[ggplot2:ggsave]{ggplot2::ggsave} function to save
 Plot the likelihood approximation
 }
 \details{
-Plots the (log) likehood and the approximation of the likelihood. Allows for reviewing the
+Plots the (log) likelihood and the approximation of the likelihood. Allows for reviewing the
 approximation.
 }
 \examples{

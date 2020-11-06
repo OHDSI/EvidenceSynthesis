@@ -13,7 +13,7 @@ likelihood data. One row per database.}
 \item{alpha}{The alpha (expected type I error) used for the confidence intervals.}
 }
 \value{
-The meta-anlytic estimate, expressed as the point estimate hazard ratio (rr), its 95 percent
+The meta-analytic estimate, expressed as the point estimate hazard ratio (rr), its 95 percent
 confidence interval (lb, ub), as well as the log of the point estimate (logRr), and the standard
 error (seLogRr).
 }

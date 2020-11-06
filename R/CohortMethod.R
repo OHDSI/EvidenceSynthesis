@@ -198,7 +198,7 @@ computePreferenceScore <- function(data, unfilteredData = NULL) {
 #'                         should have the same structure as `data`.
 #' @param scale            The scale of the graph. Two scales are supported: `scale = 'propensity'` or
 #'                         `scale = 'preference'`. The preference score scale is defined by Walker et
-#'                         al (2013).
+#'                         al. (2013).
 #'
 #' @details
 #' The data frame should have a least the following two columns:

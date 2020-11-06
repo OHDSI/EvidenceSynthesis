@@ -17,7 +17,7 @@
 #' Plot the likelihood approximation
 #'
 #' @details
-#' Plots the (log) likehood and the approximation of the likelihood. Allows for reviewing the
+#' Plots the (log) likelihood and the approximation of the likelihood. Allows for reviewing the
 #' approximation.
 #'
 #' @param approximation   An approximation of the likelihood function as fitted using the
@@ -127,7 +127,7 @@ plotLikelihoodFit <- function(approximation,
 #'
 #' @details
 #' Plot the samples of the posterior distribution of the mu and tau parameters. Samples are taken
-#' using Markoc-chain Monte Carlo (MCMC).
+#' using Markov-chain Monte Carlo (MCMC).
 #'
 #' @param estimate       An object as generated using the [computeBayesianMetaAnalysis()] function.
 #' @param showEstimate   Show the parameter estimates (mode) and 95 percent confidence intervals?
@@ -202,7 +202,7 @@ plotMcmcTrace <- function(estimate, showEstimate = TRUE, dataCutoff = 0.01, file
 #'
 #' @details
 #' Plot the samples of the posterior distribution of the theta parameter (the estimated log hazard
-#' ratio) at each site. Samples are taken using Markoc-chain Monte Carlo (MCMC).
+#' ratio) at each site. Samples are taken using Markov-chain Monte Carlo (MCMC).
 #'
 #' @param estimate       An object as generated using the [computeBayesianMetaAnalysis()] function.
 #' @param showEstimate   Show the parameter estimates (mode) and 95 percent confidence intervals?

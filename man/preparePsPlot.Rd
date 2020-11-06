@@ -15,7 +15,7 @@ should have the same structure as \code{data}.}
 
 \item{scale}{The scale of the graph. Two scales are supported: \code{scale = 'propensity'} or
 \code{scale = 'preference'}. The preference score scale is defined by Walker et
-al (2013).}
+al. (2013).}
 }
 \value{
 A data frame describing the propensity score (or preference score) distribution at 100

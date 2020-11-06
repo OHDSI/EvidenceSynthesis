@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Compute a Bayesian meta-analysis — computeBayesianMetaAnalysis • EvidenceSynthesis</title>
+<title>Compute a Bayesian random-effects meta-analysis — computeBayesianMetaAnalysis • EvidenceSynthesis</title>
 
 
 <!-- jquery -->
@@ -39,9 +39,10 @@
 
 
 
-<meta property="og:title" content="Compute a Bayesian meta-analysis — computeBayesianMetaAnalysis" />
+<meta property="og:title" content="Compute a Bayesian random-effects meta-analysis — computeBayesianMetaAnalysis" />
 <meta property="og:description" content="Compute a Bayesian meta-analysis using the Markov chain Monte Carlo (MCMC) engine BEAST.
-A normal and half-normal prior are used for the mu and tau parameters, respectively, with standard deviations as defined by the priorSd argument." />
+A normal and half-normal prior are used for the mu and tau parameters, respectively, with standard
+deviations as defined by the priorSd argument." />
 
 
 
@@ -88,6 +89,9 @@ A normal and half-normal prior are used for the mu and tau parameters, respectiv
 <li>
   <a href="../reference/index.html">Reference</a>
 </li>
+<li>
+  <a href="../news/index.html">Changelog</a>
+</li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
     Articles
@@ -96,16 +100,16 @@ A normal and half-normal prior are used for the mu and tau parameters, respectiv
   </a>
   <ul class="dropdown-menu" role="menu">
     <li>
-      <a href="../articles/NonNormalMetaAnalyis.html">Meta-analysis using non-normal likelihood approximations</a>
+      <a href="../articles/NonNormalEffectSynthesis.html">Effect estimate synthesis using non-normal likelihood approximations</a>
     </li>
   </ul>
-</li>
-<li>
-  <a href="../news/index.html">Changelog</a>
 </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li>
+  <a href="https://ohdsi.github.io/Hades"><img src='https://ohdsi.github.io/Hades/images/hadesMini.png' width=80 height=17 style='vertical-align: top;'></a>
+</li>
+<li>
   <a href="https://github.com/OHDSI/EvidenceSynthesis/">
     <span class="fab fa fab fa-github fa-lg"></span>
      
@@ -124,31 +128,33 @@ A normal and half-normal prior are used for the mu and tau parameters, respectiv
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Compute a Bayesian meta-analysis</h1>
+    <h1>Compute a Bayesian random-effects meta-analysis</h1>
     <small class="dont-index">Source: <a href='https://github.com/OHDSI/EvidenceSynthesis/blob/master/R/BayesianMetaAnalysis.R'><code>R/BayesianMetaAnalysis.R</code></a></small>
     <div class="hidden name"><code>computeBayesianMetaAnalysis.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Compute a Bayesian meta-analysis using the Markov chain Monte Carlo (MCMC) engine BEAST.</p>
-<p>A normal and half-normal prior are used for the mu and tau parameters, respectively, with standard deviations as defined by the <code>priorSd</code> argument.</p>
+    <p>Compute a Bayesian meta-analysis using the Markov chain Monte Carlo (MCMC) engine BEAST.
+A normal and half-normal prior are used for the mu and tau parameters, respectively, with standard
+deviations as defined by the <code>priorSd</code> argument.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>computeBayesianMetaAnalysis</span>(
-  <span class='no'>data</span>,
-  <span class='kw'>chainLength</span> <span class='kw'>=</span> <span class='fl'>1100000</span>,
-  <span class='kw'>burnIn</span> <span class='kw'>=</span> <span class='fl'>1e+05</span>,
-  <span class='kw'>subSampleFrequency</span> <span class='kw'>=</span> <span class='fl'>100</span>,
-  <span class='kw'>priorSd</span> <span class='kw'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span>(<span class='fl'>2</span>, <span class='fl'>0.5</span>),
-  <span class='kw'>alpha</span> <span class='kw'>=</span> <span class='fl'>0.05</span>
-)</pre>
+    <pre class="usage"><span class='fu'>computeBayesianMetaAnalysis</span><span class='op'>(</span>
+  <span class='va'>data</span>,
+  chainLength <span class='op'>=</span> <span class='fl'>1100000</span>,
+  burnIn <span class='op'>=</span> <span class='fl'>1e+05</span>,
+  subSampleFrequency <span class='op'>=</span> <span class='fl'>100</span>,
+  priorSd <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>2</span>, <span class='fl'>0.5</span><span class='op'>)</span>,
+  alpha <span class='op'>=</span> <span class='fl'>0.05</span>
+<span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
       <th>data</th>
-      <td><p>A data frame containing either normal, skew-normal, custom parametric, or grid likelihood data, with one row per database.</p></td>
+      <td><p>A data frame containing either normal, skew-normal, custom parametric,
+or grid likelihood data, with one row per database.</p></td>
     </tr>
     <tr>
       <th>chainLength</th>
@@ -164,7 +170,8 @@ A normal and half-normal prior are used for the mu and tau parameters, respectiv
     </tr>
     <tr>
       <th>priorSd</th>
-      <td><p>A two-dimensional vector with the standard deviation of the prior for mu and tau, respectively.</p></td>
+      <td><p>A two-dimensional vector with the standard deviation of the prior for mu
+and tau, respectively.</p></td>
     </tr>
     <tr>
       <th>alpha</th>
@@ -174,26 +181,39 @@ A normal and half-normal prior are used for the mu and tau parameters, respectiv
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>A data frame with the point estimates and 95% credible intervals for the mu and tau parameters (the mean and standard deviation of the distribution
-from which the per-site effect sizes are drawn). Attributes of the data frame contain the MCMC trace and the detected approximation type.</p>
+    <p>A data frame with the point estimates and 95% credible intervals for the mu and tau parameters (the
+mean and standard deviation of the distribution from which the per-site effect sizes are drawn).
+Attributes of the data frame contain the MCMC trace and the detected approximation type.</p>
+    <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
+
+    <div class='dont-index'><p><a href='approximateLikelihood.html'>approximateLikelihood</a>, <a href='computeFixedEffectMetaAnalysis.html'>computeFixedEffectMetaAnalysis</a></p></div>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='no'>populations</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='simulatePopulations.html'>simulatePopulations</a></span>()
+    <pre class="examples"><div class='input'><span class='co'># Simulate some data for this example:</span>
+<span class='va'>populations</span> <span class='op'>&lt;-</span> <span class='fu'><a href='simulatePopulations.html'>simulatePopulations</a></span><span class='op'>(</span><span class='op'>)</span>
 
-<span class='no'>fitModelInDatabase</span> <span class='kw'>&lt;-</span> <span class='kw'>function</span>(<span class='no'>population</span>) {
-  <span class='no'>cyclopsData</span> <span class='kw'>&lt;-</span> <span class='kw pkg'>Cyclops</span><span class='kw ns'>::</span><span class='fu'><a href='https://rdrr.io/pkg/Cyclops/man/createCyclopsData.html'>createCyclopsData</a></span>(<span class='fu'>Surv</span>(<span class='no'>time</span>, <span class='no'>y</span>) ~ <span class='no'>x</span> + <span class='fu'>strata</span>(<span class='no'>stratumId</span>),
-                                            <span class='kw'>data</span> <span class='kw'>=</span> <span class='no'>population</span>,
-                                            <span class='kw'>modelType</span> <span class='kw'>=</span> <span class='st'>"cox"</span>)
-  <span class='no'>cyclopsFit</span> <span class='kw'>&lt;-</span> <span class='kw pkg'>Cyclops</span><span class='kw ns'>::</span><span class='fu'><a href='https://rdrr.io/pkg/Cyclops/man/fitCyclopsModel.html'>fitCyclopsModel</a></span>(<span class='no'>cyclopsData</span>)
-  <span class='no'>approximation</span> <span class='kw'>&lt;-</span>  <span class='fu'><a href='approximateLikelihood.html'>approximateLikelihood</a></span>(<span class='no'>cyclopsFit</span>, <span class='st'>"x"</span>)
-  <span class='fu'><a href='https://rdrr.io/r/base/function.html'>return</a></span>(<span class='no'>approximation</span>)
-}
-<span class='no'>approximations</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/lapply.html'>lapply</a></span>(<span class='no'>populations</span>, <span class='no'>fitModelInDatabase</span>)
-<span class='no'>approximations</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/do.call.html'>do.call</a></span>(<span class='st'>"rbind"</span>, <span class='no'>approximations</span>)
-<span class='no'>estimate</span> <span class='kw'>&lt;-</span> <span class='fu'>computeBayesianMetaAnalysis</span>(<span class='no'>approximations</span>)</div><div class='output co'>#&gt; Detected data following custom parameric distribution
-#&gt; Performing MCMC. This may take a while</div><div class='input'><span class='no'>estimate</span></div><div class='output co'>#&gt;          mu     mu95Lb   mu95Ub      muSe       tau     tau95Lb   tau95Ub
-#&gt; 1 0.4182657 -0.3517788 1.149729 0.3772438 0.2852941 0.001675841 0.8201178</div><div class='input'># mu     mu95Lb    mu95Ub     muSe        tau      tau95Lb  tau95Ub
-# 0.0003129562 -0.1747429 0.1723472 0.089661 0.07759992 0.0002024991 0.301007
+<span class='co'># Fit a Cox regression at each data site, and approximate likelihood function:</span>
+<span class='va'>fitModelInDatabase</span> <span class='op'>&lt;-</span> <span class='kw'>function</span><span class='op'>(</span><span class='va'>population</span><span class='op'>)</span> <span class='op'>{</span>
+  <span class='va'>cyclopsData</span> <span class='op'>&lt;-</span> <span class='fu'>Cyclops</span><span class='fu'>::</span><span class='fu'><a href='https://rdrr.io/pkg/Cyclops/man/createCyclopsData.html'>createCyclopsData</a></span><span class='op'>(</span><span class='fu'>Surv</span><span class='op'>(</span><span class='va'>time</span>, <span class='va'>y</span><span class='op'>)</span> <span class='op'>~</span> <span class='va'>x</span> <span class='op'>+</span> <span class='fu'>strata</span><span class='op'>(</span><span class='va'>stratumId</span><span class='op'>)</span>,
+                                            data <span class='op'>=</span> <span class='va'>population</span>,
+                                            modelType <span class='op'>=</span> <span class='st'>"cox"</span><span class='op'>)</span>
+  <span class='va'>cyclopsFit</span> <span class='op'>&lt;-</span> <span class='fu'>Cyclops</span><span class='fu'>::</span><span class='fu'><a href='https://rdrr.io/pkg/Cyclops/man/fitCyclopsModel.html'>fitCyclopsModel</a></span><span class='op'>(</span><span class='va'>cyclopsData</span><span class='op'>)</span>
+  <span class='va'>approximation</span> <span class='op'>&lt;-</span> <span class='fu'><a href='approximateLikelihood.html'>approximateLikelihood</a></span><span class='op'>(</span><span class='va'>cyclopsFit</span>, parameter <span class='op'>=</span> <span class='st'>"x"</span>, approximation <span class='op'>=</span> <span class='st'>"custom"</span><span class='op'>)</span>
+  <span class='kw'><a href='https://rdrr.io/r/base/function.html'>return</a></span><span class='op'>(</span><span class='va'>approximation</span><span class='op'>)</span>
+<span class='op'>}</span>
+<span class='va'>approximations</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/lapply.html'>lapply</a></span><span class='op'>(</span><span class='va'>populations</span>, <span class='va'>fitModelInDatabase</span><span class='op'>)</span>
+<span class='va'>approximations</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/do.call.html'>do.call</a></span><span class='op'>(</span><span class='st'>"rbind"</span>, <span class='va'>approximations</span><span class='op'>)</span>
+
+<span class='co'># At study coordinating center, perform meta-analysis using per-site approximations:</span>
+<span class='va'>estimate</span> <span class='op'>&lt;-</span> <span class='fu'>computeBayesianMetaAnalysis</span><span class='op'>(</span><span class='va'>approximations</span><span class='op'>)</span>
+</div><div class='output co'>#&gt; <span class='message'>Detected data following custom parameric distribution</span></div><div class='output co'>#&gt; <span class='message'>Performing MCMC. This may take a while</span></div><div class='input'><span class='va'>estimate</span>
+</div><div class='output co'>#&gt;          mu     mu95Lb   mu95Ub      muSe       tau     tau95Lb   tau95Ub
+#&gt; 1 0.4048565 -0.3485995 1.121679 0.3744211 0.2920196 0.001850079 0.8094508
+#&gt;       logRr   seLogRr
+#&gt; 1 0.4048565 0.3744211</div><div class='input'><span class='co'>#          mu     mu95Lb   mu95Ub      muSe       tau     tau95Lb   tau95Ub     logRr   seLogRr</span>
+<span class='co'># 1 0.5770562 -0.2451619 1.382396 0.4154986 0.2733942 0.004919128 0.7913512 0.5770562 0.4152011</span>
+
+<span class='co'># (Estimates in this example will vary due to the random simulation)</span>
 
 </div></pre>
   </div>
@@ -211,7 +231,7 @@ from which the per-site effect sizes are drawn). Attributes of the data frame co
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
 </div>
 
       </footer>

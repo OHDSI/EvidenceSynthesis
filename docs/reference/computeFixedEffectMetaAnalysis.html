@@ -40,7 +40,7 @@
 
 
 <meta property="og:title" content="Compute a fixed-effect meta-analysis — computeFixedEffectMetaAnalysis" />
-<meta property="og:description" content="Compute a  fixed-effect meta-analysis." />
+<meta property="og:description" content="Compute a fixed-effect meta-analysis using a choice of various likelihood approximations." />
 
 
 
@@ -87,6 +87,9 @@
 <li>
   <a href="../reference/index.html">Reference</a>
 </li>
+<li>
+  <a href="../news/index.html">Changelog</a>
+</li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
     Articles
@@ -95,16 +98,16 @@
   </a>
   <ul class="dropdown-menu" role="menu">
     <li>
-      <a href="../articles/NonNormalMetaAnalyis.html">Meta-analysis using non-normal likelihood approximations</a>
+      <a href="../articles/NonNormalEffectSynthesis.html">Effect estimate synthesis using non-normal likelihood approximations</a>
     </li>
   </ul>
-</li>
-<li>
-  <a href="../news/index.html">Changelog</a>
 </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li>
+  <a href="https://ohdsi.github.io/Hades"><img src='https://ohdsi.github.io/Hades/images/hadesMini.png' width=80 height=17 style='vertical-align: top;'></a>
+</li>
+<li>
   <a href="https://github.com/OHDSI/EvidenceSynthesis/">
     <span class="fab fa fab fa-github fa-lg"></span>
      
@@ -129,17 +132,18 @@
     </div>
 
     <div class="ref-description">
-    <p>Compute a  fixed-effect meta-analysis.</p>
+    <p>Compute a fixed-effect meta-analysis using a choice of various likelihood approximations.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>computeFixedEffectMetaAnalysis</span>(<span class='no'>data</span>, <span class='kw'>alpha</span> <span class='kw'>=</span> <span class='fl'>0.05</span>)</pre>
+    <pre class="usage"><span class='fu'>computeFixedEffectMetaAnalysis</span><span class='op'>(</span><span class='va'>data</span>, alpha <span class='op'>=</span> <span class='fl'>0.05</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
       <th>data</th>
-      <td><p>A data frame containing either normal, skew-normal, custom parametric, or grid likelihood data. One row per database.</p></td>
+      <td><p>A data frame containing either normal, skew-normal, custom parametric, or grid
+likelihood data. One row per database.</p></td>
     </tr>
     <tr>
       <th>alpha</th>
@@ -147,21 +151,40 @@
     </tr>
     </table>
 
+    <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
+
+    <p>The meta-analytic estimate, expressed as the point estimate hazard ratio (rr), its 95 percent
+confidence interval (lb, ub), as well as the log of the point estimate (logRr), and the standard
+error (seLogRr).</p>
+    <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
+
+    <div class='dont-index'><p><a href='approximateLikelihood.html'>approximateLikelihood</a>, <a href='computeBayesianMetaAnalysis.html'>computeBayesianMetaAnalysis</a></p></div>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='no'>populations</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='simulatePopulations.html'>simulatePopulations</a></span>()
+    <pre class="examples"><div class='input'><span class='co'># Simulate some data for this example:</span>
+<span class='va'>populations</span> <span class='op'>&lt;-</span> <span class='fu'><a href='simulatePopulations.html'>simulatePopulations</a></span><span class='op'>(</span><span class='op'>)</span>
 
-<span class='no'>fitModelInDatabase</span> <span class='kw'>&lt;-</span> <span class='kw'>function</span>(<span class='no'>population</span>) {
-  <span class='no'>cyclopsData</span> <span class='kw'>&lt;-</span> <span class='kw pkg'>Cyclops</span><span class='kw ns'>::</span><span class='fu'><a href='https://rdrr.io/pkg/Cyclops/man/createCyclopsData.html'>createCyclopsData</a></span>(<span class='fu'>Surv</span>(<span class='no'>time</span>, <span class='no'>y</span>) ~ <span class='no'>x</span> + <span class='fu'>strata</span>(<span class='no'>stratumId</span>),
-                                            <span class='kw'>data</span> <span class='kw'>=</span> <span class='no'>population</span>, <span class='kw'>modelType</span> <span class='kw'>=</span> <span class='st'>"cox"</span>)
-  <span class='no'>cyclopsFit</span> <span class='kw'>&lt;-</span> <span class='kw pkg'>Cyclops</span><span class='kw ns'>::</span><span class='fu'><a href='https://rdrr.io/pkg/Cyclops/man/fitCyclopsModel.html'>fitCyclopsModel</a></span>(<span class='no'>cyclopsData</span>)
-  <span class='no'>approximation</span> <span class='kw'>&lt;-</span>  <span class='fu'><a href='approximateLikelihood.html'>approximateLikelihood</a></span>(<span class='no'>cyclopsFit</span>, <span class='st'>"x"</span>)
-  <span class='fu'><a href='https://rdrr.io/r/base/function.html'>return</a></span>(<span class='no'>approximation</span>)
-}
-<span class='no'>data</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/lapply.html'>lapply</a></span>(<span class='no'>populations</span>, <span class='no'>fitModelInDatabase</span>)
-<span class='no'>data</span> <span class='kw'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/do.call.html'>do.call</a></span>(<span class='st'>"rbind"</span>, <span class='no'>data</span>)
-<span class='fu'>computeFixedEffectMetaAnalysis</span>(<span class='no'>data</span>)</div><div class='output co'>#&gt; Detected data following custom parameric distribution</div><div class='output co'>#&gt;         rr       lb       ub     logRr   seLogRr
-#&gt; 1 2.282772 1.261151 3.976135 0.8253906 0.2929353</div><div class='input'>
+<span class='co'># Fit a Cox regression at each data site, and approximate likelihood function:</span>
+<span class='va'>fitModelInDatabase</span> <span class='op'>&lt;-</span> <span class='kw'>function</span><span class='op'>(</span><span class='va'>population</span><span class='op'>)</span> <span class='op'>{</span>
+  <span class='va'>cyclopsData</span> <span class='op'>&lt;-</span> <span class='fu'>Cyclops</span><span class='fu'>::</span><span class='fu'><a href='https://rdrr.io/pkg/Cyclops/man/createCyclopsData.html'>createCyclopsData</a></span><span class='op'>(</span><span class='fu'>Surv</span><span class='op'>(</span><span class='va'>time</span>, <span class='va'>y</span><span class='op'>)</span> <span class='op'>~</span> <span class='va'>x</span> <span class='op'>+</span> <span class='fu'>strata</span><span class='op'>(</span><span class='va'>stratumId</span><span class='op'>)</span>,
+                                            data <span class='op'>=</span> <span class='va'>population</span>,
+                                            modelType <span class='op'>=</span> <span class='st'>"cox"</span><span class='op'>)</span>
+  <span class='va'>cyclopsFit</span> <span class='op'>&lt;-</span> <span class='fu'>Cyclops</span><span class='fu'>::</span><span class='fu'><a href='https://rdrr.io/pkg/Cyclops/man/fitCyclopsModel.html'>fitCyclopsModel</a></span><span class='op'>(</span><span class='va'>cyclopsData</span><span class='op'>)</span>
+  <span class='va'>approximation</span> <span class='op'>&lt;-</span> <span class='fu'><a href='approximateLikelihood.html'>approximateLikelihood</a></span><span class='op'>(</span><span class='va'>cyclopsFit</span>, parameter <span class='op'>=</span> <span class='st'>"x"</span>, approximation <span class='op'>=</span> <span class='st'>"custom"</span><span class='op'>)</span>
+  <span class='kw'><a href='https://rdrr.io/r/base/function.html'>return</a></span><span class='op'>(</span><span class='va'>approximation</span><span class='op'>)</span>
+<span class='op'>}</span>
+<span class='va'>approximations</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/lapply.html'>lapply</a></span><span class='op'>(</span><span class='va'>populations</span>, <span class='va'>fitModelInDatabase</span><span class='op'>)</span>
+<span class='va'>approximations</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/do.call.html'>do.call</a></span><span class='op'>(</span><span class='st'>"rbind"</span>, <span class='va'>approximations</span><span class='op'>)</span>
+
+<span class='co'># At study coordinating center, perform meta-analysis using per-site approximations:</span>
+<span class='fu'>computeFixedEffectMetaAnalysis</span><span class='op'>(</span><span class='va'>approximations</span><span class='op'>)</span>
+</div><div class='output co'>#&gt; <span class='message'>Detected data following custom parameric distribution</span></div><div class='output co'>#&gt;         rr       lb       ub     logRr   seLogRr
+#&gt; 1 2.215999 1.225405 3.848531 0.7957031 0.2919493</div><div class='input'><span class='co'># Detected data following custom parameric distribution</span>
+<span class='co'>#        rr        lb       ub     logRr   seLogRr</span>
+<span class='co'># 1 1.72852 0.9388496 3.037601 0.5472656 0.2995381</span>
+
+<span class='co'># (Estimates in this example will vary due to the random simulation)</span>
+
 </div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
@@ -178,7 +201,7 @@
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.5.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
 </div>
 
       </footer>
