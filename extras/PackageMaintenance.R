@@ -36,3 +36,10 @@ unlink("inst/doc/NonNormalEffectSynthesis.tex")
 
 pkgdown::build_site()
 OhdsiRTools::fixHadesLogo()
+
+# Release package:
+devtools::check_win_devel()
+
+devtools::check_rhub()
+
+devtools::release()

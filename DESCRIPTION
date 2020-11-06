@@ -2,14 +2,14 @@ Package: EvidenceSynthesis
 Type: Package
 Title: Synthesizing Evidence on Causal Effects Across a Distributed Research Network
 Version: 0.1.0
-Date: 2020-10-28
+Date: 2020-11-06
 Authors@R: c(
   person("Martijn", "Schuemie", email = "schuemie@ohdsi.org", role = c("aut", "cre")),
   person("Marc A.", "Suchard", , "msuchard@ucla.edu", role = c("aut")),
   person("Observational Health Data Science and Informatics", role = c("cph"))
   )
 Maintainer: Martijn Schuemie <schuemie@ohdsi.org>
-Description: Routines for combining causal effect estimates and diagnostics across multiple data sites in a distributed study, without sharing patient-level data. 
+Description: Routines for combining causal effect estimates and study diagnostics across multiple data sites in a distributed study, without sharing patient-level data. 
   Allows for normal and non-normal approximations of the data-site likelihood of the effect parameter. 
 Depends:
   survival
@@ -28,8 +28,6 @@ Suggests:
   knitr,
   testthat,
   sn
-Remotes:
-  ohdsi/Cyclops@develop
 License: Apache License 2.0
 URL: https://ohdsi.github.io/EvidenceSynthesis/, https://github.com/OHDSI/EvidenceSynthesis
 BugReports: https://github.com/OHDSI/EvidenceSynthesis/issues
