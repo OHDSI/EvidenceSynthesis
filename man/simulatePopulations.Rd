@@ -27,8 +27,6 @@ cyclopsData <- Cyclops::createCyclopsData(Surv(time, y) ~ x + strata(stratumId),
                                           modelType = "cox")
 cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
 coef(cyclopsFit)
-#         x 
-# 0.8384493
 
 # (Estimates in this example will vary due to the random simulation)
 

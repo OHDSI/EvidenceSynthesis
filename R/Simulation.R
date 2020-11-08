@@ -50,8 +50,6 @@
 #'                                           modelType = "cox")
 #' cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
 #' coef(cyclopsFit)
-#' #         x 
-#' # 0.8384493
 #'
 #' # (Estimates in this example will vary due to the random simulation)
 #'
@@ -103,8 +101,6 @@ createSimulationSettings <- function(nSites = 5,
 #'                                           modelType = "cox")
 #' cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
 #' coef(cyclopsFit)
-#' #         x 
-#' # 0.8384493
 #'
 #' # (Estimates in this example will vary due to the random simulation)
 #'

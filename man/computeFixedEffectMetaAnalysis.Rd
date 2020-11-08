@@ -38,9 +38,6 @@ approximations <- do.call("rbind", approximations)
 
 # At study coordinating center, perform meta-analysis using per-site approximations:
 computeFixedEffectMetaAnalysis(approximations)
-# Detected data following custom parameric distribution
-#        rr        lb       ub     logRr   seLogRr
-# 1 1.72852 0.9388496 3.037601 0.5472656 0.2995381
 
 # (Estimates in this example will vary due to the random simulation)
 

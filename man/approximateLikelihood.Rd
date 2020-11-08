@@ -40,7 +40,6 @@ cyclopsData <- Cyclops::createCyclopsData(Surv(time, y) ~ x + strata(stratumId),
 cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
 approximation <- approximateLikelihood(cyclopsFit, "x")
 approximation
-# mu sigma gamma 1 -0.09738447 0.7977671 0.1862877
 
 # (Estimates in this example will vary due to the random simulation)
 

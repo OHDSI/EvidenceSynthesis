@@ -1,8 +1,8 @@
 Package: EvidenceSynthesis
 Type: Package
 Title: Synthesizing Evidence on Causal Effects Across a Distributed Research Network
-Version: 0.1.0
-Date: 2020-11-06
+Version: 0.2.0
+Date: 2020-11-08
 Authors@R: c(
   person("Martijn", "Schuemie", email = "schuemie@ohdsi.org", role = c("aut", "cre")),
   person("Marc A.", "Suchard", , "msuchard@ucla.edu", role = c("aut")),
@@ -27,6 +27,7 @@ Imports:
   methods
 Suggests:
   knitr,
+  rmarkdown,
   testthat,
   sn
 License: Apache License 2.0

@@ -44,7 +44,6 @@
 #' cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
 #' approximation <- approximateLikelihood(cyclopsFit, "x")
 #' approximation
-#' # mu sigma gamma 1 -0.09738447 0.7977671 0.1862877
 #'
 #' # (Estimates in this example will vary due to the random simulation)
 #'
@@ -104,7 +103,6 @@ approximateLikelihood <- function(cyclopsFit,
 #'
 #' @examples
 #' customFunction(x = 0:3, mu = 0, sigma = 1, gamma = 0)
-#' # [1] 0.0 -0.5 -2.0 -4.5
 #'
 #' @return
 #' The approximate log likelihood for the given x.

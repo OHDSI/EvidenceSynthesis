@@ -57,8 +57,6 @@ approximations <- do.call("rbind", approximations)
 # At study coordinating center, perform meta-analysis using per-site approximations:
 estimate <- computeBayesianMetaAnalysis(approximations)
 estimate
-#          mu     mu95Lb   mu95Ub      muSe       tau     tau95Lb   tau95Ub     logRr   seLogRr
-# 1 0.5770562 -0.2451619 1.382396 0.4154986 0.2733942 0.004919128 0.7913512 0.5770562 0.4152011
 
 # (Estimates in this example will vary due to the random simulation)
 

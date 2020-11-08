@@ -5,7 +5,7 @@ A companion paper is being prepared. Once published, we will cite this paper in 
 ---
 
 ## Test environments
-* Ubuntu 16.04.6 LTS (Travis), R 4.0.3
+* Ubuntu 16.04.6 LTS (Travis), R 4.0.2
 * Windows 10, R 4.0.3
 
 ## R CMD check results

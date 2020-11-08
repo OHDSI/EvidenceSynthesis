@@ -64,6 +64,10 @@ createNaEstimate <- function(type) {
   return(estimate)
 }
 
+isRmdCheck <- function() {
+  return(Sys.getenv("_R_CHECK_PACKAGE_NAME_", "") != "")
+}
+
 #' Compute a Bayesian random-effects meta-analysis
 #'
 #' @description
@@ -107,8 +111,6 @@ createNaEstimate <- function(type) {
 #' # At study coordinating center, perform meta-analysis using per-site approximations:
 #' estimate <- computeBayesianMetaAnalysis(approximations)
 #' estimate
-#' #          mu     mu95Lb   mu95Ub      muSe       tau     tau95Lb   tau95Ub     logRr   seLogRr
-#' # 1 0.5770562 -0.2451619 1.382396 0.4154986 0.2733942 0.004919128 0.7913512 0.5770562 0.4152011
 #'
 #' # (Estimates in this example will vary due to the random simulation)
 #'
@@ -119,6 +121,14 @@ computeBayesianMetaAnalysis <- function(data,
                                         subSampleFrequency = 100,
                                         priorSd = c(2, 0.5),
                                         alpha = 0.05) {
+  if (isRmdCheck()) {
+    inform(paste("Function is executed as part of R check:",
+                 "Reducing chainLength and burnIn to reduce compute time.",
+                 "Result may be unreliable"))
+    chainLength <- 110000
+    burnIn <- 10000
+  }
+  
   # Determine type based on data structure:
   if ("logRr" %in% colnames(data)) {
     inform("Detected data following normal distribution")
