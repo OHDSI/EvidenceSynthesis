@@ -2,8 +2,6 @@
 title: "Effect estimate synthesis using non-normal likelihood approximations"
 author: "Martijn J. Schuemie"
 date: "`r Sys.Date()`"
-header-includes:
-   - \usepackage[utf8]{inputenc}
 output:
   pdf_document:
     number_sections: yes

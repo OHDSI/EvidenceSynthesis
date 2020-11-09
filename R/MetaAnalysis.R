@@ -99,12 +99,12 @@ plotMetaAnalysisForest <- function(data,
                      logLb95Ci = estimate$mu95Lb,
                      logUb95Ci = estimate$mu95Ub,
                      type = "ma",
-                     name = sprintf("%s (\u03C4 = %.2f)", summaryLabel, estimate$tau))
+                     name = sprintf("%s (tau = %.2f)", summaryLabel, estimate$tau))
   }
   d <- rbind(d1, d2, d3)
   d$name <- factor(d$name, levels = c(d3$name, rev(as.character(labels)), "Source"))
   
-  # gplot puts whisker for infinite values, but not large values:
+  # ggplot puts whisker for infinite values, but not large values:
   plotD <- d
   plotD$logLb95Ci[is.infinite(plotD$logLb95Ci)] <- -10
   plotD$logUb95Ci[is.infinite(plotD$logUb95Ci)] <- 10
