@@ -2,57 +2,71 @@
 % Please edit documentation in R/MetaAnalysis.R
 \name{plotMetaAnalysisForest}
 \alias{plotMetaAnalysisForest}
-\title{Perform a meta-analysis and create a forest plot}
+\title{Create a forest plot}
 \usage{
 plotMetaAnalysisForest(
-  logRr,
-  logLb95Ci,
-  logUb95Ci,
+  data,
   labels,
+  estimate,
   xLabel = "Relative risk",
+  summaryLabel = "Summary",
   limits = c(0.1, 10),
-  hakn = FALSE,
+  alpha = 0.05,
   fileName = NULL
 )
 }
 \arguments{
-\item{logRr}{A numeric vector of effect estimates on the log scale.}
+\item{data}{A data frame containing either normal, skew-normal, custom parametric, or grid
+likelihood data. One row per database.}
 
-\item{logLb95Ci}{The lower bound of the 95 percent confidence interval on the log scale.}
+\item{labels}{A vector of labels for the data sources.}
 
-\item{logUb95Ci}{The upper bound of the 95 percent confidence interval on the log scale.}
-
-\item{labels}{A vector containing the labels for the various estimates.}
+\item{estimate}{The meta-analytic estimate as created using either ['computeFixedEffectMetaAnalysis()\verb{] or [}computeBayesianMetaAnalysis()`] function.}
 
 \item{xLabel}{The label on the x-axis: the name of the effect estimate.}
 
+\item{summaryLabel}{The label for the meta-analytic estimate.}
+
 \item{limits}{The limits of the effect size axis.}
 
-\item{hakn}{A logical indicating whether method by Hartung and Knapp should be used to adjust
-test statistics and confidence intervals.}
+\item{alpha}{The alpha (expected type I error).}
 
 \item{fileName}{Name of the file where the plot should be saved, for example 'plot.png'. See the
 function \link[ggplot2:ggsave]{ggplot2::ggsave} ifor supported file formats.}
+
+\item{type}{Type of meta-analysis. Can be either \code{"random"} or \code{"fixed"}, for random-effects
+or fixed-effects meta-analysis, respectively.}
 }
 \value{
 A Ggplot object. Use the \link[ggplot2:ggsave]{ggplot2::ggsave} function to save to file.
 }
 \description{
-Perform a traditional meta-analysis (ie assuming normally distributed likelihood) and creates a
-forest plot of effect size estimates.
+Creates a forest plot of effect size estimates, including the summary estimate.
 }
 \details{
-Creates a forest plot of effect size estimates, and includes a meta-analysis estimate using a
-random effects model. The DerSimonian-Laird estimate (1986) is used.
+Creates a forest plot of effect size estimates, including a meta-analysis estimate.
 }
 \examples{
-plotMetaAnalysisForest(logRr = c(0, 0.2, -0.2, 0, 0.2, -0.2),
-                       logLb95Ci = c(-0.2, -0.2, -0.6, -0.2, -0.2, -0.6),
-                       logUb95Ci = c(0.2, 0.6, 0.2, 0.2, 0.6, 0.2),
-                       labels = c("Site A", "Site B", "Site C", "Site D", "Site E", "Site F"))
+# Simulate some data for this example:
+populations <- simulatePopulations()
+labels <- paste("Data site", LETTERS[1:length(populations)])
 
+# Fit a Cox regression at each data site, and approximate likelihood function:
+fitModelInDatabase <- function(population) {
+  cyclopsData <- Cyclops::createCyclopsData(Surv(time, y) ~ x + strata(stratumId),
+                                            data = population,
+                                            modelType = "cox")
+  cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
+  approximation <- approximateLikelihood(cyclopsFit, parameter = "x", approximation = "custom")
+  return(approximation)
 }
-\references{
-DerSimonian R, Laird N (1986), Meta-analysis in clinical trials. Controlled Clinical Trials, 7,
-177-188.
+approximations <- lapply(populations, fitModelInDatabase)
+approximations <- do.call("rbind", approximations)
+
+# At study coordinating center, perform meta-analysis using per-site approximations:
+estimate <- computeBayesianMetaAnalysis(approximations)
+plotMetaAnalysisForest(approximations, labels, estimate)
+
+# (Estimates in this example will vary due to the random simulation)
+
 }

@@ -14,78 +14,108 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#' Perform a meta-analysis and create a forest plot
+#' Create a forest plot
 #'
 #' @description
-#' Perform a traditional meta-analysis (ie assuming normally distributed likelihood) and creates a
-#' forest plot of effect size estimates.
+#' Creates a forest plot of effect size estimates, including the summary estimate.
 #'
 #' @details
-#' Creates a forest plot of effect size estimates, and includes a meta-analysis estimate using a
-#' random effects model. The DerSimonian-Laird estimate (1986) is used.
+#' Creates a forest plot of effect size estimates, including a meta-analysis estimate.
 #'
-#' @param logRr       A numeric vector of effect estimates on the log scale.
-#' @param logLb95Ci   The lower bound of the 95 percent confidence interval on the log scale.
-#' @param logUb95Ci   The upper bound of the 95 percent confidence interval on the log scale.
-#' @param labels      A vector containing the labels for the various estimates.
-#' @param xLabel      The label on the x-axis: the name of the effect estimate.
-#' @param limits      The limits of the effect size axis.
-#' @param hakn        A logical indicating whether method by Hartung and Knapp should be used to adjust
-#'                    test statistics and confidence intervals.
-#' @param fileName    Name of the file where the plot should be saved, for example 'plot.png'. See the
-#'                    function [ggplot2::ggsave] ifor supported file formats.
+#' @param data      A data frame containing either normal, skew-normal, custom parametric, or grid
+#'                  likelihood data. One row per database.
+#' @param labels    A vector of labels for the data sources. 
+#' @param estimate  The meta-analytic estimate as created using either ['computeFixedEffectMetaAnalysis()`]
+#'                  or [`computeBayesianMetaAnalysis()`] function.
+#' @param xLabel    The label on the x-axis: the name of the effect estimate.
+#' @param summaryLabel The label for the meta-analytic estimate.
+#' @param limits    The limits of the effect size axis.
+#' @param alpha     The alpha (expected type I error).
+#' @param type      Type of meta-analysis. Can be either `"random"` or `"fixed"`, for random-effects
+#'                  or fixed-effects meta-analysis, respectively.
+#' @param fileName  Name of the file where the plot should be saved, for example 'plot.png'. See the
+#'                  function [ggplot2::ggsave] ifor supported file formats.
 #'
 #' @return
 #' A Ggplot object. Use the [ggplot2::ggsave] function to save to file.
 #'
-#' @references
-#' DerSimonian R, Laird N (1986), Meta-analysis in clinical trials. Controlled Clinical Trials, 7,
-#' 177-188.
-#'
 #' @examples
-#' plotMetaAnalysisForest(logRr = c(0, 0.2, -0.2, 0, 0.2, -0.2),
-#'                        logLb95Ci = c(-0.2, -0.2, -0.6, -0.2, -0.2, -0.6),
-#'                        logUb95Ci = c(0.2, 0.6, 0.2, 0.2, 0.6, 0.2),
-#'                        labels = c("Site A", "Site B", "Site C", "Site D", "Site E", "Site F"))
+#' # Simulate some data for this example:
+#' populations <- simulatePopulations()
+#' labels <- paste("Data site", LETTERS[1:length(populations)])
+#'
+#' # Fit a Cox regression at each data site, and approximate likelihood function:
+#' fitModelInDatabase <- function(population) {
+#'   cyclopsData <- Cyclops::createCyclopsData(Surv(time, y) ~ x + strata(stratumId),
+#'                                             data = population,
+#'                                             modelType = "cox")
+#'   cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
+#'   approximation <- approximateLikelihood(cyclopsFit, parameter = "x", approximation = "custom")
+#'   return(approximation)
+#' }
+#' approximations <- lapply(populations, fitModelInDatabase)
+#' approximations <- do.call("rbind", approximations)
+#'
+#' # At study coordinating center, perform meta-analysis using per-site approximations:
+#' estimate <- computeBayesianMetaAnalysis(approximations)
+#' plotMetaAnalysisForest(approximations, labels, estimate)
+#'
+#' # (Estimates in this example will vary due to the random simulation)
 #'
 #' @export
-plotMetaAnalysisForest <- function(logRr,
-                                   logLb95Ci,
-                                   logUb95Ci,
+plotMetaAnalysisForest <- function(data,
                                    labels,
+                                   estimate,
                                    xLabel = "Relative risk",
+                                   summaryLabel = "Summary",
                                    limits = c(0.1, 10),
-                                   hakn = FALSE,
+                                   alpha = 0.05,
                                    fileName = NULL) {
-  seLogRr <- (logUb95Ci - logLb95Ci)/(2 * qnorm(0.975))
-  meta <- meta::metagen(logRr, seLogRr, studlab = labels, sm = "RR", hakn = hakn)
-  s <- summary(meta)
-  rnd <- s$random
-  summaryLabel <- sprintf("Summary (I\u00B2 = %.2f)", s$I2$TE)
+  if (nrow(data) != length(labels)) 
+    abort("The number of labels should be equal to the number of rows in `data`")
+  
   d1 <- data.frame(logRr = -100,
                    logLb95Ci = -100,
                    logUb95Ci = -100,
-                   name = "Source",
-                   type = "header")
-  d2 <- data.frame(logRr = logRr,
-                   logLb95Ci = logLb95Ci,
-                   logUb95Ci = logUb95Ci,
-                   name = labels,
-                   type = "db")
-  d3 <- data.frame(logRr = rnd$TE,
-                   logLb95Ci = rnd$lower,
-                   logUb95Ci = rnd$upper,
-                   name = summaryLabel,
-                   type = "ma")
-  
+                   type = "header",
+                   name = "Source")
+  getEstimate <- function(row) {
+    ci <- suppressMessages(computeConfidenceInterval(approximation = row, 
+                                                     alpha = alpha))
+    return(data.frame(logRr = ci$logRr,
+                      logLb95Ci = log(ci$lb),
+                      logUb95Ci = log(ci$ub),
+                      type = "db"))
+  }
+  d2 <- lapply(split(data, 1:nrow(data)), getEstimate)
+  d2 <- do.call(rbind, d2)
+  d2$name <- labels
+  if ("rr" %in% colnames(estimate)) {
+    d3 <- data.frame(logRr = estimate$logRr,
+                     logLb95Ci = log(estimate$lb),
+                     logUb95Ci = log(estimate$ub),
+                     type = "ma",
+                     name = summaryLabel)
+  } else {
+    d3 <- data.frame(logRr = estimate$mu,
+                     logLb95Ci = estimate$mu95Lb,
+                     logUb95Ci = estimate$mu95Ub,
+                     type = "ma",
+                     name = sprintf("%s (\u03C4 = %.2f)", summaryLabel, estimate$tau))
+  }
   d <- rbind(d1, d2, d3)
-  d$name <- factor(d$name, levels = c(summaryLabel, rev(as.character(labels)), "Source"))
+  d$name <- factor(d$name, levels = c(d3$name, rev(as.character(labels)), "Source"))
+  
+  # gplot puts whisker for infinite values, but not large values:
+  plotD <- d
+  plotD$logLb95Ci[is.infinite(plotD$logLb95Ci)] <- -10
+  plotD$logUb95Ci[is.infinite(plotD$logUb95Ci)] <- 10
   
   breaks <- c(0.1, 0.25, 0.5, 1, 2, 4, 6, 8, 10)
-  p <- ggplot2::ggplot(d, ggplot2::aes(x = exp(.data$logRr),
-                                       y = .data$name,
-                                       xmin = exp(.data$logLb95Ci),
-                                       xmax = exp(.data$logUb95Ci))) +
+  p <- ggplot2::ggplot(plotD, ggplot2::aes(x = exp(.data$logRr),
+                                           y = .data$name,
+                                           xmin = exp(.data$logLb95Ci),
+                                           xmax = exp(.data$logUb95Ci))) +
     ggplot2::geom_vline(xintercept = breaks, colour = "#AAAAAA", lty = 1, size = 0.2) +
     ggplot2::geom_vline(xintercept = 1, size = 0.5) +
     ggplot2::geom_errorbarh(height = 0.15) +
@@ -103,13 +133,10 @@ plotMetaAnalysisForest <- function(logRr,
                    axis.ticks = ggplot2::element_blank(),
                    plot.margin = grid::unit(c(0, 0, 0.1, 0), "lines"))
   
-  labels <- paste0(formatC(exp(d$logRr), digits = 2, format = "f"),
-                   " (",
-                   formatC(exp(d$logLb95Ci), digits = 2, format = "f"),
-                   "-",
-                   formatC(exp(d$logUb95Ci), digits = 2, format = "f"),
-                   ")")
-  
+  d$logLb95Ci[is.infinite(d$logLb95Ci)] <- NA
+  d$logUb95Ci[is.infinite(d$logUb95Ci)] <- NA
+  labels <- sprintf("%0.2f (%0.2f - %0.2f)", exp(d$logRr), exp(d$logLb95Ci), exp(d$logUb95Ci))
+  labels <- gsub("NA", "", labels)
   labels <- data.frame(y = rep(d$name, 2),
                        x = rep(1:2, each = nrow(d)),
                        label = c(as.character(d$name), labels),
@@ -135,6 +162,6 @@ plotMetaAnalysisForest <- function(logRr,
   plot <- gridExtra::grid.arrange(data_table, p, ncol = 2)
   
   if (!is.null(fileName))
-    ggplot2::ggsave(fileName, plot, width = 7, height = 1 + length(logRr) * 0.3, dpi = 400)
+    ggplot2::ggsave(fileName, plot, width = 7, height = 1 + nrow(data) * 0.3, dpi = 400)
   return(plot)
 }

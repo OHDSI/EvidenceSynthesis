@@ -26,7 +26,6 @@ The skew normal function. When \code{alpha = 0} this function is the normal dist
 }
 \examples{
 skewNormal(x = 0:3, mu = 0, sigma = 1, alpha = 0)
-# [1] -0.9189385 -1.4189385 -2.9189385 -5.4189385
 
 }
 \references{

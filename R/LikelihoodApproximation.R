@@ -29,7 +29,7 @@
 #' @param bounds          The bounds on the effect size used to fit the approximation.
 #'
 #' @seealso
-#' [computeFixedEffectMetaAnalysis], [computeBayesianMetaAnalysis]
+#' [computeConfidenceInterval], [computeFixedEffectMetaAnalysis], [computeBayesianMetaAnalysis]
 #'
 #' @return
 #' A vector of parameters of the likelihood approximation.
@@ -56,7 +56,7 @@ approximateLikelihood <- function(cyclopsFit,
     stop("'approximation' argument should be 'normal', 'skew normal', 'custom', or 'grid'.")
   if (!is(cyclopsFit, "cyclopsFit"))
     stop("'cyclopsFit' argument should be of type 'cyclopsFit'")
-
+  
   if (approximation == "grid") {
     x <- log(seq(exp(bounds[1]), exp(bounds[2]), by = 0.01))
     result <- getLikelihoodProfile(cyclopsFit, "x", x)
@@ -110,7 +110,7 @@ approximateLikelihood <- function(cyclopsFit,
 #' @export
 customFunction <- function(x, mu, sigma, gamma) {
   return(((exp(gamma * (x - mu)))) * ((-(x - mu)^2)/(2 * sigma^2)))
-
+  
   # Derivative: -(exp(gamma * (x - mu)) * (gamma * (x - mu) + 2) * (x - mu))/(2 * sigma^2)
 }
 
@@ -126,7 +126,6 @@ customFunction <- function(x, mu, sigma, gamma) {
 #'
 #' @examples
 #' skewNormal(x = 0:3, mu = 0, sigma = 1, alpha = 0)
-#' # [1] -0.9189385 -1.4189385 -2.9189385 -5.4189385
 #'
 #' @return
 #' The approximate log likehood for the given x.
@@ -144,7 +143,7 @@ skewNormal <- function(x, mu, sigma, alpha) {
 }
 
 fitLogLikelihoodFunction <- function(beta, ll, weighByLikelihood = TRUE, fun = customFunction) {
-
+  
   sumSquares <- function(p, maxAnchor = TRUE, idx = NULL) {
     approxLl <- fun(beta, p[1], p[2], p[3])
     if (maxAnchor) {
@@ -159,25 +158,25 @@ fitLogLikelihoodFunction <- function(beta, ll, weighByLikelihood = TRUE, fun = c
     }
     return(result)
   }
-
+  
   beta <- beta[!is.nan(ll)]
   ll <- ll[!is.nan(ll)]
-
+  
   # Scale to standard (translate in log space so max at 0):
   ll <- ll - max(ll)
   weights <- exp(ll)
   # Weights shouldn't be too small:
   weights[weights < 0.001] <- 0.001
-
+  
   mode <- beta[ll == 0][1]
   if (mode == min(beta) || mode == max(beta)) {
     mode <- 0
   }
-
+  
   if (min(ll) > -1e-06) {
     return(data.frame(mu = 0, sigma = Inf, gamma = 0))
   }
-
+  
   fit <- tryCatch({
     suppressWarnings(nlm(sumSquares, c(mode, 1, 0), maxAnchor = TRUE))
   }, error = function(e) {
@@ -185,7 +184,7 @@ fitLogLikelihoodFunction <- function(beta, ll, weighByLikelihood = TRUE, fun = c
   })
   result <- data.frame(mu = fit$estimate[1], sigma = fit$estimate[2], gamma = fit$estimate[3])
   minimum <- fit$minimum
-
+  
   fit <- tryCatch({
     suppressWarnings(optim(c(mode, 1, 0), sumSquares, maxAnchor = TRUE))
   }, error = function(e) {
@@ -195,7 +194,7 @@ fitLogLikelihoodFunction <- function(beta, ll, weighByLikelihood = TRUE, fun = c
     result <- data.frame(mu = fit$par[1], sigma = fit$par[2], gamma = fit$par[3])
     minimum <- fit$value
   }
-
+  
   # Scale to standard (translate in log space so intersects at (0,0)):
   idx <- which(abs(beta) == min(abs(beta)))
   ll <- ll - ll[idx]
@@ -228,4 +227,65 @@ fitLogLikelihoodFunction <- function(beta, ll, weighByLikelihood = TRUE, fun = c
 getLikelihoodProfile <- function(cyclopsFit, parameter, x) {
   ll <- Cyclops::getCyclopsProfileLogLikelihood(cyclopsFit, parameter, x)$value
   return(ll)
+}
+
+#' Compute the point estimate and confidence interval given a likelihood function approximation
+#'
+#' @details 
+#' Compute the point estimate and confidence interval given a likelihood function approximation.
+#'
+#' @param approximation   An approximation of the likelihood function as fitted using the
+#'                        [approximateLikelihood()] function.
+#' @param alpha           The alpha (expected type I error).
+#'
+#' @return
+#' A data frame containing the point estimate, and upper and lower bound of the confidence interval.
+#' 
+#' @examples
+#' # Simulate some data for this example:
+#' populations <- simulatePopulations()
+#'
+#' cyclopsData <- Cyclops::createCyclopsData(Surv(time, y) ~ x + strata(stratumId),
+#'                                           data = populations[[1]],
+#'                                           modelType = "cox")
+#' cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
+#' approximation <- approximateLikelihood(cyclopsFit, "x")
+#' computeConfidenceInterval(approximation)
+#' 
+#' @export
+computeConfidenceInterval <- function(approximation, alpha = 0.05) {
+  # Determine type based on data structure:
+  if ("logRr" %in% colnames(approximation)) {
+    inform("Detected data following normal distribution")
+    estimate <- data.frame(rr = exp(approximation$logRr),
+                           lb = exp(approximation$logRr + qnorm(alpha/2) * approximation$seLogRr),
+                           ub = exp(approximation$logRr + qnorm(1 - alpha/2) * approximation$seLogRr),
+                           logRr = approximation$logRr,
+                           seLogRr = approximation$seLogRr)
+    return(estimate)
+  } else if ("gamma" %in% colnames(approximation)) {
+    inform("Detected data following custom parameric distribution")
+    estimate <- computeEstimateFromApproximation(approximationFuntion = customFunction,
+                                                 a = alpha,
+                                                 mu = approximation$mu,
+                                                 sigma = approximation$sigma,
+                                                 gamma = approximation$gamma)
+    return(estimate)
+  } else if ("alpha" %in% colnames(approximation)) {
+    inform("Detected data following skew normal distribution")
+    estimate <- computeEstimateFromApproximation(approximationFuntion = skewNormal,
+                                                 a = alpha,
+                                                 mu = approximation$mu,
+                                                 sigma = approximation$sigma,
+                                                 alpha = approximation$alpha)
+    return(estimate)
+  } else {
+    inform("Detected data following grid distribution")
+    x <- as.numeric(colnames(approximation))
+    if (any(is.na(x))) {
+      abort("Expecting grid data, but not all column names are numeric")
+    }
+    estimate <- computeEstimateFromGrid(approximation, alpha = alpha)
+    return(estimate)
+  }
 }

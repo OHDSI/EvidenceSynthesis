@@ -74,7 +74,10 @@ computeFixedEffectMetaAnalysis <- function(data, alpha = 0.05) {
   } else if ("gamma" %in% colnames(data)) {
     inform("Detected data following custom parameric distribution")
     data <- cleanData(data, c("mu", "sigma", "gamma"), minValues = c(-100, 1e-05, -100))
-    estimate <- computeEstimateFromCombiLl(data, alpha = alpha, fun = customFunction)
+    estimate <- computeEstimateFromApproximation(approximationFuntion = combineLogLikelihoodFunctions, 
+                                                 a = alpha, 
+                                                 fits = data,
+                                                 fun = customFunction)
     return(estimate)
   } else if ("alpha" %in% colnames(data)) {
     inform("Detected data following skew normal distribution")
@@ -82,7 +85,10 @@ computeFixedEffectMetaAnalysis <- function(data, alpha = 0.05) {
                       c("mu", "sigma", "alpha"),
                       minValues = c(-100, 1e-05, -10000),
                       maxValues = c(100, 10000, 10000))
-    estimate <- computeEstimateFromCombiLl(data, alpha = alpha, fun = skewNormal)
+    estimate <- computeEstimateFromApproximation(approximationFuntion = combineLogLikelihoodFunctions, 
+                                                 a = alpha, 
+                                                 fits = data,
+                                                 fun = skewNormal)
     return(estimate)
   } else if (is.list(data) && !is.data.frame(data)) {
     inform("Detected (pooled) patient-level data")
@@ -105,7 +111,8 @@ computeFixedEffectMetaAnalysis <- function(data, alpha = 0.05) {
     if (any(is.na(x))) {
       abort("Expecting grid data, but not all column names are numeric")
     }
-    estimate <- computeEstimateFromCombiGrids(data, alpha = alpha)
+    grid <- apply(data, 2, sum)
+    estimate <- computeEstimateFromGrid(grid, alpha = alpha)
     return(estimate)
   }
 }
@@ -116,19 +123,10 @@ combineLogLikelihoodFunctions <- function(x, fits, fun = customFunction) {
   return(ll)
 }
 
-computeEstimateFromCombiLl <- function(fits, alpha = 0.05, fun = customFunction) {
-  if (all(c("mu", "sigma", "gamma") %in% colnames(fits))) {
-    fits <- fits[, c("mu", "sigma", "gamma")]
-  } else if (all(c("mu", "sigma", "alpha") %in% colnames(fits))) {
-    fits <- fits[, c("mu", "sigma", "alpha")]
-  } else {
-    abort(paste0("Expecting columns 'mu', 'sigma', and 'gamma' or 'alpha', but found columns '",
-                 paste(colnames(fits), collapse = "', '"),
-                 "'"))
-  }
-  fit <- suppressWarnings(optim(0, function(x) -combineLogLikelihoodFunctions(x, fits, fun)))
+computeEstimateFromApproximation <- function(approximationFuntion, a = 0.05, ...) {
+  fit <- suppressWarnings(optim(0, function(x) -approximationFuntion(x, ...)))
   logRr <- fit$par
-  threshold <- -fit$value - qchisq(1 - alpha, df = 1)/2
+  threshold <- -fit$value - qchisq(1 - a, df = 1)/2
 
   precision <- 1e-07
 
@@ -138,7 +136,7 @@ computeEstimateFromCombiLl <- function(fits, alpha = 0.05, fun = customFunction)
   ub <- Inf
   while (H >= L) {
     M <- L + (H - L)/2
-    llM <- combineLogLikelihoodFunctions(M, fits, fun)
+    llM <- approximationFuntion(M, ...)
     metric <- threshold - llM
     if (metric > precision) {
       H <- M
@@ -163,7 +161,7 @@ computeEstimateFromCombiLl <- function(fits, alpha = 0.05, fun = customFunction)
   lb <- -Inf
   while (H >= L) {
     M <- L + (H - L)/2
-    llM <- combineLogLikelihoodFunctions(M, fits, fun)
+    llM <- approximationFuntion(M, ...)
     metric <- threshold - llM
     if (metric > precision) {
       L <- M
@@ -199,8 +197,7 @@ poolPopulations <- function(populations) {
   return(pooledPop)
 }
 
-computeEstimateFromCombiGrids <- function(grids, alpha = 0.05) {
-  grid <- apply(grids, 2, sum)
+computeEstimateFromGrid <- function(grid, alpha = 0.05) {
   maxIdx <- which(grid == max(grid))[1]
   logRr <- as.numeric(names(grid)[maxIdx])
   threshold <- grid[maxIdx] - qchisq(1 - alpha, df = 1)/2

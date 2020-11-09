@@ -45,5 +45,5 @@ approximation
 
 }
 \seealso{
-\link{computeFixedEffectMetaAnalysis}, \link{computeBayesianMetaAnalysis}
+\link{computeConfidenceInterval}, \link{computeFixedEffectMetaAnalysis}, \link{computeBayesianMetaAnalysis}
 }
