@@ -207,5 +207,5 @@ plotEmpiricalNulls <- function(logRr,
                     width = 8 + showCis * 2,
                     height = 1 + length(d) * 0.1,
                     dpi = 400)
-  return(plot)
+  invisible(plot)
 }

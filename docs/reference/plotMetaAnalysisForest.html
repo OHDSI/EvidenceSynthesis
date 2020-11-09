@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Perform a meta-analysis and create a forest plot — plotMetaAnalysisForest • EvidenceSynthesis</title>
+<title>Create a forest plot — plotMetaAnalysisForest • EvidenceSynthesis</title>
 
 
 <!-- jquery -->
@@ -39,9 +39,8 @@
 
 
 
-<meta property="og:title" content="Perform a meta-analysis and create a forest plot — plotMetaAnalysisForest" />
-<meta property="og:description" content="Perform a traditional meta-analysis (ie assuming normally distributed likelihood) and creates a
-forest plot of effect size estimates." />
+<meta property="og:title" content="Create a forest plot — plotMetaAnalysisForest" />
+<meta property="og:description" content="Creates a forest plot of effect size estimates, including the summary estimate." />
 
 
 
@@ -73,7 +72,7 @@ forest plot of effect size estimates." />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">EvidenceSynthesis</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.2.0</span>
       </span>
     </div>
 
@@ -127,24 +126,23 @@ forest plot of effect size estimates." />
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Perform a meta-analysis and create a forest plot</h1>
+    <h1>Create a forest plot</h1>
     <small class="dont-index">Source: <a href='https://github.com/OHDSI/EvidenceSynthesis/blob/master/R/MetaAnalysis.R'><code>R/MetaAnalysis.R</code></a></small>
     <div class="hidden name"><code>plotMetaAnalysisForest.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Perform a traditional meta-analysis (ie assuming normally distributed likelihood) and creates a
-forest plot of effect size estimates.</p>
+    <p>Creates a forest plot of effect size estimates, including the summary estimate.</p>
     </div>
 
     <pre class="usage"><span class='fu'>plotMetaAnalysisForest</span><span class='op'>(</span>
-  <span class='va'>logRr</span>,
-  <span class='va'>logLb95Ci</span>,
-  <span class='va'>logUb95Ci</span>,
+  <span class='va'>data</span>,
   <span class='va'>labels</span>,
+  <span class='va'>estimate</span>,
   xLabel <span class='op'>=</span> <span class='st'>"Relative risk"</span>,
+  summaryLabel <span class='op'>=</span> <span class='st'>"Summary"</span>,
   limits <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>0.1</span>, <span class='fl'>10</span><span class='op'>)</span>,
-  hakn <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  alpha <span class='op'>=</span> <span class='fl'>0.05</span>,
   fileName <span class='op'>=</span> <span class='cn'>NULL</span>
 <span class='op'>)</span></pre>
 
@@ -152,33 +150,33 @@ forest plot of effect size estimates.</p>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>logRr</th>
-      <td><p>A numeric vector of effect estimates on the log scale.</p></td>
-    </tr>
-    <tr>
-      <th>logLb95Ci</th>
-      <td><p>The lower bound of the 95 percent confidence interval on the log scale.</p></td>
-    </tr>
-    <tr>
-      <th>logUb95Ci</th>
-      <td><p>The upper bound of the 95 percent confidence interval on the log scale.</p></td>
+      <th>data</th>
+      <td><p>A data frame containing either normal, skew-normal, custom parametric, or grid
+likelihood data. One row per database.</p></td>
     </tr>
     <tr>
       <th>labels</th>
-      <td><p>A vector containing the labels for the various estimates.</p></td>
+      <td><p>A vector of labels for the data sources.</p></td>
+    </tr>
+    <tr>
+      <th>estimate</th>
+      <td><p>The meta-analytic estimate as created using either ['computeFixedEffectMetaAnalysis()<code>] or [</code>computeBayesianMetaAnalysis()`] function.</p></td>
     </tr>
     <tr>
       <th>xLabel</th>
       <td><p>The label on the x-axis: the name of the effect estimate.</p></td>
     </tr>
     <tr>
+      <th>summaryLabel</th>
+      <td><p>The label for the meta-analytic estimate.</p></td>
+    </tr>
+    <tr>
       <th>limits</th>
       <td><p>The limits of the effect size axis.</p></td>
     </tr>
     <tr>
-      <th>hakn</th>
-      <td><p>A logical indicating whether method by Hartung and Knapp should be used to adjust
-test statistics and confidence intervals.</p></td>
+      <th>alpha</th>
+      <td><p>The alpha (expected type I error).</p></td>
     </tr>
     <tr>
       <th>fileName</th>
@@ -192,22 +190,31 @@ function <a href='https://ggplot2.tidyverse.org/reference/ggsave.html'>ggplot2::
     <p>A Ggplot object. Use the <a href='https://ggplot2.tidyverse.org/reference/ggsave.html'>ggplot2::ggsave</a> function to save to file.</p>
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
-    <p>Creates a forest plot of effect size estimates, and includes a meta-analysis estimate using a
-random effects model. The DerSimonian-Laird estimate (1986) is used.</p>
-    <h2 class="hasAnchor" id="references"><a class="anchor" href="#references"></a>References</h2>
-
-    <p>DerSimonian R, Laird N (1986), Meta-analysis in clinical trials. Controlled Clinical Trials, 7,
-177-188.</p>
+    <p>Creates a forest plot of effect size estimates, including a meta-analysis estimate.</p>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='fu'>plotMetaAnalysisForest</span><span class='op'>(</span>logRr <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>0</span>, <span class='fl'>0.2</span>, <span class='op'>-</span><span class='fl'>0.2</span>, <span class='fl'>0</span>, <span class='fl'>0.2</span>, <span class='op'>-</span><span class='fl'>0.2</span><span class='op'>)</span>,
-                       logLb95Ci <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='op'>-</span><span class='fl'>0.2</span>, <span class='op'>-</span><span class='fl'>0.2</span>, <span class='op'>-</span><span class='fl'>0.6</span>, <span class='op'>-</span><span class='fl'>0.2</span>, <span class='op'>-</span><span class='fl'>0.2</span>, <span class='op'>-</span><span class='fl'>0.6</span><span class='op'>)</span>,
-                       logUb95Ci <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>0.2</span>, <span class='fl'>0.6</span>, <span class='fl'>0.2</span>, <span class='fl'>0.2</span>, <span class='fl'>0.6</span>, <span class='fl'>0.2</span><span class='op'>)</span>,
-                       labels <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"Site A"</span>, <span class='st'>"Site B"</span>, <span class='st'>"Site C"</span>, <span class='st'>"Site D"</span>, <span class='st'>"Site E"</span>, <span class='st'>"Site F"</span><span class='op'>)</span><span class='op'>)</span>
-</div><div class='img'><img src='plotMetaAnalysisForest-1.png' alt='' width='700' height='433' /></div><div class='output co'>#&gt; TableGrob (1 x 2) "arrange": 2 grobs
-#&gt;   z     cells    name           grob
-#&gt; 1 1 (1-1,1-1) arrange gtable[layout]
-#&gt; 2 2 (1-1,2-2) arrange gtable[layout]</div><div class='input'>
+    <pre class="examples"><div class='input'><span class='co'># Simulate some data for this example:</span>
+<span class='va'>populations</span> <span class='op'>&lt;-</span> <span class='fu'><a href='simulatePopulations.html'>simulatePopulations</a></span><span class='op'>(</span><span class='op'>)</span>
+<span class='va'>labels</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/paste.html'>paste</a></span><span class='op'>(</span><span class='st'>"Data site"</span>, <span class='va'>LETTERS</span><span class='op'>[</span><span class='fl'>1</span><span class='op'>:</span><span class='fu'><a href='https://rdrr.io/r/base/length.html'>length</a></span><span class='op'>(</span><span class='va'>populations</span><span class='op'>)</span><span class='op'>]</span><span class='op'>)</span>
+
+<span class='co'># Fit a Cox regression at each data site, and approximate likelihood function:</span>
+<span class='va'>fitModelInDatabase</span> <span class='op'>&lt;-</span> <span class='kw'>function</span><span class='op'>(</span><span class='va'>population</span><span class='op'>)</span> <span class='op'>{</span>
+  <span class='va'>cyclopsData</span> <span class='op'>&lt;-</span> <span class='fu'>Cyclops</span><span class='fu'>::</span><span class='fu'><a href='https://rdrr.io/pkg/Cyclops/man/createCyclopsData.html'>createCyclopsData</a></span><span class='op'>(</span><span class='fu'>Surv</span><span class='op'>(</span><span class='va'>time</span>, <span class='va'>y</span><span class='op'>)</span> <span class='op'>~</span> <span class='va'>x</span> <span class='op'>+</span> <span class='fu'>strata</span><span class='op'>(</span><span class='va'>stratumId</span><span class='op'>)</span>,
+                                            data <span class='op'>=</span> <span class='va'>population</span>,
+                                            modelType <span class='op'>=</span> <span class='st'>"cox"</span><span class='op'>)</span>
+  <span class='va'>cyclopsFit</span> <span class='op'>&lt;-</span> <span class='fu'>Cyclops</span><span class='fu'>::</span><span class='fu'><a href='https://rdrr.io/pkg/Cyclops/man/fitCyclopsModel.html'>fitCyclopsModel</a></span><span class='op'>(</span><span class='va'>cyclopsData</span><span class='op'>)</span>
+  <span class='va'>approximation</span> <span class='op'>&lt;-</span> <span class='fu'><a href='approximateLikelihood.html'>approximateLikelihood</a></span><span class='op'>(</span><span class='va'>cyclopsFit</span>, parameter <span class='op'>=</span> <span class='st'>"x"</span>, approximation <span class='op'>=</span> <span class='st'>"custom"</span><span class='op'>)</span>
+  <span class='kw'><a href='https://rdrr.io/r/base/function.html'>return</a></span><span class='op'>(</span><span class='va'>approximation</span><span class='op'>)</span>
+<span class='op'>}</span>
+<span class='va'>approximations</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/lapply.html'>lapply</a></span><span class='op'>(</span><span class='va'>populations</span>, <span class='va'>fitModelInDatabase</span><span class='op'>)</span>
+<span class='va'>approximations</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/do.call.html'>do.call</a></span><span class='op'>(</span><span class='st'>"rbind"</span>, <span class='va'>approximations</span><span class='op'>)</span>
+
+<span class='co'># At study coordinating center, perform meta-analysis using per-site approximations:</span>
+<span class='va'>estimate</span> <span class='op'>&lt;-</span> <span class='fu'><a href='computeBayesianMetaAnalysis.html'>computeBayesianMetaAnalysis</a></span><span class='op'>(</span><span class='va'>approximations</span><span class='op'>)</span>
+</div><div class='output co'>#&gt; <span class='message'>Detected data following custom parameric distribution</span></div><div class='output co'>#&gt; <span class='message'>Performing MCMC. This may take a while</span></div><div class='input'><span class='fu'>plotMetaAnalysisForest</span><span class='op'>(</span><span class='va'>approximations</span>, <span class='va'>labels</span>, <span class='va'>estimate</span><span class='op'>)</span>
+</div><div class='output co'>#&gt; <span class='warning'>Warning: Confidence interval lower bound out of range</span></div><div class='img'><img src='plotMetaAnalysisForest-1.png' alt='' width='700' height='433' /></div><div class='input'>
+<span class='co'># (Estimates in this example will vary due to the random simulation)</span>
+
 </div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

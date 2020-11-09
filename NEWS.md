@@ -5,6 +5,10 @@ Changes
 
 1. Preparing for CRAN release: Adding missing rmarkdown dependency to Suggests. 
 
+2. Added `computeConfidenceInterval()` function.
+
+3. `plotMetaAnalysisForest()` function now works with normal and non-normal approximations.
+
 
 EvidenceSynthesis 0.1.0
 =======================

@@ -75,7 +75,7 @@ appropriate." />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">EvidenceSynthesis</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.2.0</span>
       </span>
     </div>
 
@@ -175,7 +175,7 @@ appropriate.</p>
     <p>A vector of parameters of the likelihood approximation.</p>
     <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
 
-    <div class='dont-index'><p><a href='computeFixedEffectMetaAnalysis.html'>computeFixedEffectMetaAnalysis</a>, <a href='computeBayesianMetaAnalysis.html'>computeBayesianMetaAnalysis</a></p></div>
+    <div class='dont-index'><p><a href='computeConfidenceInterval.html'>computeConfidenceInterval</a>, <a href='computeFixedEffectMetaAnalysis.html'>computeFixedEffectMetaAnalysis</a>, <a href='computeBayesianMetaAnalysis.html'>computeBayesianMetaAnalysis</a></p></div>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
     <pre class="examples"><div class='input'><span class='co'># Simulate some data for this example:</span>
@@ -188,8 +188,7 @@ appropriate.</p>
 <span class='va'>approximation</span> <span class='op'>&lt;-</span> <span class='fu'>approximateLikelihood</span><span class='op'>(</span><span class='va'>cyclopsFit</span>, <span class='st'>"x"</span><span class='op'>)</span>
 <span class='va'>approximation</span>
 </div><div class='output co'>#&gt;         mu     sigma      gamma
-#&gt; 1 1.581767 0.7554649 0.06447779</div><div class='input'><span class='co'># mu sigma gamma 1 -0.09738447 0.7977671 0.1862877</span>
-
+#&gt; 1 1.581767 0.7554649 0.06447779</div><div class='input'>
 <span class='co'># (Estimates in this example will vary due to the random simulation)</span>
 
 </div></pre>

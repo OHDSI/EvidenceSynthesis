@@ -31,7 +31,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">EvidenceSynthesis</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.2.0</span>
       </span>
     </div>
 
@@ -89,7 +89,7 @@
       <h1 data-toc-skip>Effect estimate synthesis using non-normal likelihood approximations</h1>
                         <h4 class="author">Martijn J. Schuemie</h4>
             
-            <h4 class="date">2020-11-06</h4>
+            <h4 class="date">2020-11-09</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/OHDSI/EvidenceSynthesis/blob/master/vignettes/NonNormalEffectSynthesis.Rmd"><code>vignettes/NonNormalEffectSynthesis.Rmd</code></a></small>
       <div class="hidden name"><code>NonNormalEffectSynthesis.Rmd</code></div>
@@ -276,6 +276,17 @@
 ## 1 2.046913 1.08805 3.976732</code></pre>
 <p>Here we still use a prior with a standard deviation of 2 on <span class="math inline">\(\mu\)</span>, but for <span class="math inline">\(\tau\)</span> we specify a prior with a standard deviation of 0.1 instead of 0.5. As can be seen by the narrow credible interval, this stronger prior on <span class="math inline">\(\tau\)</span> leads to less uncertainty around <span class="math inline">\(\mu\)</span>.</p>
 </div>
+</div>
+<div id="forest-plot" class="section level1">
+<h1 class="hasAnchor">
+<a href="#forest-plot" class="anchor"></a>Forest plot</h1>
+<p>We can plot the results using a standard forest plot:</p>
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># Make up some data site labels:</span>
+<span class="va">labels</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste</a></span><span class="op">(</span><span class="st">"Data site"</span>, <span class="va">LETTERS</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">populations</span><span class="op">)</span><span class="op">]</span><span class="op">)</span>
+
+<span class="fu"><a href="../reference/plotMetaAnalysisForest.html">plotMetaAnalysisForest</a></span><span class="op">(</span><span class="va">approximationsTable</span>, <span class="va">labels</span>, <span class="va">estimate</span><span class="op">)</span></code></pre></div>
+<p><img src="NonNormalEffectSynthesis_files/figure-html/unnamed-chunk-13-1.png" width="700"></p>
 </div>
   </div>
 

@@ -31,8 +31,6 @@
 #' @param summaryLabel The label for the meta-analytic estimate.
 #' @param limits    The limits of the effect size axis.
 #' @param alpha     The alpha (expected type I error).
-#' @param type      Type of meta-analysis. Can be either `"random"` or `"fixed"`, for random-effects
-#'                  or fixed-effects meta-analysis, respectively.
 #' @param fileName  Name of the file where the plot should be saved, for example 'plot.png'. See the
 #'                  function [ggplot2::ggsave] ifor supported file formats.
 #'
@@ -163,5 +161,5 @@ plotMetaAnalysisForest <- function(data,
   
   if (!is.null(fileName))
     ggplot2::ggsave(fileName, plot, width = 7, height = 1 + nrow(data) * 0.3, dpi = 400)
-  return(plot)
+  invisible(plot)
 }

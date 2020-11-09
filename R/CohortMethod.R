@@ -169,7 +169,7 @@ plotCovariateBalances <- function(balances,
   
   if (!is.null(fileName))
     ggplot2::ggsave(fileName, plot, width = 8, height = 1 + length(balances) * 0.4, dpi = 400)
-  return(plot)
+  invisible(plot)
 }
 
 
@@ -347,6 +347,6 @@ plotPreparedPs <- function(preparedPsPlots,
                     width = 4,
                     height = 1 + length(preparedPsPlots) * 0.75,
                     dpi = 400)
-  return(plot)
+  invisible(plot)
 }
 

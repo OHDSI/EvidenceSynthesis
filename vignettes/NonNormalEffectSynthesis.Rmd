@@ -197,4 +197,13 @@ exp(estimate2[1:3])
 
 Here we still use a prior with a standard deviation of 2 on $\mu$, but for $\tau$ we specify a prior with a standard deviation of 0.1 instead of 0.5. As can be seen by the narrow credible interval, this stronger prior on $\tau$ leads to less uncertainty around $\mu$.
 
+# Forest plot
 
+We can plot the results using a standard forest plot:
+
+```{r eval=TRUE, message=FALSE}
+# Make up some data site labels:
+labels <- paste("Data site", LETTERS[1:length(populations)])
+
+plotMetaAnalysisForest(approximationsTable, labels, estimate)
+```

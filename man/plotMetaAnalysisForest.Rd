@@ -33,9 +33,6 @@ likelihood data. One row per database.}
 
 \item{fileName}{Name of the file where the plot should be saved, for example 'plot.png'. See the
 function \link[ggplot2:ggsave]{ggplot2::ggsave} ifor supported file formats.}
-
-\item{type}{Type of meta-analysis. Can be either \code{"random"} or \code{"fixed"}, for random-effects
-or fixed-effects meta-analysis, respectively.}
 }
 \value{
 A Ggplot object. Use the \link[ggplot2:ggsave]{ggplot2::ggsave} function to save to file.
