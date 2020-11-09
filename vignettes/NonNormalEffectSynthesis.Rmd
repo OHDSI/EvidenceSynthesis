@@ -6,6 +6,8 @@ output:
   pdf_document:
     number_sections: yes
     toc: yes
+    includes:
+      in_header: "preamble.tex"
   html_document:
     number_sections: yes
     toc: yes
@@ -14,7 +16,7 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
-  
+
 ```{r eval=TRUE,echo=FALSE}
 set.seed(1)
 ```
