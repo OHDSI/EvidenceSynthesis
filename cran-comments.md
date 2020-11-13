@@ -1,6 +1,4 @@
-This is a new package, implementing routines for combining causal effect estimates and study diagnostics across multiple data sites in a distributed study, without sharing patient-level data. 
-
-A companion paper is being prepared. Once published, we will cite this paper in the package.
+Reduced package title to less than 65 characters as instructed.
 
 ---
 

@@ -58,7 +58,7 @@ approximateLikelihood <- function(cyclopsFit,
     stop("'cyclopsFit' argument should be of type 'cyclopsFit'")
   
   if (approximation == "grid") {
-    x <- log(seq(exp(bounds[1]), exp(bounds[2]), by = 0.01))
+    x <- seq(bounds[1], bounds[2], length.out = 1000)
     result <- getLikelihoodProfile(cyclopsFit, "x", x)
     names(result) <- x
     return(result)

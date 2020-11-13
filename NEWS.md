@@ -9,6 +9,8 @@ Changes
 
 3. `plotMetaAnalysisForest()` function now works with normal and non-normal approximations.
 
+4. Grid points now evenly spaced on log scale, not HR scale.
+
 
 EvidenceSynthesis 0.1.0
 =======================
