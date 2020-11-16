@@ -4,7 +4,7 @@
 \name{EvidenceSynthesis-package}
 \alias{EvidenceSynthesis}
 \alias{EvidenceSynthesis-package}
-\title{EvidenceSynthesis: Synthesizing Evidence on Causal Effects Across a Distributed Research Network}
+\title{EvidenceSynthesis: Synthesizing Causal Evidence in a Distributed Research Network}
 \description{
 Routines for combining causal effect estimates and study diagnostics across multiple data sites in a distributed study, without sharing patient-level data. 
   Allows for normal and non-normal approximations of the data-site likelihood of the effect parameter.
