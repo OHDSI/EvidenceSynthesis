@@ -222,5 +222,6 @@ computeBayesianMetaAnalysis <- function(data,
                          row.names = NULL)
   attr(estimate, "traces") <- traces
   attr(estimate, "type") <- type
+  attr(estimate, "ess") <- coda::effectiveSize(traces)
   return(estimate)
 }
