@@ -1,3 +1,9 @@
+EvidenceSynthesis 0.2.1
+=======================
+
+1. `computeBayesianMetaAnalysis()` now outputs ESS.
+
+
 EvidenceSynthesis 0.2.0
 =======================
 
