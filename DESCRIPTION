@@ -23,7 +23,6 @@ Imports:
   BeastJar,
   Cyclops (>= 3.1.0),
   HDInterval,
-  coda,
   rlang,
   methods
 Suggests:
