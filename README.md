@@ -3,6 +3,8 @@ EvidenceSynthesis
 
 [![Build Status](https://travis-ci.org/OHDSI/EvidenceSynthesis.svg?branch=master)](https://travis-ci.org/OHDSI/EvidenceSynthesis)
 [![codecov.io](https://codecov.io/github/OHDSI/EvidenceSynthesis/coverage.svg?branch=master)](https://codecov.io/github/OHDSI/EvidenceSynthesis?branch=master)
+[![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/EvidenceSynthesis)](https://cran.r-project.org/package=EvidenceSynthesis)
+[![CRAN_Status_Badge](http://cranlogs.r-pkg.org/badges/EvidenceSynthesis)](https://cran.r-project.org/package=EvidenceSynthesis)
 
 EvidenceSynthesis is part of [HADES](https://ohdsi.github.io/Hades/).
 
@@ -56,9 +58,7 @@ Getting Started
 2. In R, use the following commands to download and install EvidenceSynthesis:
 
     ```r
-    install.packages("remotes")
-    library(remotes)
-    install_github("ohdsi/EvidenceSynthesis")
+    install.packages("EvidenceSynthesis")
     ```
   
 User Documentation
