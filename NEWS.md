@@ -1,7 +1,11 @@
 EvidenceSynthesis 0.2.1
 =======================
 
+Changes
+
 1. `computeBayesianMetaAnalysis()` now outputs ESS.
+
+2. Checking whether required Java version (8 or newer) is installed.
 
 
 EvidenceSynthesis 0.2.0

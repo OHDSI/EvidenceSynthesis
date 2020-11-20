@@ -1,4 +1,6 @@
-Reduced package title to less than 65 characters as instructed.
+This new version addresses the issue on Solaris running Java 7 noted by professor Ripley. 
+
+Includes 2 changes (see NEWS.md)
 
 ---
 

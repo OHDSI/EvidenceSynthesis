@@ -52,6 +52,7 @@ test_that("Custom approximation: pooled matches fixed-effects meta-analysis", {
 })
 
 test_that("Custom approximation: pooled matches random-effects meta-analysis", {
+  skip_if_not(supportsJava8())
   estimate <- computeBayesianMetaAnalysis(data)
   expect_equal(estimate,
                pooledRandomFxEstimate,
@@ -73,6 +74,7 @@ test_that("Grid approximation: pooled matches meta-analysis", {
 })
 
 test_that("Grid approximation: pooled matches random-effects meta-analysis", {
+  skip_if_not(supportsJava8())
   estimate <- computeBayesianMetaAnalysis(data)
   expect_equal(estimate,
                pooledRandomFxEstimate,
@@ -91,6 +93,7 @@ test_that("Normal approximation: pooled matches meta-analysis", {
 })
 
 test_that("Normal approximation: pooled matches random-effects meta-analysis", {
+  skip_if_not(supportsJava8())
   estimate <- computeBayesianMetaAnalysis(data)
   # Not really expecting normal approximation is close to gold standard:
   expect_equal(estimate, pooledRandomFxEstimate, tolerance = 1, check.attributes = FALSE)
@@ -106,6 +109,7 @@ test_that("Skew-normal approximation: pooled matches meta-analysis", {
 })
 
 test_that("Skew-normal approximation: pooled matches random-effects meta-analysis", {
+  skip_if_not(supportsJava8())
   estimate <- computeBayesianMetaAnalysis(data)
   # Not really expecting normal approximation is close to gold standard:
   expect_equal(estimate, pooledRandomFxEstimate, tolerance = 10, check.attributes = FALSE)

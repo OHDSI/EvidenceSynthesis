@@ -113,7 +113,7 @@ isRmdCheck <- function() {
 #' estimate
 #'
 #' # (Estimates in this example will vary due to the random simulation)
-#'
+#' 
 #' @export
 computeBayesianMetaAnalysis <- function(data,
                                         chainLength = 1100000,
@@ -121,6 +121,24 @@ computeBayesianMetaAnalysis <- function(data,
                                         subSampleFrequency = 100,
                                         priorSd = c(2, 0.5),
                                         alpha = 0.05) {
+  if (!supportsJava8()) {
+    inform("Java 8 or higher is required, but older version was found. Cannot compute estimate.")
+    estimate <- data.frame(mu = as.numeric(NA),
+                           mu95Lb = as.numeric(NA),
+                           mu95Ub = as.numeric(NA),
+                           muSe = as.numeric(NA),
+                           tau = as.numeric(NA),
+                           tau95Lb = as.numeric(NA),
+                           tau95Ub = as.numeric(NA),
+                           logRr = as.numeric(NA),
+                           seLogRr = as.numeric(NA),
+                           row.names = NULL)
+    traces <- matrix(runif(700), ncol = 7, nrow = 100)
+    attr(estimate, "traces") <- traces
+    attr(estimate, "type") <- "Unknown"
+    attr(estimate, "ess") <- NA
+    return(estimate)
+  }
   if (isRmdCheck()) {
     inform(paste("Function is executed as part of R check:",
                  "Reducing chainLength and burnIn to reduce compute time.",

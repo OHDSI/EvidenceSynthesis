@@ -1,10 +1,7 @@
-test_that("multiplication works", {
-  expect_equal(2 * 2, 4)
-})
-
 library(survival)
 
 test_that("AML example", {
+  skip_if_not(supportsJava8())
   gold <- coxph(Surv(time, status) ~ x, data = aml, ties = "breslow")
 
   data <- rJava::.jnew("org.ohdsi.data.CoxData",
@@ -24,7 +21,7 @@ test_that("AML example", {
 })
 
 test_that("Cox likelihood with failure ties and strata", {
-
+  skip_if_not(supportsJava8())
   test <- read.table(header = T, sep = ",", text = "
 start, length, event, x1, x2
 0, 4,  1,0,0
@@ -56,6 +53,7 @@ start, length, event, x1, x2
 })
 
 test_that("normal logPdf", {
+  skip_if_not(supportsJava8())
   normal <- rJava::.jnew("org.ohdsi.metaAnalysis.NormalDataModel")
   normal$addLikelihoodParameters(as.numeric(c(2, 3)), as.numeric(c(NA, NA)))
   normal$finish()
@@ -68,6 +66,7 @@ test_that("normal logPdf", {
 })
 
 test_that("skew-normal logPdf and gradLogPdf", {
+  skip_if_not(supportsJava8())
   skewNormal <- rJava::.jnew("org.ohdsi.metaAnalysis.SkewNormalDataModel")
   skewNormal$addLikelihoodParameters(as.numeric(c(2, 3, 4)), as.numeric(c(NA, NA, NA)))
   skewNormal$finish()
