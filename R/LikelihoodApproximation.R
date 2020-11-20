@@ -128,7 +128,7 @@ customFunction <- function(x, mu, sigma, gamma) {
 #' skewNormal(x = 0:3, mu = 0, sigma = 1, alpha = 0)
 #'
 #' @return
-#' The approximate log likehood for the given x.
+#' The approximate log likelihood for the given x.
 #'
 #' @references
 #' Azzalini, A. (2013). The Skew-Normal and Related Families. Institute of Mathematical Statistics

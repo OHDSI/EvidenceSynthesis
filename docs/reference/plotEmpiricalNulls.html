@@ -72,7 +72,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">EvidenceSynthesis</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.2.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.2.1</span>
       </span>
     </div>
 
@@ -179,28 +179,28 @@ parameter estimates?</p></td>
     <tr>
       <th>fileName</th>
       <td><p>Name of the file where the plot should be saved, for example 'plot.png'. See the
-function <code><a href='https://rdrr.io/pkg/ggplot2/man/ggsave.html'>ggplot2::ggsave()</a></code> for supported file formats.</p></td>
+function <code><a href='https://ggplot2.tidyverse.org/reference/ggsave.html'>ggplot2::ggsave()</a></code> for supported file formats.</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>A Ggplot object. Use the <code><a href='https://rdrr.io/pkg/ggplot2/man/ggsave.html'>ggplot2::ggsave()</a></code> function to save to file.</p>
+    <p>A Ggplot object. Use the <code><a href='https://ggplot2.tidyverse.org/reference/ggsave.html'>ggplot2::ggsave()</a></code> function to save to file.</p>
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
     <p>Creates a plot showing the empirical null distributions. Distributions are shown as mean plus minus
 one standard deviation, as well as a distribution plot.</p>
     <h2 class="hasAnchor" id="see-also"><a class="anchor" href="#see-also"></a>See also</h2>
 
-    <div class='dont-index'><p><a href='https://rdrr.io/pkg/EmpiricalCalibration/man/fitNull.html'>EmpiricalCalibration::fitNull</a>, <a href='https://rdrr.io/pkg/EmpiricalCalibration/man/fitMcmcNull.html'>EmpiricalCalibration::fitMcmcNull</a></p></div>
+    <div class='dont-index'><p><a href='https://ohdsi.github.io/EmpiricalCalibration/reference/fitNull.html'>EmpiricalCalibration::fitNull</a>, <a href='https://ohdsi.github.io/EmpiricalCalibration/reference/fitMcmcNull.html'>EmpiricalCalibration::fitMcmcNull</a></p></div>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
     <pre class="examples"><div class='input'><span class='co'># Some example data:</span>
-<span class='va'>site1</span> <span class='op'>&lt;-</span> <span class='fu'>EmpiricalCalibration</span><span class='fu'>::</span><span class='fu'><a href='https://rdrr.io/pkg/EmpiricalCalibration/man/simulateControls.html'>simulateControls</a></span><span class='op'>(</span>n <span class='op'>=</span> <span class='fl'>50</span>, mean <span class='op'>=</span> <span class='fl'>0</span>, sd <span class='op'>=</span> <span class='fl'>0.1</span>, trueLogRr <span class='op'>=</span> <span class='fl'>0</span><span class='op'>)</span>
+<span class='va'>site1</span> <span class='op'>&lt;-</span> <span class='fu'>EmpiricalCalibration</span><span class='fu'>::</span><span class='fu'><a href='https://ohdsi.github.io/EmpiricalCalibration/reference/simulateControls.html'>simulateControls</a></span><span class='op'>(</span>n <span class='op'>=</span> <span class='fl'>50</span>, mean <span class='op'>=</span> <span class='fl'>0</span>, sd <span class='op'>=</span> <span class='fl'>0.1</span>, trueLogRr <span class='op'>=</span> <span class='fl'>0</span><span class='op'>)</span>
 <span class='va'>site1</span><span class='op'>$</span><span class='va'>label</span> <span class='op'>&lt;-</span> <span class='st'>"Site 1"</span>
-<span class='va'>site2</span> <span class='op'>&lt;-</span> <span class='fu'>EmpiricalCalibration</span><span class='fu'>::</span><span class='fu'><a href='https://rdrr.io/pkg/EmpiricalCalibration/man/simulateControls.html'>simulateControls</a></span><span class='op'>(</span>n <span class='op'>=</span> <span class='fl'>50</span>, mean <span class='op'>=</span> <span class='fl'>0.1</span>, sd <span class='op'>=</span> <span class='fl'>0.2</span>, trueLogRr <span class='op'>=</span> <span class='fl'>0</span><span class='op'>)</span>
+<span class='va'>site2</span> <span class='op'>&lt;-</span> <span class='fu'>EmpiricalCalibration</span><span class='fu'>::</span><span class='fu'><a href='https://ohdsi.github.io/EmpiricalCalibration/reference/simulateControls.html'>simulateControls</a></span><span class='op'>(</span>n <span class='op'>=</span> <span class='fl'>50</span>, mean <span class='op'>=</span> <span class='fl'>0.1</span>, sd <span class='op'>=</span> <span class='fl'>0.2</span>, trueLogRr <span class='op'>=</span> <span class='fl'>0</span><span class='op'>)</span>
 <span class='va'>site2</span><span class='op'>$</span><span class='va'>label</span> <span class='op'>&lt;-</span> <span class='st'>"Site 2"</span>
-<span class='va'>site3</span> <span class='op'>&lt;-</span> <span class='fu'>EmpiricalCalibration</span><span class='fu'>::</span><span class='fu'><a href='https://rdrr.io/pkg/EmpiricalCalibration/man/simulateControls.html'>simulateControls</a></span><span class='op'>(</span>n <span class='op'>=</span> <span class='fl'>50</span>, mean <span class='op'>=</span> <span class='fl'>0.15</span>, sd <span class='op'>=</span> <span class='fl'>0.25</span>, trueLogRr <span class='op'>=</span> <span class='fl'>0</span><span class='op'>)</span>
+<span class='va'>site3</span> <span class='op'>&lt;-</span> <span class='fu'>EmpiricalCalibration</span><span class='fu'>::</span><span class='fu'><a href='https://ohdsi.github.io/EmpiricalCalibration/reference/simulateControls.html'>simulateControls</a></span><span class='op'>(</span>n <span class='op'>=</span> <span class='fl'>50</span>, mean <span class='op'>=</span> <span class='fl'>0.15</span>, sd <span class='op'>=</span> <span class='fl'>0.25</span>, trueLogRr <span class='op'>=</span> <span class='fl'>0</span><span class='op'>)</span>
 <span class='va'>site3</span><span class='op'>$</span><span class='va'>label</span> <span class='op'>&lt;-</span> <span class='st'>"Site 3"</span>
 <span class='va'>sites</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/cbind.html'>rbind</a></span><span class='op'>(</span><span class='va'>site1</span>, <span class='va'>site2</span>, <span class='va'>site3</span><span class='op'>)</span>
 

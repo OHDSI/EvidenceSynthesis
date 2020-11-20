@@ -16,7 +16,7 @@ skewNormal(x, mu, sigma, alpha)
 \item{alpha}{The skew parameter.}
 }
 \value{
-The approximate log likehood for the given x.
+The approximate log likelihood for the given x.
 }
 \description{
 The skew normal function to approximate a log likelihood function

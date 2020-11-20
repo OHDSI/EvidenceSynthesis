@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Compute the point estimate and confidence interval given a likelihood function approximation — computeConfidenceInterval • EvidenceSynthesis</title>
+<title>Determine if Java virtual machine supports Java — supportsJava8 • EvidenceSynthesis</title>
 
 
 <!-- jquery -->
@@ -39,8 +39,8 @@
 
 
 
-<meta property="og:title" content="Compute the point estimate and confidence interval given a likelihood function approximation — computeConfidenceInterval" />
-<meta property="og:description" content="Compute the point estimate and confidence interval given a likelihood function approximation" />
+<meta property="og:title" content="Determine if Java virtual machine supports Java — supportsJava8" />
+<meta property="og:description" content="Tests Java virtual machine (JVM) java.version system property to check if version &amp;gt;= 8." />
 
 
 
@@ -126,50 +126,25 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Compute the point estimate and confidence interval given a likelihood function approximation</h1>
-    <small class="dont-index">Source: <a href='https://github.com/OHDSI/EvidenceSynthesis/blob/master/R/LikelihoodApproximation.R'><code>R/LikelihoodApproximation.R</code></a></small>
-    <div class="hidden name"><code>computeConfidenceInterval.Rd</code></div>
+    <h1>Determine if Java virtual machine supports Java</h1>
+    <small class="dont-index">Source: <a href='https://github.com/OHDSI/EvidenceSynthesis/blob/master/R/Utilities.R'><code>R/Utilities.R</code></a></small>
+    <div class="hidden name"><code>supportsJava8.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Compute the point estimate and confidence interval given a likelihood function approximation</p>
+    <p>Tests Java virtual machine (JVM) java.version system property to check if version &gt;= 8.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>computeConfidenceInterval</span><span class='op'>(</span><span class='va'>approximation</span>, alpha <span class='op'>=</span> <span class='fl'>0.05</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>supportsJava8</span><span class='op'>(</span><span class='op'>)</span></pre>
 
-    <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
-    <table class="ref-arguments">
-    <colgroup><col class="name" /><col class="desc" /></colgroup>
-    <tr>
-      <th>approximation</th>
-      <td><p>An approximation of the likelihood function as fitted using the
-<code><a href='approximateLikelihood.html'>approximateLikelihood()</a></code> function.</p></td>
-    </tr>
-    <tr>
-      <th>alpha</th>
-      <td><p>The alpha (expected type I error).</p></td>
-    </tr>
-    </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>A data frame containing the point estimate, and upper and lower bound of the confidence interval.</p>
-    <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
-
-    <p>Compute the point estimate and confidence interval given a likelihood function approximation.</p>
+    <p>Returns TRUE if JVM supports Java &gt;= 8.</p>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='co'># Simulate some data for this example:</span>
-<span class='va'>populations</span> <span class='op'>&lt;-</span> <span class='fu'><a href='simulatePopulations.html'>simulatePopulations</a></span><span class='op'>(</span><span class='op'>)</span>
-
-<span class='va'>cyclopsData</span> <span class='op'>&lt;-</span> <span class='fu'>Cyclops</span><span class='fu'>::</span><span class='fu'><a href='https://rdrr.io/pkg/Cyclops/man/createCyclopsData.html'>createCyclopsData</a></span><span class='op'>(</span><span class='fu'>Surv</span><span class='op'>(</span><span class='va'>time</span>, <span class='va'>y</span><span class='op'>)</span> <span class='op'>~</span> <span class='va'>x</span> <span class='op'>+</span> <span class='fu'>strata</span><span class='op'>(</span><span class='va'>stratumId</span><span class='op'>)</span>,
-                                          data <span class='op'>=</span> <span class='va'>populations</span><span class='op'>[[</span><span class='fl'>1</span><span class='op'>]</span><span class='op'>]</span>,
-                                          modelType <span class='op'>=</span> <span class='st'>"cox"</span><span class='op'>)</span>
-<span class='va'>cyclopsFit</span> <span class='op'>&lt;-</span> <span class='fu'>Cyclops</span><span class='fu'>::</span><span class='fu'><a href='https://rdrr.io/pkg/Cyclops/man/fitCyclopsModel.html'>fitCyclopsModel</a></span><span class='op'>(</span><span class='va'>cyclopsData</span><span class='op'>)</span>
-<span class='va'>approximation</span> <span class='op'>&lt;-</span> <span class='fu'><a href='approximateLikelihood.html'>approximateLikelihood</a></span><span class='op'>(</span><span class='va'>cyclopsFit</span>, <span class='st'>"x"</span><span class='op'>)</span>
-<span class='fu'>computeConfidenceInterval</span><span class='op'>(</span><span class='va'>approximation</span><span class='op'>)</span>
-</div><div class='output co'>#&gt; <span class='message'>Detected data following custom parameric distribution</span></div><div class='output co'>#&gt;         rr       lb       ub     logRr   seLogRr
-#&gt; 1 2.628481 0.519828 10.14912 0.9664063 0.7580863</div><div class='input'>
+    <pre class="examples"><div class='input'><span class='fu'>supportsJava8</span><span class='op'>(</span><span class='op'>)</span>
+</div><div class='output co'>#&gt; <span class='message'>Using JVM version 1.8.0_221 (&gt;= 8? TRUE)</span></div><div class='output co'>#&gt; [1] TRUE</div><div class='input'>
 </div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
