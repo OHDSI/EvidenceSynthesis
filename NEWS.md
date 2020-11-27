@@ -1,3 +1,11 @@
+EvidenceSynthesis 0.2.2
+=======================
+
+Bugfixes
+
+1. Fixed `plotMetaAnalysisForest()` when using grid approximations, including when providing approximations as tibble.
+
+
 EvidenceSynthesis 0.2.1
 =======================
 

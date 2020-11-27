@@ -77,15 +77,15 @@ plotMetaAnalysisForest <- function(data,
                    logUb95Ci = -100,
                    type = "header",
                    name = "Source")
-  getEstimate <- function(row) {
-    ci <- suppressMessages(computeConfidenceInterval(approximation = row, 
+  getEstimate <- function(i) {
+    ci <- suppressMessages(computeConfidenceInterval(approximation = data[i, ], 
                                                      alpha = alpha))
     return(data.frame(logRr = ci$logRr,
                       logLb95Ci = log(ci$lb),
                       logUb95Ci = log(ci$ub),
                       type = "db"))
   }
-  d2 <- lapply(split(data, 1:nrow(data)), getEstimate)
+  d2 <- lapply(1:nrow(data), getEstimate)
   d2 <- do.call(rbind, d2)
   d2$name <- labels
   if ("rr" %in% colnames(estimate)) {

@@ -4,10 +4,11 @@ library(EvidenceSynthesis)
 
 # Simulate large balanced population. Should have normally distributed likelihood:
 set.seed(1)
+trueHazardRatio <- 0.5
 population <- simulatePopulations(settings = createSimulationSettings(nSites = 1,
                                                                       n = 10000,
                                                                       treatedFraction = 0.5,
-                                                                      hazardRatio = 0.5))[[1]]
+                                                                      hazardRatio = trueHazardRatio))[[1]]
 cyclopsData <- Cyclops::createCyclopsData(Surv(time, y) ~ x + strata(stratumId),
                                           data = population,
                                           modelType = "cox")
@@ -22,6 +23,10 @@ test_that("Normal approximation", {
   approxLl <- dnorm(x, mean = params$logRr, sd = params$seLogRr, log = TRUE)
   approxLl <- approxLl - max(approxLl)
   expect_equal(ll, approxLl, tolerance = 0.1)
+  
+  ci <- computeConfidenceInterval(params)
+  expect_lt(ci$lb, trueHazardRatio)
+  expect_gt(ci$ub, trueHazardRatio)
 })
 
 test_that("Skew normal approximation", {
@@ -29,6 +34,10 @@ test_that("Skew normal approximation", {
   approxLl <- skewNormal(x, mu = params$mu, sigma = params$sigma, alpha = params$alpha)
   approxLl <- approxLl - max(approxLl)
   expect_equal(ll, approxLl, tolerance = 0.1)
+  
+  ci <- computeConfidenceInterval(params)
+  expect_lt(ci$lb, trueHazardRatio)
+  expect_gt(ci$ub, trueHazardRatio)
 })
 
 test_that("Custom approximation", {
@@ -36,6 +45,10 @@ test_that("Custom approximation", {
   approxLl <- customFunction(x, mu = params$mu, sigma = params$sigma, gamma = params$gamma)
   approxLl <- approxLl - max(approxLl)
   expect_equal(ll, approxLl, tolerance = 0.1)
+  
+  ci <- computeConfidenceInterval(params)
+  expect_lt(ci$lb, trueHazardRatio)
+  expect_gt(ci$ub, trueHazardRatio)
 })
 
 test_that("Grid approximation", {
@@ -46,4 +59,8 @@ test_that("Grid approximation", {
   ll <- ll - max(ll)
 
   expect_equal(ll, approxLl, tolerance = 0.01, check.attributes = FALSE)
+  
+  ci <- computeConfidenceInterval(approxLl)
+  expect_lt(ci$lb, trueHazardRatio)
+  expect_gt(ci$ub, trueHazardRatio)
 })

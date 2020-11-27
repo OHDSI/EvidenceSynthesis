@@ -200,7 +200,7 @@ poolPopulations <- function(populations) {
 computeEstimateFromGrid <- function(grid, alpha = 0.05) {
   maxIdx <- which(grid == max(grid))[1]
   logRr <- as.numeric(names(grid)[maxIdx])
-  threshold <- grid[maxIdx] - qchisq(1 - alpha, df = 1)/2
+  threshold <- unlist(grid[maxIdx]) - qchisq(1 - alpha, df = 1)/2
   lbIdx <- min(which(grid[1:maxIdx] > threshold))
   if (lbIdx == 1) {
     warn("Lower bound of confidence interval out of range")
