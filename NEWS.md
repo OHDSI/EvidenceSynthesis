@@ -1,6 +1,10 @@
 EvidenceSynthesis 0.2.2
 =======================
 
+Changes
+
+1. Documenting dependency on Java in the `SystemRequirements` field of the package DESCRIPTION. 
+
 Bugfixes
 
 1. Fixed `plotMetaAnalysisForest()` when using grid approximations, including when providing approximations as tibble.
