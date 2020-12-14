@@ -1,6 +1,6 @@
-This new version addresses the issue on Solaris running Java 7 noted by professor Ripley. 
+We are happy to see Java has now been installed on CRAN's 'r-oldrel-windows-ix86+x86_64' testing environment, resolving the issue noted by professor Ripley. For future reference, we have explicitly documented the dependency on Java in the SystemRequirements field of the DESCRIPTION. 
 
-Includes 2 changes (see NEWS.md)
+Includes 1 change and 1 bugfix (see NEWS.md)
 
 ---
 
