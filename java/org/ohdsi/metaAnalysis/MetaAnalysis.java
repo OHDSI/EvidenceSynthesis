@@ -129,7 +129,7 @@ public class MetaAnalysis implements Analysis {
 		MetaAnalysis analysis = new MetaAnalysis(new SkewNormalDataModel("c:/temp/skewnormal_example_3.csv"),
 				new HalfNormalOnStdDevPrior(0.0, 2), 1000);
 
-		Runner runner = new Runner(analysis, chainLength, burnIn, subSampleFrequency);
+		Runner runner = new Runner(analysis, chainLength, burnIn, subSampleFrequency, 666);
 
 		runner.run();
 

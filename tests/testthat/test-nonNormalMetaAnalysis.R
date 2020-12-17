@@ -39,6 +39,9 @@ if (recomputeGoldStandard) {
   pooledRandomFxEstimate <- readRDS("resources/pooledRandomFxEstimate.rds")
 }
 
+# seed <- round(runif(1, 0, 1e10))
+seed <- 1
+
 # Custom approximation
 data <- createApproximations(populations, "custom")
 
@@ -53,7 +56,7 @@ test_that("Custom approximation: pooled matches fixed-effects meta-analysis", {
 
 test_that("Custom approximation: pooled matches random-effects meta-analysis", {
   skip_if_not(supportsJava8())
-  estimate <- computeBayesianMetaAnalysis(data)
+  estimate <- computeBayesianMetaAnalysis(data, seed = seed)
   expect_equal(estimate,
                pooledRandomFxEstimate,
                tolerance = 0.15,
@@ -75,7 +78,7 @@ test_that("Grid approximation: pooled matches meta-analysis", {
 
 test_that("Grid approximation: pooled matches random-effects meta-analysis", {
   skip_if_not(supportsJava8())
-  estimate <- computeBayesianMetaAnalysis(data)
+  estimate <- computeBayesianMetaAnalysis(data, seed = seed)
   expect_equal(estimate,
                pooledRandomFxEstimate,
                tolerance = 0.15,
@@ -94,7 +97,7 @@ test_that("Normal approximation: pooled matches meta-analysis", {
 
 test_that("Normal approximation: pooled matches random-effects meta-analysis", {
   skip_if_not(supportsJava8())
-  estimate <- computeBayesianMetaAnalysis(data)
+  estimate <- computeBayesianMetaAnalysis(data, seed = seed)
   # Not really expecting normal approximation is close to gold standard:
   expect_equal(estimate, pooledRandomFxEstimate, tolerance = 1, check.attributes = FALSE)
 })
@@ -110,7 +113,7 @@ test_that("Skew-normal approximation: pooled matches meta-analysis", {
 
 test_that("Skew-normal approximation: pooled matches random-effects meta-analysis", {
   skip_if_not(supportsJava8())
-  estimate <- computeBayesianMetaAnalysis(data)
+  estimate <- computeBayesianMetaAnalysis(data, seed = seed)
   # Not really expecting normal approximation is close to gold standard:
   expect_equal(estimate, pooledRandomFxEstimate, tolerance = 10, check.attributes = FALSE)
 })

@@ -43,10 +43,10 @@ public class Runner {
 	final int subSampleFrequency;
 	int consoleWidth = 175;
 
-	public Runner(Analysis analysis, int chainLength, int burnIn, int subSampleFrequency) {
+	public Runner(Analysis analysis, int chainLength, int burnIn, int subSampleFrequency, double seed) {
 
 		// Set seed
-		MathUtils.setSeed(666);
+		MathUtils.setSeed(Math.round(seed));
 
 		this.joint = analysis.getJoint();
 		this.schedule = analysis.getSchedule();

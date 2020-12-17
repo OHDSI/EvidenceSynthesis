@@ -12,3 +12,4 @@ compare_versions
 _pkgdown.yml
 docs
 bin
+^CRAN-RELEASE$

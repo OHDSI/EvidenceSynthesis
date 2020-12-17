@@ -10,7 +10,8 @@ computeBayesianMetaAnalysis(
   burnIn = 1e+05,
   subSampleFrequency = 100,
   priorSd = c(2, 0.5),
-  alpha = 0.05
+  alpha = 0.05,
+  seed = 1
 )
 }
 \arguments{
@@ -27,6 +28,8 @@ or grid likelihood data, with one row per database.}
 and tau, respectively.}
 
 \item{alpha}{The alpha (expected type I error) used for the credible intervals.}
+
+\item{seed}{The seed for the random number generator.}
 }
 \value{
 A data frame with the point estimates and 95\% credible intervals for the mu and tau parameters (the

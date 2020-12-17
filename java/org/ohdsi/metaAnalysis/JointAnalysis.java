@@ -110,7 +110,7 @@ public class JointAnalysis implements Analysis {
 
 		JointAnalysis analysis = new JointAnalysis(data, 1000);
 
-		Runner runner = new Runner(analysis, chainLength, burnIn, subSampleFrequency);
+		Runner runner = new Runner(analysis, chainLength, burnIn, subSampleFrequency, 666);
 
 		runner.run();
 

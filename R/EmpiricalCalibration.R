@@ -82,10 +82,15 @@ plotEmpiricalNulls <- function(logRr,
                      yMaxUb = NA,
                      yMaxLb = NA,
                      yMin = NA)
+  if (isRmdCheck()) {
+    iter <- 1000
+  } else {
+    iter <- 10000
+  }
   for (i in 1:nrow(d)) {
     idx <- labels == d$label[i]
     if (showCis) {
-      null <- EmpiricalCalibration::fitMcmcNull(logRr = logRr[idx], seLogRr = seLogRr[idx])
+      null <- EmpiricalCalibration::fitMcmcNull(logRr = logRr[idx], seLogRr = seLogRr[idx], iter = iter)
       mcmc <- attr(null, "mcmc")
       lb95Mean <- quantile(mcmc$chain[, 1], 0.025)
       ub95Mean <- quantile(mcmc$chain[, 1], 0.975)

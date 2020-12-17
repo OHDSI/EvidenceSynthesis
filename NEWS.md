@@ -5,6 +5,8 @@ Changes
 
 1. Documenting dependency on Java in the `SystemRequirements` field of the package DESCRIPTION. 
 
+2. Adding `seed` argument to `computeBayesianMetaAnalysis()`. Defaults to a constant value for reproducability.
+
 Bugfixes
 
 1. Fixed `plotMetaAnalysisForest()` when using grid approximations, including when providing approximations as tibble.

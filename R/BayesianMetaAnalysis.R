@@ -68,6 +68,11 @@ isRmdCheck <- function() {
   return(Sys.getenv("_R_CHECK_PACKAGE_NAME_", "") != "")
 }
 
+isUnitTest <- function() {
+  return(tolower(Sys.getenv("TESTTHAT", "")) == "true")
+   
+}
+
 #' Compute a Bayesian random-effects meta-analysis
 #'
 #' @description
@@ -83,6 +88,7 @@ isRmdCheck <- function() {
 #' @param priorSd              A two-dimensional vector with the standard deviation of the prior for mu
 #'                             and tau, respectively.
 #' @param alpha                The alpha (expected type I error) used for the credible intervals.
+#' @param seed                 The seed for the random number generator.
 #'
 #' @seealso
 #' [approximateLikelihood], [computeFixedEffectMetaAnalysis]
@@ -120,7 +126,8 @@ computeBayesianMetaAnalysis <- function(data,
                                         burnIn = 1e+05,
                                         subSampleFrequency = 100,
                                         priorSd = c(2, 0.5),
-                                        alpha = 0.05) {
+                                        alpha = 0.05,
+                                        seed = 1) {
   if (!supportsJava8()) {
     inform("Java 8 or higher is required, but older version was found. Cannot compute estimate.")
     estimate <- data.frame(mu = as.numeric(NA),
@@ -139,8 +146,8 @@ computeBayesianMetaAnalysis <- function(data,
     attr(estimate, "ess") <- NA
     return(estimate)
   }
-  if (isRmdCheck()) {
-    inform(paste("Function is executed as part of R check:",
+  if (isRmdCheck() && !isUnitTest()) {
+    inform(paste("Function is executed as an example in R check:",
                  "Reducing chainLength and burnIn to reduce compute time.",
                  "Result may be unreliable"))
     chainLength <- 110000
@@ -224,7 +231,8 @@ computeBayesianMetaAnalysis <- function(data,
                                                           as.numeric(priorSd[1])), "org.ohdsi.metaAnalysis.Analysis"),
                                as.integer(chainLength),
                                as.integer(burnIn),
-                               as.integer(subSampleFrequency))
+                               as.integer(subSampleFrequency),
+                               as.numeric(seed))
   metaAnalysis$setConsoleWidth(getOption("width"))
   metaAnalysis$run()
   parameterNames <- metaAnalysis$getParameterNames()
