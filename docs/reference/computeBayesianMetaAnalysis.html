@@ -145,7 +145,8 @@ deviations as defined by the <code>priorSd</code> argument.</p>
   burnIn <span class='op'>=</span> <span class='fl'>1e+05</span>,
   subSampleFrequency <span class='op'>=</span> <span class='fl'>100</span>,
   priorSd <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>2</span>, <span class='fl'>0.5</span><span class='op'>)</span>,
-  alpha <span class='op'>=</span> <span class='fl'>0.05</span>
+  alpha <span class='op'>=</span> <span class='fl'>0.05</span>,
+  seed <span class='op'>=</span> <span class='fl'>1</span>
 <span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
@@ -176,6 +177,10 @@ and tau, respectively.</p></td>
     <tr>
       <th>alpha</th>
       <td><p>The alpha (expected type I error) used for the credible intervals.</p></td>
+    </tr>
+    <tr>
+      <th>seed</th>
+      <td><p>The seed for the random number generator.</p></td>
     </tr>
     </table>
 
@@ -208,9 +213,9 @@ Attributes of the data frame contain the MCMC trace and the detected approximati
 <span class='va'>estimate</span> <span class='op'>&lt;-</span> <span class='fu'>computeBayesianMetaAnalysis</span><span class='op'>(</span><span class='va'>approximations</span><span class='op'>)</span>
 </div><div class='output co'>#&gt; <span class='message'>Detected data following custom parameric distribution</span></div><div class='output co'>#&gt; <span class='message'>Performing MCMC. This may take a while</span></div><div class='input'><span class='va'>estimate</span>
 </div><div class='output co'>#&gt;          mu     mu95Lb   mu95Ub      muSe       tau     tau95Lb   tau95Ub
-#&gt; 1 0.4048565 -0.3485995 1.121679 0.3744211 0.2920196 0.001850079 0.8094508
+#&gt; 1 0.4053136 -0.3144751 1.129703 0.3748822 0.2806039 0.002803382 0.8100434
 #&gt;       logRr   seLogRr
-#&gt; 1 0.4048565 0.3744211</div><div class='input'>
+#&gt; 1 0.4053136 0.3748822</div><div class='input'>
 <span class='co'># (Estimates in this example will vary due to the random simulation)</span>
 
 </div></pre>
