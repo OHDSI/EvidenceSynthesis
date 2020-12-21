@@ -111,6 +111,11 @@ computeFixedEffectMetaAnalysis <- function(data, alpha = 0.05) {
     if (any(is.na(x))) {
       abort("Expecting grid data, but not all column names are numeric")
     }
+    data <- cleanData(data,
+                      colnames(data),
+                      minValues = rep(-1e6, ncol(data)),
+                      maxValues = rep(0, ncol(data)),
+                      grid = TRUE)
     grid <- apply(data, 2, sum)
     estimate <- computeEstimateFromGrid(grid, alpha = alpha)
     return(estimate)

@@ -17,31 +17,48 @@
 cleanData <- function(data,
                       columns,
                       minValues = rep(-100, length(columns)),
-                      maxValues = rep(100, length(columns))) {
+                      maxValues = rep(100, length(columns)),
+                      grid = FALSE) {
   for (i in 1:length(columns)) {
     column <- columns[i]
     if (any(is.infinite(data[, column]))) {
-      warn(paste("Estimate(s) with infinite",
-                 column,
-                 "detected. Removing before computing meta-analysis."))
+      if (grid) {
+        warn(paste("Estimate(s) with infinite log-likelihood detected. Removing before computing meta-analysis."))  
+      } else {
+        warn(paste("Estimate(s) with infinite",
+                   column,
+                   "detected. Removing before computing meta-analysis."))
+      }
       data <- data[!is.infinite(data[, column]), ]
     }
     if (any(is.na(data[, column]))) {
-      warn(paste("Estimate(s) with NA",
-                 column,
-                 "detected. Removing before computing meta-analysis."))
+      if (grid) {
+        warn(paste("Estimate(s) with NA log-likelihood detected. Removing before computing meta-analysis."))  
+      } else {
+        warn(paste("Estimate(s) with NA",
+                   column,
+                   "detected. Removing before computing meta-analysis."))
+      }
       data <- data[!is.na(data[, column]), ]
     }
     if (any(data[, column] > maxValues[i])) {
-      warn(sprintf("Estimate(s) with extremely high %s (>%s) detected. Removing before computing meta-analysis.",
-                   column,
-                   maxValues[i]))
+      if (grid) {
+        warn(paste("Estimate(s) with positive log-likelihood detected. Removing before computing meta-analysis."))  
+      } else {
+        warn(sprintf("Estimate(s) with extremely high %s (>%s) detected. Removing before computing meta-analysis.",
+                     column,
+                     maxValues[i]))
+      }
       data <- data[data[, column] <= maxValues[i], ]
     }
     if (any(data[, column] < minValues[i])) {
-      warn(sprintf("Estimate(s) with extremely low %s (<%s) detected. Removing before computing meta-analysis.",
-                   column,
-                   minValues[i]))
+      if (grid) {
+        warn(paste("Estimate(s) with extremely low log-likelihood detected. Removing before computing meta-analysis."))  
+      } else {
+        warn(sprintf("Estimate(s) with extremely low %s (<%s) detected. Removing before computing meta-analysis.",
+                     column,
+                     minValues[i]))
+      }
       data <- data[data[, column] >= minValues[i], ]
     }
   }
@@ -70,7 +87,7 @@ isRmdCheck <- function() {
 
 isUnitTest <- function() {
   return(tolower(Sys.getenv("TESTTHAT", "")) == "true")
-   
+  
 }
 
 #' Compute a Bayesian random-effects meta-analysis
@@ -213,6 +230,13 @@ computeBayesianMetaAnalysis <- function(data,
     if (any(is.na(x))) {
       stop("Expecting grid data, but not all column names are numeric")
     }
+    data <- cleanData(data,
+                      colnames(data),
+                      minValues = rep(-1e6, ncol(data)),
+                      maxValues = rep(0, ncol(data)),
+                      grid = TRUE)
+    if (nrow(data) == 0)
+      return(createNaEstimate(type))
     data <- as.matrix(data)
     for (i in 1:nrow(data)) {
       dataModel$addLikelihoodParameters(x, data[i, ])

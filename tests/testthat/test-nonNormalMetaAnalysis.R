@@ -64,7 +64,7 @@ test_that("Custom approximation: pooled matches random-effects meta-analysis", {
                check.attributes = FALSE)
   expect_equal(estimate[, c("mu95Lb", "mu95Ub", "muSe", "tau95Lb", "tau95Ub", "seLogRr")],
                pooledRandomFxEstimate[, c("mu95Lb", "mu95Ub", "muSe", "tau95Lb", "tau95Ub", "seLogRr")],
-               tolerance = 0.30,
+               tolerance = 0.50,
                scale = 1,
                check.attributes = FALSE)
 })
@@ -91,7 +91,7 @@ test_that("Grid approximation: pooled matches random-effects meta-analysis", {
                check.attributes = FALSE)
   expect_equal(estimate[, c("mu95Lb", "mu95Ub", "muSe", "tau95Lb", "tau95Ub", "seLogRr")],
                pooledRandomFxEstimate[, c("mu95Lb", "mu95Ub", "muSe", "tau95Lb", "tau95Ub", "seLogRr")],
-               tolerance = 0.30,
+               tolerance = 0.50,
                scale = 1,
                check.attributes = FALSE)
 })

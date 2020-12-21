@@ -5,6 +5,8 @@ Changes
 
 1. Higher tolerance on skew-normal unit tests to prevent them from failing.
 
+2. Detecting and removing grid approximations with illegal values before computing meta-analysis.
+
 
 EvidenceSynthesis 0.2.2
 =======================
