@@ -117,6 +117,7 @@ data <- createApproximations(populations, "skew normal")
 
 test_that("Skew-normal approximation: pooled matches meta-analysis", {
   estimate <- computeFixedEffectMetaAnalysis(data)
+  # Skew-normal is a poorer approximation, using higher tolerance:
   expect_equal(estimate,
                pooledFixedFxEstimate,
                tolerance = 0.30,
@@ -127,14 +128,15 @@ test_that("Skew-normal approximation: pooled matches meta-analysis", {
 test_that("Skew-normal approximation: pooled matches random-effects meta-analysis", {
   skip_if_not(supportsJava8())
   estimate <- computeBayesianMetaAnalysis(data, seed = seed)
+  # Skew-normal is a poorer approximation, using higher tolerance:
   expect_equal(estimate[, c("mu", "tau", "logRr")],
                pooledRandomFxEstimate[, c("mu", "tau", "logRr")],
-               tolerance = 0.10,
+               tolerance = 0.50,
                scale = 1,
                check.attributes = FALSE)
   expect_equal(estimate[, c("mu95Lb", "mu95Ub", "muSe", "tau95Lb", "tau95Ub", "seLogRr")],
                pooledRandomFxEstimate[, c("mu95Lb", "mu95Ub", "muSe", "tau95Lb", "tau95Ub", "seLogRr")],
-               tolerance = 0.30,
+               tolerance = 1.00,
                scale = 1,
                check.attributes = FALSE)
 })

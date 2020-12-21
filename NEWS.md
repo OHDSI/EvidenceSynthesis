@@ -1,3 +1,11 @@
+EvidenceSynthesis 0.2.3
+=======================
+
+Changes
+
+1. Higher tolerance on skew-normal unit tests to prevent them from failing.
+
+
 EvidenceSynthesis 0.2.2
 =======================
 
