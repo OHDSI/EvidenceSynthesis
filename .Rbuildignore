@@ -1,6 +1,7 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
 .gitattributes
+.github
 extras
 .project
 .classpath

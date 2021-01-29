@@ -1,7 +1,7 @@
 EvidenceSynthesis
 =================
 
-[![Build Status](https://travis-ci.org/OHDSI/EvidenceSynthesis.svg?branch=master)](https://travis-ci.org/OHDSI/EvidenceSynthesis)
+[![Build Status](https://github.com/OHDSI/EvidenceSynthesis/workflows/R-CMD-check/badge.svg)](https://github.com/OHDSI/EvidenceSynthesis/actions?query=workflow%3AR-CMD-check)
 [![codecov.io](https://codecov.io/github/OHDSI/EvidenceSynthesis/coverage.svg?branch=master)](https://codecov.io/github/OHDSI/EvidenceSynthesis?branch=master)
 [![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/EvidenceSynthesis)](https://cran.r-project.org/package=EvidenceSynthesis)
 [![CRAN_Status_Badge](http://cranlogs.r-pkg.org/badges/EvidenceSynthesis)](https://cran.r-project.org/package=EvidenceSynthesis)
