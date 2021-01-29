@@ -47,9 +47,14 @@ data <- createApproximations(populations, "custom")
 
 test_that("Custom approximation: pooled matches fixed-effects meta-analysis", {
   estimate <- computeFixedEffectMetaAnalysis(data)
-  expect_equal(estimate,
-               pooledFixedFxEstimate,
+  expect_equal(estimate[, c("rr", "logRr")],
+               pooledFixedFxEstimate[, c("rr", "logRr")],
                tolerance = 0.15,
+               scale = 1,
+               check.attributes = FALSE)
+  expect_equal(estimate[, c("lb", "ub", "seLogRr")],
+               pooledFixedFxEstimate[, c("lb", "ub", "seLogRr")],
+               tolerance = 0.50,
                scale = 1,
                check.attributes = FALSE)
 })
@@ -74,9 +79,14 @@ data <- createApproximations(populations, "grid")
 
 test_that("Grid approximation: pooled matches meta-analysis", {
   estimate <- computeFixedEffectMetaAnalysis(data)
-  expect_equal(estimate,
-               pooledFixedFxEstimate,
+  expect_equal(estimate[, c("rr", "logRr")],
+               pooledFixedFxEstimate[, c("rr", "logRr")],
                tolerance = 0.15,
+               scale = 1,
+               check.attributes = FALSE)
+  expect_equal(estimate[, c("lb", "ub", "seLogRr")],
+               pooledFixedFxEstimate[, c("lb", "ub", "seLogRr")],
+               tolerance = 0.50,
                scale = 1,
                check.attributes = FALSE)
 })
@@ -118,9 +128,14 @@ data <- createApproximations(populations, "skew normal")
 test_that("Skew-normal approximation: pooled matches meta-analysis", {
   estimate <- computeFixedEffectMetaAnalysis(data)
   # Skew-normal is a poorer approximation, using higher tolerance:
-  expect_equal(estimate,
-               pooledFixedFxEstimate,
+  expect_equal(estimate[, c("rr", "logRr")],
+               pooledFixedFxEstimate[, c("rr", "logRr")],
                tolerance = 0.30,
+               scale = 1,
+               check.attributes = FALSE)
+  expect_equal(estimate[, c("lb", "ub", "seLogRr")],
+               pooledFixedFxEstimate[, c("lb", "ub", "seLogRr")],
+               tolerance = 1.00,
                scale = 1,
                check.attributes = FALSE)
 })
