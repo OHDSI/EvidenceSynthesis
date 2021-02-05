@@ -95,7 +95,7 @@ jobs:
 
     steps:
       - name: First
-        if: ${{ github.event_name != 'pull_request' && github.branch == 'master' }}
+        if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/master' }}
         run: |
           perl compare_version --tag && \
           bash deploy.sh && \
