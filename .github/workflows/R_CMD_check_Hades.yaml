@@ -94,6 +94,6 @@ jobs:
       - name: First
         if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/master' }}
         run: |
-          perl compare_versions --tag && \
-          bash deploy.sh && \
+          perl ./compare_versions --tag && \
+          ./bash deploy.sh && \
           curl --data "build=true" -X POST https://registry.hub.docker.com/u/ohdsi/broadsea-methodslibrary/trigger/f0b51cec-4027-4781-9383-4b38b42dd4f5/
