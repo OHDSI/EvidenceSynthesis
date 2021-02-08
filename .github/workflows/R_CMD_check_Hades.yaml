@@ -13,6 +13,9 @@ name: Release
 jobs:
   Release:
     runs-on: ubuntu-20.04
+    
+    env:
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
     steps:
       - uses: actions/checkout@v2

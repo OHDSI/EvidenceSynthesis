@@ -50,10 +50,10 @@ if ($monotonic == 0 & $ARGV[0] eq "--tag") {
 		exit(-1);
 	}
 
-	$cmd = "git config user.name \"Marc A. Suchard\"; " .
-	       "git config user.email \"msuchard@ucla.edu\"; " .
+	$cmd = "git config user.name \"Martijn Schuemie\"; " .
+	       "git config user.email \"schuemie@ohdsi.org\"; " .
 	       "git tag v$r_major.$r_minor.$r_mod ; " .
-	       "git push -q https://\$GH_TOKEN\@github.com/OHDSI/\$PKG_NAME.git --tags";
+	       "git push -q https://\$GH_TOKEN\@github.com/\$GITHUB_REPOSITORY.git --tags";
 
 	print "cmd: $cmd\n";
 
