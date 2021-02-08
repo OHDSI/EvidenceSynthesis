@@ -55,7 +55,7 @@ if ($monotonic == 0 & $ARGV[0] eq "--tag") {
 	       "git tag v$r_major.$r_minor.$r_mod ; " .
 	       "git push -q https://\$GH_TOKEN\@github.com/\$GITHUB_REPOSITORY.git --tags";
 
-	print "cmd: $cmd\n";
+	print "cmd: $cmd\n"; 
 
 	open(GIT_PUSH, "$cmd |");
 	while ($line = <GIT_PUSH>) {
