@@ -89,7 +89,7 @@ jobs:
         
       - name: Remove check folder if exists
         if: runner.os == 'macOS'
-         run: unlink("check", recursive = TRUE)
+        run: unlink("check", recursive = TRUE)
         shell: Rscript {0}
 
       - name: Check
