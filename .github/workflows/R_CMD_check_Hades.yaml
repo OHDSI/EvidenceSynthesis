@@ -118,6 +118,8 @@ jobs:
         shell: Rscript {0}
         
   Release:
+    needs: R-CMD-Check
+  
     runs-on: macOS-latest
     
     env:
