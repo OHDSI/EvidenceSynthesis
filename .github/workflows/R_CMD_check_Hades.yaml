@@ -30,7 +30,7 @@ jobs:
           echo "new_version="$(perl compare_versions --tag) >> $GITHUB_ENV
       
       - name: Create release
-        if: ${{ env.new_version != "" }}
+        if: ${{ env.new_version != '' }}
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }} 
