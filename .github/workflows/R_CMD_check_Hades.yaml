@@ -118,7 +118,7 @@ jobs:
         shell: Rscript {0}
         
   Release:
-    runs-on: ubuntu-20.04
+    runs-on: macOS-latest
     
     env:
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
