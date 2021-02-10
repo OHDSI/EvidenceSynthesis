@@ -20,7 +20,10 @@ jobs:
       fail-fast: false
       matrix:
         config:
+          - {os: windows-latest, r: 'release'}  # Does not appear to have Java 32-bit, hence the --no-multiarch
           - {os: macOS-latest, r: 'release'}
+          - {os: ubuntu-20.04, r: 'release', rspm: "https://packagemanager.rstudio.com/cran/__linux__/focal/latest"}
+          - {os: ubuntu-20.04, r: 'devel', rspm: "https://packagemanager.rstudio.com/cran/__linux__/focal/latest"}
 
     env:
       R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
@@ -84,6 +87,11 @@ jobs:
         run: |
           remotes::install_deps(dependencies = TRUE, INSTALL_opts=c("--no-multiarch"))
           remotes::install_cran("rcmdcheck")
+        shell: Rscript {0}
+        
+      - name: Install covr
+        if: runner.os == 'macOS'
+        run: |
           remotes::install_cran("covr")
         shell: Rscript {0}
         
@@ -126,6 +134,7 @@ jobs:
       GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
     steps:
+    
       - uses: r-lib/actions/setup-r@v1
         if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/master' }}
     
@@ -134,12 +143,12 @@ jobs:
         run: |
           install.packages('drat')
         shell: Rscript {0}
-    
+        
       - uses: actions/checkout@v2
         if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/master' }}
         with:
-          fetch-depth: 0
-          
+          fetch-depth: 0    
+
       - name: Remove any tarballs that already exists
         if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/master' }}
         run: |
