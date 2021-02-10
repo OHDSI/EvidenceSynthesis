@@ -106,7 +106,7 @@ jobs:
           path: check
           
       - name: Upload source package
-        if: success() && runner.os == 'macOS'
+        if: success() && runner.os == 'macOS' && github.event_name != 'pull_request' && github.ref == 'refs/heads/master'
         uses: actions/upload-artifact@v2
         with:
           name: package_tarball
@@ -125,26 +125,25 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+        if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/master' }}
         with:
           fetch-depth: 0
           
-      - name: Check if version has increased in master
-        if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/master' }}
-        run: |
-          export monotonic=$(perl compare_versions --tag)
-          
       - name: Remove any tarballs that already exists
-        if: ${{ monotonic == 0 }}
+        if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/master' }}
         run: |
           rm -f *.tar.gz
           
       - name: Download package tarball
-        if: ${{ monotonic == 0 }}
+        if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/master' }}
         uses: actions/download-artifact@v2
         with:
-          name: package_tarball
-
-      - name: Push tarball to drat
-        if: ${{ monotonic == 0 }}
+          name: package_tarball    
+          
+      - name: Check if version has increased in master
+        if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/master' }}
         run: |
-          bash deploy.sh
+          perl compare_versions --tag && \
+          bash deploy.sh && \
+          curl --data "build=true" -X POST https://registry.hub.docker.com/u/ohdsi/broadsea-methodslibrary/trigger/f0b51cec-4027-4781-9383-4b38b42dd4f5/
+          
