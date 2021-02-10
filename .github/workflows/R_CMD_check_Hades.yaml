@@ -132,7 +132,7 @@ jobs:
       - name: Install drat
         if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/master' }}
         run: |
-          remotes::install_cran("drat")
+          install.packages('drat')
         shell: Rscript {0}
     
       - uses: actions/checkout@v2
