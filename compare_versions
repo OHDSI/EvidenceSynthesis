@@ -23,10 +23,10 @@ $git_mod = $3;
 print "Current git version: $git_major-$git_minor-$git_mod\n";
 
 if ($r_major > $git_major || $r_minor > $git_minor || $r_mod > $git_mod) {
-	new_version = "v$r_major.$r_minor.$r_mod";
+	$new_version = "v$r_major.$r_minor.$r_mod";
 	print "Version increase detected\n";
 } else {
-	new_version = "";
+	$new_version = "";
 }
 
 exit($new_version);
