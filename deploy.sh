@@ -4,8 +4,6 @@ addToDrat(){
   PKG_REPO=$PWD
 
   ## Build package tar ball
-  rm -f *.tar.gz
-  R CMD build $PKG_REPO
   export PKG_TARBALL=$(ls *.tar.gz)
 
   cd ..; mkdir drat; cd drat
