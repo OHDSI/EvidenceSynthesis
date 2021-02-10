@@ -9,8 +9,6 @@ $r_major = $1;
 $r_minor = $2;
 $r_mod = $3;
 
-print "New R version: $r_major-$r_minor-$r_mod\n";
-
 open(GIT_VERSION, "git describe --tags |");
 $git = <GIT_VERSION>;
 close(GIT_VERSION);
@@ -20,13 +18,10 @@ $git_major = $1;
 $git_minor = $2;
 $git_mod = $3;
 
-print "Current git version: $git_major-$git_minor-$git_mod\n";
-
 if ($r_major > $git_major || $r_minor > $git_minor || $r_mod > $git_mod) {
 	$new_version = "v$r_major.$r_minor.$r_mod";
-	print "Version increase detected\n";
 } else {
 	$new_version = "";
 }
 
-exit($new_version);
+print($new_version);
