@@ -126,6 +126,8 @@ jobs:
         shell: Rscript {0}
         
   Release:
+    needs: R-CMD-Check
+    
     runs-on: macOS-latest
     
     env:
@@ -157,7 +159,7 @@ jobs:
           tag_name: ${{ env.new_version }}
           release_name: Release ${{ env.new_version }}
           body: |
-            Automatically generated release
+            See NEWS.md for release notes.
           draft: false
           prerelease: false
           
