@@ -1,3 +1,11 @@
+EvidenceSynthesis 0.2.4
+=======================
+
+Bugixes
+
+1 Fixed error when approximating likelihood using grid (parameter to approximate could only be "x").
+
+
 EvidenceSynthesis 0.2.3
 =======================
 
