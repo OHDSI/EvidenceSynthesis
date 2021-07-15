@@ -1,24 +1,59 @@
 library(testthat)
 library(EvidenceSynthesis)
 
+set.seed(1234)
+populations <- simulatePopulations()
+labels <- paste("Data site", LETTERS[1:length(populations)])
+
+# Fit a Cox regression at each data site, and approximate likelihood function:
+fitModelInDatabase <- function(population) {
+  cyclopsData <- Cyclops::createCyclopsData(Surv(time, y) ~ x + strata(stratumId),
+                                            data = population,
+                                            modelType = "cox")
+  cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData, control = Cyclops::createControl(convergenceType = "lange"))
+  approximation <- approximateLikelihood(cyclopsFit, parameter = "x", approximation = "grid")
+  attr(approximation, "cyclopsFit") <- cyclopsFit
+  return(approximation)
+}
+approximations <- lapply(populations, fitModelInDatabase)
+approximation <- approximations[[1]]
+approximations <- do.call("rbind", approximations)
+
+tempFile <- tempfile(fileext = ".png")
+
+# At study coordinating center, perform meta-analysis using per-site approximations:
+estimate <- computeBayesianMetaAnalysis(approximations)
+
 test_that("Plot forest using grid approximation", {
-  populations <- simulatePopulations()
-  labels <- paste("Data site", LETTERS[1:length(populations)])
-  
-  # Fit a Cox regression at each data site, and approximate likelihood function:
-  fitModelInDatabase <- function(population) {
-    cyclopsData <- Cyclops::createCyclopsData(Surv(time, y) ~ x + strata(stratumId),
-                                              data = population,
-                                              modelType = "cox")
-    cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
-    approximation <- approximateLikelihood(cyclopsFit, parameter = "x", approximation = "grid")
-    return(approximation)
-  }
-  approximations <- lapply(populations, fitModelInDatabase)
-  approximations <- do.call("rbind", approximations)
-  
-  # At study coordinating center, perform meta-analysis using per-site approximations:
-  estimate <- computeBayesianMetaAnalysis(approximations)
-  plot <- plotMetaAnalysisForest(approximations, labels, estimate)
+  plot <- plotMetaAnalysisForest(approximations, labels, estimate, fileName = tempFile)
   expect_s3_class(plot, "gtable")
 })
+
+test_that("Plot MCMC traces using grid approximation", {  
+  plot <- plotMcmcTrace(estimate, fileName = tempFile)
+  expect_s3_class(plot, "ggplot")
+})
+
+test_that("Plot MCMC traces per DB using grid approximation", {
+  plot <- plotPerDbMcmcTrace(estimate, fileName = tempFile)
+  expect_s3_class(plot, "ggplot")
+})
+
+test_that("Plot posterior density using grid approximation", {
+  plot <- plotPosterior(estimate, fileName = tempFile)
+  expect_s3_class(plot, "ggplot")
+})
+
+test_that("Plot posterior density per BD using grid approximation", {
+  plot <- plotPerDbPosterior(estimate, fileName = tempFile)
+  expect_s3_class(plot, "ggplot")
+})
+
+test_that("Plot likelihood fit", {
+  suppressWarnings(
+    plot <- plotLikelihoodFit(approximation, attr(approximation, "cyclopsFit"), parameter = "x", fileName = tempFile)
+  )
+  expect_s3_class(plot, "ggplot")
+})
+
+unlink(tempFile, recursive = TRUE)
