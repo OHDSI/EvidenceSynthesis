@@ -248,11 +248,11 @@ computeBayesianMetaAnalysis <- function(data,
   
   prior <- rJava::.jnew("org.ohdsi.metaAnalysis.HalfNormalOnStdDevPrior", 0, as.numeric(priorSd[2]))
   
-  metaAnalysis <- rJava::.jnew("org.ohdsi.metaAnalysis.Runner",
+  metaAnalysis <- rJava::.jnew("org.ohdsi.mcmc.Runner",
                                rJava::.jcast(rJava::.jnew("org.ohdsi.metaAnalysis.MetaAnalysis",
                                                           rJava::.jcast(dataModel, "org.ohdsi.metaAnalysis.DataModel"),
                                                           rJava::.jcast(prior, "org.ohdsi.metaAnalysis.ScalePrior"),
-                                                          as.numeric(priorSd[1])), "org.ohdsi.metaAnalysis.Analysis"),
+                                                          as.numeric(priorSd[1])), "org.ohdsi.mcmc.Analysis"),
                                as.integer(chainLength),
                                as.integer(burnIn),
                                as.integer(subSampleFrequency),

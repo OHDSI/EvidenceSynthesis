@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-package org.ohdsi.metaAnalysis;
+package org.ohdsi.mcmc;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +31,7 @@ import dr.inference.operators.OperatorSchedule;
 import dr.inference.trace.Trace;
 import dr.inference.trace.TraceCorrelation;
 import dr.math.MathUtils;
+import org.ohdsi.mcmc.Analysis;
 
 public class Runner {
 

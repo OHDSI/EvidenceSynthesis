@@ -1,0 +1,73 @@
+<!--
+  ~ build.xml
+  ~
+  ~ Copyright (c) 2021 Marc Suchard
+  ~
+  ~ This file is part of CyclopsInBeast.
+  -->
+
+<!-- Build BeastJar -->
+<project basedir="." default="dist" name="EvidenceSynthesis">
+    <description>
+        Build EvidenceSynthesis
+        $Id$
+    </description>
+
+    <property name="JDK_SOURCE_VERSION" value="1.8"/>
+    <property name="JDK_TARGET_VERSION" value="1.8"/>
+    <property name="repodir" value=".."/>
+
+    <!-- set global properties for this build -->
+    <property name="src" location="${repodir}/java"/>
+    <property name="build" location="build"/>
+    <property name="beastjar" location="${repodir}/../BeastJar/inst/java"/>
+    <property name="dist" location="${repodir}/inst/java"/>
+
+     <path id="classpath">
+        <fileset dir="${beastjar}" includes="beast.jar"/>
+    </path>
+
+    <!-- start -->
+    <target name="init">
+        <echo message="${ant.project.name}: ${ant.file}"/>
+    </target>
+
+    <target name="clean">
+        <delete dir="${build}"/>
+    </target>
+
+    <!-- compile Java source code -->
+    <target name="compile-all" depends="init">
+        <mkdir dir="${build}"/>
+
+        <!-- Compile the java code from ${src} into ${build} /bin -->
+        <javac source="${JDK_SOURCE_VERSION}" target="${JDK_TARGET_VERSION}" sourcepath="" srcdir="${src}" destdir="${build}"
+               classpathref="classpath"
+               fork="true"
+               includeantruntime="false"
+               memoryinitialsize="256m"
+               memorymaximumsize="1024m">
+            <include name="org/ohdsi/**"/>
+            <include name="test/org/ohdsi/**"/>
+        </javac>
+        <echo message="Successfully compiled."/>
+    </target>
+
+    <!-- make the beast.jar and beauti.jar -->
+    <target name="dist" depends="compile-all" description="create EvidenceSynthesis jar">
+        <!-- Create the distribution directory -->
+        <mkdir dir="${dist}"/>
+
+        <!-- Put everything in ${build} into the beast.jar file -->
+        <jar jarfile="${dist}/EvidenceSynthesis.jar">
+            <manifest>
+                <attribute name="Built-By" value="${user.name}"/>
+            </manifest>
+            <fileset dir="${build}">
+            	<include name="org/ohdsi/**/*.class"/>
+            	<include name="test/org/ohdsi/**/*.class"/>
+            </fileset>
+        </jar>
+    </target>
+
+</project>

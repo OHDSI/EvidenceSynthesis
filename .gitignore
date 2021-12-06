@@ -2,3 +2,5 @@
 .Rhistory
 .RData
 /bin/
+.idea
+extras/build

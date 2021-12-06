@@ -27,6 +27,8 @@ import dr.inference.model.Likelihood;
 import dr.inference.model.Parameter;
 import dr.inference.operators.*;
 import dr.math.distributions.NormalDistribution;
+import org.ohdsi.mcmc.Analysis;
+import org.ohdsi.mcmc.Runner;
 
 public class MetaAnalysis implements Analysis {
 
