@@ -31,7 +31,6 @@ import dr.inference.operators.OperatorSchedule;
 import dr.inference.trace.Trace;
 import dr.inference.trace.TraceCorrelation;
 import dr.math.MathUtils;
-import org.ohdsi.mcmc.Analysis;
 
 public class Runner {
 
