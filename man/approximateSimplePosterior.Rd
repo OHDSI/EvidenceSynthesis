@@ -49,7 +49,14 @@ cyclopsData <- Cyclops::createCyclopsData(Surv(time, y) ~ x + strata(stratumId),
                                           data = population,
                                           modelType = "cox")
 cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
-approximation <- approximateLikelihood(cyclopsFit, parameter = "x", approximation = "grid")
+likelihoodProfile <- approximateLikelihood(cyclopsFit, parameter = "x", approximation = "grid")
+
+# Run MCMC
+mcmcTraces <- approximateSimplePosterior(likelihoodProfile = likelihoodProfile,
+                                         priorMean = 0, priorSd = 100)
+
+# Report posterior expectation
+mean(mcmcTraces$theta)
 
 # (Estimates in this example will vary due to the random simulation)
 

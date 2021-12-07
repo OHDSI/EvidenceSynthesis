@@ -17,7 +17,7 @@
 #' Approximate simple Bayesian posterior
 #'
 #' @description
-#' Approximate a Bayesian posterior from a `Cyclops` likelihood profile and normal prior 
+#' Approximate a Bayesian posterior from a `Cyclops` likelihood profile and normal prior
 #' using the Markov chain Monte Carlo engine BEAST.
 #'
 #' @param likelihoodProfile    Named vector containing grid likelihood data from `Cyclops`.
@@ -43,10 +43,17 @@
 #'                                           data = population,
 #'                                           modelType = "cox")
 #' cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
-#' approximation <- approximateLikelihood(cyclopsFit, parameter = "x", approximation = "grid")
+#' likelihoodProfile <- approximateLikelihood(cyclopsFit, parameter = "x", approximation = "grid")
+#'
+#' # Run MCMC
+#' mcmcTraces <- approximateSimplePosterior(likelihoodProfile = likelihoodProfile,
+#'                                          priorMean = 0, priorSd = 100)
+#'
+#' # Report posterior expectation
+#' mean(mcmcTraces$theta)
 #'
 #' # (Estimates in this example will vary due to the random simulation)
-#' 
+#'
 #' @export
 approximateSimplePosterior <- function(likelihoodProfile,
                                        chainLength = 1100000,
@@ -58,7 +65,7 @@ approximateSimplePosterior <- function(likelihoodProfile,
                                        seed = 1) {
   if (!supportsJava8()) {
     inform("Java 8 or higher is required, but older version was found. Cannot compute estimate.")
-    return(NULL) # TODO Return something more informative 
+    return(NULL) # TODO Return something more informative
   }
   if (isRmdCheck() && !isUnitTest()) {
     inform(paste("Function is executed as an example in R check:",
@@ -67,7 +74,7 @@ approximateSimplePosterior <- function(likelihoodProfile,
     chainLength <- 110000
     burnIn <- 10000
   }
-  
+
   inform("Detected data following grid distribution")
   type <- "grid"
   dataModel <- rJava::.jnew("org.ohdsi.metaAnalysis.ExtendingEmpiricalDataModel")
@@ -91,12 +98,12 @@ approximateSimplePosterior <- function(likelihoodProfile,
 
   runner$setConsoleWidth(getOption("width"))
   runner$run()
-  
+
   runner$processSamples() # TODO Comment out at some point
-  
+
   names <- runner$getParameterNames()
   traces <- as.data.frame(sapply(1:length(names), function(i) { runner$getTrace(as.integer(i)) }))
   colnames(traces) <- names
-  
+
   return(traces)
 }

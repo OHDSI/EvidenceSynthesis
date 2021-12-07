@@ -14,3 +14,4 @@ _pkgdown.yml
 docs
 bin
 ^CRAN-RELEASE$
+*.iml
