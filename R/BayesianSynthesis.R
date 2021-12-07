@@ -26,6 +26,7 @@
 #' @param subSampleFrequency   Subsample frequency for the MCMC.
 #' @param priorMean            Prior mean for the regression parameter
 #' @param priorSd              Prior standard deviation for the regression parameter
+#' @param startingValue        Initial state for regression parameter
 #' @param seed                 Seed for the random number generator.
 #'
 #'

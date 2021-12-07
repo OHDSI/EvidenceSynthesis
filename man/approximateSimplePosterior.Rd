@@ -11,11 +11,12 @@ approximateSimplePosterior(
   subSampleFrequency = 100,
   priorMean = 0,
   priorSd = 0.5,
+  startingValue = 0,
   seed = 1
 )
 }
 \arguments{
-\item{likelihoodProfile}{Data frame containing grid likelihood data from \code{Cyclops}.}
+\item{likelihoodProfile}{Named vector containing grid likelihood data from \code{Cyclops}.}
 
 \item{chainLength}{Number of MCMC iterations.}
 
@@ -26,6 +27,8 @@ approximateSimplePosterior(
 \item{priorMean}{Prior mean for the regression parameter}
 
 \item{priorSd}{Prior standard deviation for the regression parameter}
+
+\item{startingValue}{Initial state for regression parameter}
 
 \item{seed}{Seed for the random number generator.}
 }
