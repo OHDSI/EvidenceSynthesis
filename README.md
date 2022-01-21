@@ -2,7 +2,7 @@ EvidenceSynthesis
 =================
 
 [![Build Status](https://github.com/OHDSI/EvidenceSynthesis/workflows/R-CMD-check/badge.svg)](https://github.com/OHDSI/EvidenceSynthesis/actions?query=workflow%3AR-CMD-check)
-[![codecov.io](https://codecov.io/github/OHDSI/EvidenceSynthesis/coverage.svg?branch=master)](https://codecov.io/github/OHDSI/EvidenceSynthesis?branch=master)
+[![codecov.io](https://codecov.io/github/OHDSI/EvidenceSynthesis/coverage.svg?branch=main)](https://codecov.io/github/OHDSI/EvidenceSynthesis?branch=main)
 [![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/EvidenceSynthesis)](https://cran.r-project.org/package=EvidenceSynthesis)
 [![CRAN_Status_Badge](http://cranlogs.r-pkg.org/badges/EvidenceSynthesis)](https://cran.r-project.org/package=EvidenceSynthesis)
 
@@ -67,8 +67,8 @@ Documentation can be found on the [package website](https://ohdsi.github.io/Evid
 
 PDF versions of the documentation are also available:
 
-* Vignette: [Effect estimate using non-normal likelihood approximations](https://raw.githubusercontent.com/OHDSI/EvidenceSynthesis/master/extras/NonNormalEffectSynthesis.pdf)
-* Package manual: [EvidenceSynthesis.pdf](https://raw.githubusercontent.com/OHDSI/EvidenceSynthesis/master/extras/EvidenceSynthesis.pdf) 
+* Vignette: [Effect estimate using non-normal likelihood approximations](https://raw.githubusercontent.com/OHDSI/EvidenceSynthesis/main/extras/NonNormalEffectSynthesis.pdf)
+* Package manual: [EvidenceSynthesis.pdf](https://raw.githubusercontent.com/OHDSI/EvidenceSynthesis/main/extras/EvidenceSynthesis.pdf) 
 
 Support
 =======
