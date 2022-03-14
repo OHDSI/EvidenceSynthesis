@@ -17,7 +17,7 @@ approximateLikelihood(
 \item{parameter}{The parameter in the \code{cyclopsFit} object to profile.}
 
 \item{approximation}{The type of approximation. Valid options are \code{'normal'}, \code{'skew normal'},
-\code{'custom'}, or \code{'grid'}.}
+\code{'custom'}, \code{'grid'}, or \code{'adaptive grid'}.}
 
 \item{bounds}{The bounds on the effect size used to fit the approximation.}
 }

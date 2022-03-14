@@ -23,7 +23,7 @@ cleanData <- function(data,
     column <- columns[i]
     if (any(is.infinite(data[, column]))) {
       if (grid) {
-        warn(paste("Estimate(s) with infinite log-likelihood detected. Removing before computing meta-analysis."))  
+        warn(paste("Estimate(s) with infinite log-likelihood detected. Removing before computing meta-analysis."))
       } else {
         warn(paste("Estimate(s) with infinite",
                    column,
@@ -33,7 +33,7 @@ cleanData <- function(data,
     }
     if (any(is.na(data[, column]))) {
       if (grid) {
-        warn(paste("Estimate(s) with NA log-likelihood detected. Removing before computing meta-analysis."))  
+        warn(paste("Estimate(s) with NA log-likelihood detected. Removing before computing meta-analysis."))
       } else {
         warn(paste("Estimate(s) with NA",
                    column,
@@ -43,7 +43,7 @@ cleanData <- function(data,
     }
     if (any(data[, column] > maxValues[i])) {
       if (grid) {
-        warn(paste("Estimate(s) with positive log-likelihood detected. Removing before computing meta-analysis."))  
+        warn(paste("Estimate(s) with positive log-likelihood detected. Removing before computing meta-analysis."))
       } else {
         warn(sprintf("Estimate(s) with extremely high %s (>%s) detected. Removing before computing meta-analysis.",
                      column,
@@ -53,7 +53,7 @@ cleanData <- function(data,
     }
     if (any(data[, column] < minValues[i])) {
       if (grid) {
-        warn(paste("Estimate(s) with extremely low log-likelihood detected. Removing before computing meta-analysis."))  
+        warn(paste("Estimate(s) with extremely low log-likelihood detected. Removing before computing meta-analysis."))
       } else {
         warn(sprintf("Estimate(s) with extremely low %s (<%s) detected. Removing before computing meta-analysis.",
                      column,
@@ -87,7 +87,7 @@ isRmdCheck <- function() {
 
 isUnitTest <- function() {
   return(tolower(Sys.getenv("TESTTHAT", "")) == "true")
-  
+
 }
 
 #' Compute a Bayesian random-effects meta-analysis
@@ -136,7 +136,7 @@ isUnitTest <- function() {
 #' estimate
 #'
 #' # (Estimates in this example will vary due to the random simulation)
-#' 
+#'
 #' @export
 computeBayesianMetaAnalysis <- function(data,
                                         chainLength = 1100000,
@@ -170,7 +170,7 @@ computeBayesianMetaAnalysis <- function(data,
     chainLength <- 110000
     burnIn <- 10000
   }
-  
+
   # Determine type based on data structure:
   if ("logRr" %in% colnames(data)) {
     inform("Detected data following normal distribution")
@@ -212,16 +212,32 @@ computeBayesianMetaAnalysis <- function(data,
     }
     dataModel$finish()
   } else if (is.list(data) && !is.data.frame(data)) {
-    inform("Detected (pooled) patient-level data")
-    type <- "pooled"
-    dataModel <- rJava::.jnew("org.ohdsi.metaAnalysis.CoxDataModel")
-    for (i in 1:length(data)) {
-      dataModel$addLikelihoodData(as.integer(data[[i]]$stratumId),
-                                  as.integer(data[[i]]$y),
-                                  as.numeric(data[[i]]$time),
-                                  as.numeric(data[[i]]$x))
+    if ("stratumId" %in% names(data[[1]])) {
+      inform("Detected (pooled) patient-level data")
+      type <- "pooled"
+      dataModel <- rJava::.jnew("org.ohdsi.metaAnalysis.CoxDataModel")
+      for (i in 1:length(data)) {
+        dataModel$addLikelihoodData(as.integer(data[[i]]$stratumId),
+                                    as.integer(data[[i]]$y),
+                                    as.numeric(data[[i]]$time),
+                                    as.numeric(data[[i]]$x))
+      }
+      dataModel$finish()
+    } else if ("point" %in% names(data[[1]])) {
+      inform("Detected data following adaptive grid distribution")
+      type <- "grid"
+      dataModel <- rJava::.jnew("org.ohdsi.metaAnalysis.ExtendingEmpiricalDataModel")
+      for (i in 1:length(data)) {
+        cleanedData <- cleanData(as.data.frame(data[[i]]),
+                                 c("point", "value"),
+                                 minValues = c(-100, -1e6),
+                                 maxValues = c(100, 0))
+        dataModel$addLikelihoodParameters(cleanedData$point, cleanedData$value)
+      }
+      dataModel$finish()
+    } else {
+      abort("Unknown input data format")
     }
-    dataModel$finish()
   } else {
     inform("Detected data following grid distribution")
     type <- "grid"
@@ -243,11 +259,11 @@ computeBayesianMetaAnalysis <- function(data,
     }
     dataModel$finish()
   }
-  
+
   inform("Performing MCMC. This may take a while")
-  
+
   prior <- rJava::.jnew("org.ohdsi.metaAnalysis.HalfNormalOnStdDevPrior", 0, as.numeric(priorSd[2]))
-  
+
   metaAnalysis <- rJava::.jnew("org.ohdsi.mcmc.Runner",
                                rJava::.jcast(rJava::.jnew("org.ohdsi.metaAnalysis.MetaAnalysis",
                                                           rJava::.jcast(dataModel, "org.ohdsi.metaAnalysis.DataModel"),

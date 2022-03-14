@@ -74,8 +74,8 @@ computeFixedEffectMetaAnalysis <- function(data, alpha = 0.05) {
   } else if ("gamma" %in% colnames(data)) {
     inform("Detected data following custom parameric distribution")
     data <- cleanData(data, c("mu", "sigma", "gamma"), minValues = c(-100, 1e-05, -100))
-    estimate <- computeEstimateFromApproximation(approximationFuntion = combineLogLikelihoodFunctions, 
-                                                 a = alpha, 
+    estimate <- computeEstimateFromApproximation(approximationFuntion = combineLogLikelihoodFunctions,
+                                                 a = alpha,
                                                  fits = data,
                                                  fun = customFunction)
     return(estimate)
@@ -85,26 +85,32 @@ computeFixedEffectMetaAnalysis <- function(data, alpha = 0.05) {
                       c("mu", "sigma", "alpha"),
                       minValues = c(-100, 1e-05, -10000),
                       maxValues = c(100, 10000, 10000))
-    estimate <- computeEstimateFromApproximation(approximationFuntion = combineLogLikelihoodFunctions, 
-                                                 a = alpha, 
+    estimate <- computeEstimateFromApproximation(approximationFuntion = combineLogLikelihoodFunctions,
+                                                 a = alpha,
                                                  fits = data,
                                                  fun = skewNormal)
     return(estimate)
   } else if (is.list(data) && !is.data.frame(data)) {
-    inform("Detected (pooled) patient-level data")
-    population <- poolPopulations(data)
-    cyclopsData <- Cyclops::createCyclopsData(Surv(time, y) ~ x + strata(stratumId),
-                                              data = population,
-                                              modelType = "cox")
-    cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
-    mode <- coef(cyclopsFit)
-    ci95 <- confint(cyclopsFit, 1, level = 0.95)
-    estimate <- data.frame(rr = exp(mode),
-                           lb = exp(ci95[2]),
-                           ub = exp(ci95[3]),
-                           logRr = mode,
-                           seLogRr = (ci95[3] - ci95[2])/(2 * qnorm(0.975)))
-    return(estimate)
+    if ("stratumId" %in% names(data[[1]])) {
+      inform("Detected (pooled) patient-level data")
+      population <- poolPopulations(data)
+      cyclopsData <- Cyclops::createCyclopsData(Surv(time, y) ~ x + strata(stratumId),
+                                                data = population,
+                                                modelType = "cox")
+      cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
+      mode <- coef(cyclopsFit)
+      ci95 <- confint(cyclopsFit, 1, level = 0.95)
+      estimate <- data.frame(rr = exp(mode),
+                             lb = exp(ci95[2]),
+                             ub = exp(ci95[3]),
+                             logRr = mode,
+                             seLogRr = (ci95[3] - ci95[2])/(2 * qnorm(0.975)))
+      return(estimate)
+    } else if ("point" %in% names(data[[1]])) {
+      abort("Adaptive grid data not supported in this function")
+    } else {
+      abort("Unknown input data format")
+    }
   } else {
     inform("Detected data following grid distribution")
     x <- as.numeric(colnames(data))

@@ -25,7 +25,7 @@
 #' @param cyclopsFit      A model fitted using the [Cyclops::fitCyclopsModel()] function.
 #' @param parameter       The parameter in the `cyclopsFit` object to profile.
 #' @param approximation   The type of approximation. Valid options are `'normal'`, `'skew normal'`,
-#'                        `'custom'`, or `'grid'`.
+#'                        `'custom'`, `'grid'`, or `'adaptive grid'`.
 #' @param bounds          The bounds on the effect size used to fit the approximation.
 #'
 #' @seealso
@@ -52,15 +52,18 @@ approximateLikelihood <- function(cyclopsFit,
                                   parameter = 1,
                                   approximation = "custom",
                                   bounds = c(log(0.1), log(10))) {
-  if (!approximation %in% c("normal", "skew normal", "custom", "grid"))
-    stop("'approximation' argument should be 'normal', 'skew normal', 'custom', or 'grid'.")
+  if (!approximation %in% c("normal", "skew normal", "custom", "grid", "adaptive grid"))
+    stop("'approximation' argument should be 'normal', 'skew normal', 'custom', 'grid', or 'adaptive grid'.")
   if (!is(cyclopsFit, "cyclopsFit"))
     stop("'cyclopsFit' argument should be of type 'cyclopsFit'")
-  
+
   if (approximation == "grid") {
     x <- seq(bounds[1], bounds[2], length.out = 1000)
     result <- getLikelihoodProfile(cyclopsFit, parameter, x)
     names(result) <- x
+    return(result)
+  } else if (approximation == "adaptive grid") {
+    result <- Cyclops::getCyclopsProfileLogLikelihood(cyclopsFit, parameter, bounds = bounds)
     return(result)
   } else if (approximation == "normal") {
     if (cyclopsFit$return_flag != "SUCCESS") {
@@ -110,7 +113,7 @@ approximateLikelihood <- function(cyclopsFit,
 #' @export
 customFunction <- function(x, mu, sigma, gamma) {
   return(((exp(gamma * (x - mu)))) * ((-(x - mu)^2)/(2 * sigma^2)))
-  
+
   # Derivative: -(exp(gamma * (x - mu)) * (gamma * (x - mu) + 2) * (x - mu))/(2 * sigma^2)
 }
 
@@ -143,7 +146,7 @@ skewNormal <- function(x, mu, sigma, alpha) {
 }
 
 fitLogLikelihoodFunction <- function(beta, ll, weighByLikelihood = TRUE, fun = customFunction) {
-  
+
   sumSquares <- function(p, maxAnchor = TRUE, idx = NULL) {
     approxLl <- fun(beta, p[1], p[2], p[3])
     if (maxAnchor) {
@@ -158,25 +161,25 @@ fitLogLikelihoodFunction <- function(beta, ll, weighByLikelihood = TRUE, fun = c
     }
     return(result)
   }
-  
+
   beta <- beta[!is.nan(ll)]
   ll <- ll[!is.nan(ll)]
-  
+
   # Scale to standard (translate in log space so max at 0):
   ll <- ll - max(ll)
   weights <- exp(ll)
   # Weights shouldn't be too small:
   weights[weights < 0.001] <- 0.001
-  
+
   mode <- beta[ll == 0][1]
   if (mode == min(beta) || mode == max(beta)) {
     mode <- 0
   }
-  
+
   if (min(ll) > -1e-06) {
     return(data.frame(mu = 0, sigma = Inf, gamma = 0))
   }
-  
+
   fit <- tryCatch({
     suppressWarnings(nlm(sumSquares, c(mode, 1, 0), maxAnchor = TRUE))
   }, error = function(e) {
@@ -184,7 +187,7 @@ fitLogLikelihoodFunction <- function(beta, ll, weighByLikelihood = TRUE, fun = c
   })
   result <- data.frame(mu = fit$estimate[1], sigma = fit$estimate[2], gamma = fit$estimate[3])
   minimum <- fit$minimum
-  
+
   fit <- tryCatch({
     suppressWarnings(optim(c(mode, 1, 0), sumSquares, maxAnchor = TRUE))
   }, error = function(e) {
@@ -194,7 +197,7 @@ fitLogLikelihoodFunction <- function(beta, ll, weighByLikelihood = TRUE, fun = c
     result <- data.frame(mu = fit$par[1], sigma = fit$par[2], gamma = fit$par[3])
     minimum <- fit$value
   }
-  
+
   # Scale to standard (translate in log space so intersects at (0,0)):
   idx <- which(abs(beta) == min(abs(beta)))
   ll <- ll - ll[idx]
@@ -231,7 +234,7 @@ getLikelihoodProfile <- function(cyclopsFit, parameter, x) {
 
 #' Compute the point estimate and confidence interval given a likelihood function approximation
 #'
-#' @details 
+#' @details
 #' Compute the point estimate and confidence interval given a likelihood function approximation.
 #'
 #' @param approximation   An approximation of the likelihood function as fitted using the
@@ -240,7 +243,7 @@ getLikelihoodProfile <- function(cyclopsFit, parameter, x) {
 #'
 #' @return
 #' A data frame containing the point estimate, and upper and lower bound of the confidence interval.
-#' 
+#'
 #' @examples
 #' # Simulate some data for this example:
 #' populations <- simulatePopulations()
@@ -251,7 +254,7 @@ getLikelihoodProfile <- function(cyclopsFit, parameter, x) {
 #' cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
 #' approximation <- approximateLikelihood(cyclopsFit, "x")
 #' computeConfidenceInterval(approximation)
-#' 
+#'
 #' @export
 computeConfidenceInterval <- function(approximation, alpha = 0.05) {
   # Determine type based on data structure:

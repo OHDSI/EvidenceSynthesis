@@ -1,8 +1,8 @@
 Package: EvidenceSynthesis
 Type: Package
 Title: Synthesizing Causal Evidence in a Distributed Research Network
-Version: 0.2.4
-Date: 2021-05-04
+Version: 0.3.0
+Date: 2022-03-14
 Authors@R: c(
   person("Martijn", "Schuemie", email = "schuemie@ohdsi.org", role = c("aut", "cre")),
   person("Marc A.", "Suchard", , "msuchard@ucla.edu", role = c("aut")),
@@ -36,6 +36,6 @@ License: Apache License 2.0
 URL: https://ohdsi.github.io/EvidenceSynthesis/, https://github.com/OHDSI/EvidenceSynthesis
 BugReports: https://github.com/OHDSI/EvidenceSynthesis/issues
 VignetteBuilder: knitr
-RoxygenNote: 7.1.1
+RoxygenNote: 7.1.2
 Roxygen: list(markdown = TRUE)
 Encoding: UTF-8

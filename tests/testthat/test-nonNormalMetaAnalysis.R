@@ -17,7 +17,9 @@ createApproximations <- function(populations, approximation) {
     return(approximation)
   }
   data <- lapply(populations, fitModelInDatabase, approximation = approximation)
-  data <- do.call("rbind", data)
+  if (approximation != "adaptive grid") {
+    data <- do.call("rbind", data)
+  }
   return(data)
 }
 
@@ -92,6 +94,24 @@ test_that("Grid approximation: pooled matches meta-analysis", {
 })
 
 test_that("Grid approximation: pooled matches random-effects meta-analysis", {
+  skip_if_not(supportsJava8())
+  estimate <- computeBayesianMetaAnalysis(data, seed = seed)
+  expect_equal(estimate[, c("mu", "tau", "logRr")],
+               pooledRandomFxEstimate[, c("mu", "tau", "logRr")],
+               tolerance = 0.10,
+               scale = 1,
+               check.attributes = FALSE)
+  expect_equal(estimate[, c("mu95Lb", "mu95Ub", "muSe", "tau95Lb", "tau95Ub", "seLogRr")],
+               pooledRandomFxEstimate[, c("mu95Lb", "mu95Ub", "muSe", "tau95Lb", "tau95Ub", "seLogRr")],
+               tolerance = 0.50,
+               scale = 1,
+               check.attributes = FALSE)
+})
+
+# Adaptive grid approximation
+data <- createApproximations(populations, "adaptive grid")
+
+test_that("Adaptive grid approximation: pooled matches random-effects meta-analysis", {
   skip_if_not(supportsJava8())
   estimate <- computeBayesianMetaAnalysis(data, seed = seed)
   expect_equal(estimate[, c("mu", "tau", "logRr")],
