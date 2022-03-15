@@ -228,7 +228,9 @@ computeBayesianMetaAnalysis <- function(data,
       type <- "grid"
       dataModel <- rJava::.jnew("org.ohdsi.metaAnalysis.ExtendingEmpiricalDataModel")
       for (i in 1:length(data)) {
-        cleanedData <- cleanData(as.data.frame(data[[i]]),
+        cleanedData <- as.data.frame(data[[i]])
+        cleanedData$value <- cleanedData$value - max(cleanedData$value)
+        cleanedData <- cleanData(cleanedData,
                                  c("point", "value"),
                                  minValues = c(-100, -1e6),
                                  maxValues = c(100, 0))
