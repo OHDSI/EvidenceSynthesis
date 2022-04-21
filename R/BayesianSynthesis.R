@@ -189,7 +189,7 @@ approximateHierarchicalNormalPosterior <- function(likelihoodProfiles,
 
   # translate nu0 and sigma0 to shape and rate parameters for gamma prior
   precisionShape = nu0/2
-  precisionRate = nu0 * sigma0/2
+  precisionRate = nu0 * sigma0/2 # assuming we use rate (not scale) for gamma distribution in BEAST
 
   # specify model and run the MCMC
   inform("Performing MCMC. This may take a while")
