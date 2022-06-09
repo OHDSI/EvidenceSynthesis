@@ -39,14 +39,6 @@ public class ExtendingEmpiricalDataModel extends EmpiricalDataModel {
 			@Override
 			public double logPDF(double x, EmpiricalDistributionData data) {
 				final int end = data.values.length - 1;
-				// Assume density is constant outside of range:
-				//				if (x <= data.values[0]) {
-				//					return data.density[0];
-				//				} else if (x >= data.values[end]) {
-				//					return data.density[end];
-				//				} else {
-				//					return super.logPDF(x, data);
-				//				}
 
 				// Linear extrapolation outside of range:
 				if (end == 0) {
@@ -60,25 +52,6 @@ public class ExtendingEmpiricalDataModel extends EmpiricalDataModel {
 				} else {
 					return super.logPDF(x, data);
 				}
-
-				// Second-order extrapolation outside of range:
-				//				if (x <= data.values[0]) {
-				//					final double slope1 = (data.density[1] - data.density[0]) / (data.values[1] - data.values[0]);
-				//					final double slope2 = (data.density[2] - data.density[1]) / (data.values[2] - data.values[1]);
-				//					final double secondD = (slope2 - slope1) / (((data.values[2] + data.values[1]) / 2.0) - ((data.values[1] + data.values[0]) / 2.0));
-				//					return data.density[0] + slope1 * (x - data.values[0]) + 0.5 * secondD * sqr(x - data.values[0]);
-				//				} else if (x >= data.values[end]) {
-				//					final double slope1 = (data.density[end-1] - data.density[end-2]) / (data.values[end-1] - data.values[end-2]);
-				//					final double slope2 = (data.density[end] - data.density[end-1]) / (data.values[end] - data.values[end-1]);
-				//					final double secondD = (slope2 - slope1) / (((data.values[end] + data.values[end-1]) / 2.0) - ((data.values[end-1] + data.values[end-2]) / 2.0));
-				//					return data.density[end] + slope2 * (x - data.values[end]) + 0.5 * secondD * sqr(x - data.values[end]);
-				//				} else {
-				//					return super.logPDF(x, data);
-				//				}
-			}
-
-			public final double sqr(double x) {
-				return x * x;
 			}
 
 			@Override

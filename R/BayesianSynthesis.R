@@ -139,9 +139,6 @@ approximateSimplePosterior <- function(likelihoodProfile,
 #' the global and local parameter, as well as the global precision.
 #' Attributes of the data frame contain the MCMC trace for diagnostics.
 #'
-#' @examples
-#' TBD
-#'
 #' @export
 approximateHierarchicalNormalPosterior <- function(likelihoodProfiles,
                                                    chainLength = 1100000,

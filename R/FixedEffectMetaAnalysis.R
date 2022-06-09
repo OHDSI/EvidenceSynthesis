@@ -90,6 +90,28 @@ computeFixedEffectMetaAnalysis <- function(data, alpha = 0.05) {
                                                  fits = data,
                                                  fun = skewNormal)
     return(estimate)
+  } else if ("a1" %in% colnames(data)) {
+    inform("Detected data following Pade approximation")
+    data <- cleanData(data,
+                      c("beta", "a0", "a1", "a2", "b1", "b2"),
+                      minValues = c(-100, -1000, -100, -100, -100, -100),
+                      maxValues = c(100, 1000, 100, 100, 100, 100))
+
+    allConstraints <- data.frame()
+    for (i in 1:nrow(data)) {
+      constraints <- getPadeConstraints(beta = data$beta[i],
+                                        a0 = data$a0[i],
+                                        a1 = data$a1[i],
+                                        a2 = data$a2[i],
+                                        b1 = data$b1[i],
+                                        b2 = data$b2[i])
+      allConstraints <- rbind(allConstraints, constraints)
+    }
+    data <- cbind(data, allConstraints)
+    estimate <- computeEstimateFromApproximation(approximationFuntion = combineLogLikelihoodFunctions,
+                                                 a = alpha,
+                                                 fits = data,
+                                                 fun = padeConstrained)
   } else if (is.list(data) && !is.data.frame(data)) {
     if ("stratumId" %in% names(data[[1]])) {
       inform("Detected (pooled) patient-level data")
@@ -129,7 +151,11 @@ computeFixedEffectMetaAnalysis <- function(data, alpha = 0.05) {
 }
 
 combineLogLikelihoodFunctions <- function(x, fits, fun = customFunction) {
-  ll <- apply(fits, 1, function(fit) fun(x, fit[1], fit[2], fit[3]))
+  if ("a0" %in% colnames(fits)) {
+    ll <- apply(fits, 1, function(fit) fun(x, fit[1], fit[2], fit[3], fit[4], fit[5], fit[6], fit[7], fit[8]))
+  } else {
+    ll <- apply(fits, 1, function(fit) fun(x, fit[1], fit[2], fit[3]))
+  }
   ll <- sum(ll)
   return(ll)
 }

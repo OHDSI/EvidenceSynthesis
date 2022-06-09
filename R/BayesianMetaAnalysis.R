@@ -211,6 +211,36 @@ computeBayesianMetaAnalysis <- function(data,
                                         as.numeric(c(NA, NA)))
     }
     dataModel$finish()
+  } else if ("a1" %in% colnames(data)) {
+    inform("Detected data following Pade approximation")
+    type <- "Pade"
+    data <- cleanData(data,
+                      c("beta", "a0", "a1", "a2", "b1", "b2"),
+                      minValues = c(-100, -1000, -100, -100, -100, -100),
+                      maxValues = c(100, 1000, 100, 100, 100, 100))
+    if (nrow(data) == 0)
+      return(createNaEstimate(type))
+    dataModel <- rJava::.jnew("org.ohdsi.metaAnalysis.PadeDataModel")
+    for (i in 1:nrow(data)) {
+      constraints <- getPadeConstraints(beta = data$beta[i],
+                                        a0 = data$a0[i],
+                                        a1 = data$a1[i],
+                                        a2 = data$a2[i],
+                                        b1 = data$b1[i],
+                                        b2 = data$b2[i])
+      dataModel$addLikelihoodParameters(as.numeric(c(data$beta[i],
+                                                     data$a0[i],
+                                                     data$a1[i],
+                                                     data$a2[i],
+                                                     data$b1[i],
+                                                     data$b2[i],
+                                                     constraints$minBeta,
+                                                     constraints$maxBeta,
+                                                     constraints$minD1,
+                                                     constraints$maxD1)),
+                                        as.numeric(c(NA, NA)))
+    }
+    dataModel$finish()
   } else if (is.list(data) && !is.data.frame(data)) {
     if ("stratumId" %in% names(data[[1]])) {
       inform("Detected (pooled) patient-level data")

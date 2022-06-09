@@ -69,7 +69,7 @@ createSimulationSettings <- function(nSites = 5,
       return(x)
     }
   }
-  
+
   settings <- list(nSites = nSites,
                    n = expand(n),
                    treatedFraction = expand(treatedFraction),
@@ -111,7 +111,7 @@ simulatePopulations <- function(settings = createSimulationSettings()) {
                   mean = log(settings$hazardRatio),
                   sd = settings$randomEffectSd)
   hazardRatios <- exp(thetas)
-  
+
   simulateSite <- function(i) {
     population <- data.frame(rowId = 1:settings$n[i],
                              stratumId = round(runif(settings$n[i],
@@ -125,11 +125,11 @@ simulatePopulations <- function(settings = createSimulationSettings()) {
     population$hazard <- strataBackgroundHazard[population$stratumId]
     oldTotalHazard <- sum(population$hazard)
     population$hazard[population$x == 1] <- population$hazard[population$x == 1] * hazardRatios[i]
-    
+
     # Normalize so higher hazard ratios don't come with more statistical power:
     newTotalHazard <- sum(population$hazard)
     population$hazard <- population$hazard * oldTotalHazard/newTotalHazard
-    
+
     population$timeToOutcome <- 1 + round(rexp(n = settings$n[i], population$hazard))
     population$timeToCensor <- 1 + round(rexp(n = settings$n[i], 0.01))
     population$time <- population$timeToOutcome
