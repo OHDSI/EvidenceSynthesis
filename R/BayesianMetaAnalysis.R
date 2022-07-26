@@ -106,6 +106,7 @@ isUnitTest <- function() {
 #'                             and tau, respectively.
 #' @param alpha                The alpha (expected type I error) used for the credible intervals.
 #' @param seed                 The seed for the random number generator.
+#' @param robust               Whether or not to use a t-distribution model (default: FALSE)
 #'
 #' @seealso
 #' [approximateLikelihood], [computeFixedEffectMetaAnalysis]
@@ -144,7 +145,8 @@ computeBayesianMetaAnalysis <- function(data,
                                         subSampleFrequency = 100,
                                         priorSd = c(2, 0.5),
                                         alpha = 0.05,
-                                        seed = 1) {
+                                        seed = 1,
+                                        robust = FALSE) {
   if (!supportsJava8()) {
     inform("Java 8 or higher is required, but older version was found. Cannot compute estimate.")
     estimate <- data.frame(mu = as.numeric(NA),
@@ -266,15 +268,29 @@ computeBayesianMetaAnalysis <- function(data,
 
   prior <- rJava::.jnew("org.ohdsi.metaAnalysis.HalfNormalOnStdDevPrior", 0, as.numeric(priorSd[2]))
 
-  metaAnalysis <- rJava::.jnew("org.ohdsi.mcmc.Runner",
-                               rJava::.jcast(rJava::.jnew("org.ohdsi.metaAnalysis.MetaAnalysis",
-                                                          rJava::.jcast(dataModel, "org.ohdsi.metaAnalysis.DataModel"),
-                                                          rJava::.jcast(prior, "org.ohdsi.metaAnalysis.ScalePrior"),
-                                                          as.numeric(priorSd[1])), "org.ohdsi.mcmc.Analysis"),
-                               as.integer(chainLength),
-                               as.integer(burnIn),
-                               as.integer(subSampleFrequency),
-                               as.numeric(seed))
+
+  if(robust){
+    metaAnalysis <- rJava::.jnew("org.ohdsi.mcmc.Runner",
+                                 rJava::.jcast(rJava::.jnew("org.ohdsi.metaAnalysis.RobustMetaAnalysis",
+                                                            rJava::.jcast(dataModel, "org.ohdsi.metaAnalysis.DataModel"),
+                                                            rJava::.jcast(prior, "org.ohdsi.metaAnalysis.ScalePrior"),
+                                                            as.numeric(priorSd[1])), "org.ohdsi.mcmc.Analysis"),
+                                 as.integer(chainLength),
+                                 as.integer(burnIn),
+                                 as.integer(subSampleFrequency),
+                                 as.numeric(seed))
+  }else{
+    metaAnalysis <- rJava::.jnew("org.ohdsi.mcmc.Runner",
+                                 rJava::.jcast(rJava::.jnew("org.ohdsi.metaAnalysis.MetaAnalysis",
+                                                            rJava::.jcast(dataModel, "org.ohdsi.metaAnalysis.DataModel"),
+                                                            rJava::.jcast(prior, "org.ohdsi.metaAnalysis.ScalePrior"),
+                                                            as.numeric(priorSd[1])), "org.ohdsi.mcmc.Analysis"),
+                                 as.integer(chainLength),
+                                 as.integer(burnIn),
+                                 as.integer(subSampleFrequency),
+                                 as.numeric(seed))
+  }
+
   metaAnalysis$setConsoleWidth(getOption("width"))
   metaAnalysis$run()
   parameterNames <- metaAnalysis$getParameterNames()
