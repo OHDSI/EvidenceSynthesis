@@ -11,7 +11,8 @@ computeBayesianMetaAnalysis(
   subSampleFrequency = 100,
   priorSd = c(2, 0.5),
   alpha = 0.05,
-  seed = 1
+  seed = 1,
+  robust = FALSE
 )
 }
 \arguments{
@@ -30,6 +31,8 @@ and tau, respectively.}
 \item{alpha}{The alpha (expected type I error) used for the credible intervals.}
 
 \item{seed}{The seed for the random number generator.}
+
+\item{robust}{Whether or not to use a t-distribution model (default: FALSE)}
 }
 \value{
 A data frame with the point estimates and 95\% credible intervals for the mu and tau parameters (the

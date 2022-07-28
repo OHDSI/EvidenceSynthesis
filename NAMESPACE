@@ -3,6 +3,7 @@
 S3method(print,simulation)
 S3method(print,summary.simulation)
 S3method(summary,simulation)
+export(approximateHierarchicalNormalPosterior)
 export(approximateLikelihood)
 export(approximateSimplePosterior)
 export(computeBayesianMetaAnalysis)

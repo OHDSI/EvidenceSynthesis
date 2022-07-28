@@ -140,7 +140,7 @@ approximateSimplePosterior <- function(likelihoodProfile,
 #' Attributes of the data frame contain the MCMC trace for diagnostics.
 #'
 #' @examples
-#' TBD
+#' #TBD
 #'
 #' @export
 approximateHierarchicalNormalPosterior <- function(likelihoodProfiles,
