@@ -20,6 +20,8 @@
 <![endif]-->
 </head>
 <body data-spy="scroll" data-target="#toc">
+    
+
     <div class="container template-home">
       <header><div class="navbar navbar-default navbar-fixed-top" role="navigation">
   <div class="container">
@@ -32,26 +34,17 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="index.html">EvidenceSynthesis</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.2.3</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.3.0</span>
       </span>
     </div>
 
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
 <li>
-  <a href="index.html">
-    <span class="fas fa-home fa-lg"></span>
-     
-  </a>
-</li>
-<li>
   <a href="reference/index.html">Reference</a>
 </li>
-<li>
-  <a href="news/index.html">Changelog</a>
-</li>
 <li class="dropdown">
-  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
     Articles
      
     <span class="caret"></span>
@@ -62,13 +55,16 @@
     </li>
   </ul>
 </li>
+<li>
+  <a href="news/index.html">Changelog</a>
+</li>
       </ul>
 <ul class="nav navbar-nav navbar-right">
 <li>
-  <a href="https://ohdsi.github.io/Hades"><img src='https://ohdsi.github.io/Hades/images/hadesMini.png' width=80 height=17 style='vertical-align: top;'></a>
+  <a href="https://ohdsi.github.io/Hades" class="external-link"><img src='https://ohdsi.github.io/Hades/images/hadesMini.png' width=80 height=17 style='vertical-align: top;'></a>
 </li>
 <li>
-  <a href="https://github.com/OHDSI/EvidenceSynthesis/">
+  <a href="https://github.com/OHDSI/EvidenceSynthesis/" class="external-link">
     <span class="fab fa-github fa-lg"></span>
      
   </a>
@@ -86,110 +82,110 @@
       </header><div class="row">
   <div class="contents col-md-9">
 
-<div id="evidencesynthesis" class="section level1">
-<div class="page-header"><h1 class="hasAnchor">
-<a href="#evidencesynthesis" class="anchor"></a>EvidenceSynthesis</h1></div>
+<div class="section level1">
+<div class="page-header"><h1 id="evidencesynthesis">EvidenceSynthesis<a class="anchor" aria-label="anchor" href="#evidencesynthesis"></a>
+</h1></div>
 
-<p>EvidenceSynthesis is part of <a href="https://ohdsi.github.io/Hades/">HADES</a>.</p>
+<p>EvidenceSynthesis is part of <a href="https://ohdsi.github.io/Hades/" class="external-link">HADES</a>.</p>
 </div>
-<div id="introduction" class="section level1">
-<h1 class="hasAnchor">
-<a href="#introduction" class="anchor"></a>Introduction</h1>
+<div class="section level1">
+<h1 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
+</h1>
 <p>This R package contains routines for combining causal effect estimates and study diagnostics across multiple data sites in a distributed study. This includes functions for performing meta-analysis and forest plots.</p>
 </div>
-<div id="features" class="section level1">
-<h1 class="hasAnchor">
-<a href="#features" class="anchor"></a>Features</h1>
+<div class="section level1">
+<h1 id="features">Features<a class="anchor" aria-label="anchor" href="#features"></a>
+</h1>
 <ul>
 <li>Perform a traditional fixed-effects or random-effects meta-analysis, and create a forest plot.</li>
 <li>Use non-normal approximations of the per-data-site likelihood function to avoid bias when facing small and zero counts.</li>
 </ul>
 </div>
-<div id="example" class="section level1">
-<h1 class="hasAnchor">
-<a href="#example" class="anchor"></a>Example</h1>
+<div class="section level1">
+<h1 id="example">Example<a class="anchor" aria-label="anchor" href="#example"></a>
+</h1>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># Simulate some data for this example:</span>
-<span class="va">populations</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/simulatePopulations.html">simulatePopulations</a></span><span class="op">(</span><span class="op">)</span>
-
-<span class="co"># Fit a Cox regression at each data site, and approximate likelihood function:</span>
-<span class="va">fitModelInDatabase</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">population</span><span class="op">)</span> <span class="op">{</span>
-  <span class="va">cyclopsData</span> <span class="op">&lt;-</span> <span class="fu">Cyclops</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/Cyclops/man/createCyclopsData.html">createCyclopsData</a></span><span class="op">(</span><span class="fu">Surv</span><span class="op">(</span><span class="va">time</span>, <span class="va">y</span><span class="op">)</span> <span class="op">~</span> <span class="va">x</span> <span class="op">+</span> <span class="fu">strata</span><span class="op">(</span><span class="va">stratumId</span><span class="op">)</span>,
-                                            data <span class="op">=</span> <span class="va">population</span>,
-                                            modelType <span class="op">=</span> <span class="st">"cox"</span><span class="op">)</span>
-  <span class="va">cyclopsFit</span> <span class="op">&lt;-</span> <span class="fu">Cyclops</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/Cyclops/man/fitCyclopsModel.html">fitCyclopsModel</a></span><span class="op">(</span><span class="va">cyclopsData</span><span class="op">)</span>
-  <span class="va">approximation</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/approximateLikelihood.html">approximateLikelihood</a></span><span class="op">(</span><span class="va">cyclopsFit</span>, parameter <span class="op">=</span> <span class="st">"x"</span>, approximation <span class="op">=</span> <span class="st">"custom"</span><span class="op">)</span>
-  <span class="kw"><a href="https://rdrr.io/r/base/function.html">return</a></span><span class="op">(</span><span class="va">approximation</span><span class="op">)</span>
-<span class="op">}</span>
-<span class="va">approximations</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">lapply</a></span><span class="op">(</span><span class="va">populations</span>, <span class="va">fitModelInDatabase</span><span class="op">)</span>
-<span class="va">approximations</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html">do.call</a></span><span class="op">(</span><span class="st">"rbind"</span>, <span class="va">approximations</span><span class="op">)</span>
-
-<span class="co"># At study coordinating center, perform meta-analysis using per-site approximations:</span>
-<span class="va">estimate</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/computeBayesianMetaAnalysis.html">computeBayesianMetaAnalysis</a></span><span class="op">(</span><span class="va">approximations</span><span class="op">)</span>
-<span class="va">estimate</span>
-<span class="co">#          mu     mu95Lb   mu95Ub      muSe       tau     tau95Lb   tau95Ub     logRr   seLogRr</span>
-<span class="co"># 1 0.5770562 -0.2451619 1.382396 0.4154986 0.2733942 0.004919128 0.7913512 0.5770562 0.4152011</span></code></pre></div>
+<code class="sourceCode R"><span><span class="co"># Simulate some data for this example:</span></span>
+<span><span class="va">populations</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/simulatePopulations.html">simulatePopulations</a></span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Fit a Cox regression at each data site, and approximate likelihood function:</span></span>
+<span><span class="va">fitModelInDatabase</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">population</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">cyclopsData</span> <span class="op">&lt;-</span> <span class="fu">Cyclops</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/Cyclops/man/createCyclopsData.html" class="external-link">createCyclopsData</a></span><span class="op">(</span><span class="fu">Surv</span><span class="op">(</span><span class="va">time</span>, <span class="va">y</span><span class="op">)</span> <span class="op">~</span> <span class="va">x</span> <span class="op">+</span> <span class="fu">strata</span><span class="op">(</span><span class="va">stratumId</span><span class="op">)</span>,</span>
+<span>                                            data <span class="op">=</span> <span class="va">population</span>,</span>
+<span>                                            modelType <span class="op">=</span> <span class="st">"cox"</span><span class="op">)</span></span>
+<span>  <span class="va">cyclopsFit</span> <span class="op">&lt;-</span> <span class="fu">Cyclops</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/Cyclops/man/fitCyclopsModel.html" class="external-link">fitCyclopsModel</a></span><span class="op">(</span><span class="va">cyclopsData</span><span class="op">)</span></span>
+<span>  <span class="va">approximation</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/approximateLikelihood.html">approximateLikelihood</a></span><span class="op">(</span><span class="va">cyclopsFit</span>, parameter <span class="op">=</span> <span class="st">"x"</span>, approximation <span class="op">=</span> <span class="st">"custom"</span><span class="op">)</span></span>
+<span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="va">approximation</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span><span class="va">approximations</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">populations</span>, <span class="va">fitModelInDatabase</span><span class="op">)</span></span>
+<span><span class="va">approximations</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="st">"rbind"</span>, <span class="va">approximations</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># At study coordinating center, perform meta-analysis using per-site approximations:</span></span>
+<span><span class="va">estimate</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/computeBayesianMetaAnalysis.html">computeBayesianMetaAnalysis</a></span><span class="op">(</span><span class="va">approximations</span><span class="op">)</span></span>
+<span><span class="va">estimate</span></span>
+<span><span class="co">#          mu     mu95Lb   mu95Ub      muSe       tau     tau95Lb   tau95Ub     logRr   seLogRr</span></span>
+<span><span class="co"># 1 0.5770562 -0.2451619 1.382396 0.4154986 0.2733942 0.004919128 0.7913512 0.5770562 0.4152011</span></span></code></pre></div>
 </div>
-<div id="technology" class="section level1">
-<h1 class="hasAnchor">
-<a href="#technology" class="anchor"></a>Technology</h1>
+<div class="section level1">
+<h1 id="technology">Technology<a class="anchor" aria-label="anchor" href="#technology"></a>
+</h1>
 <p>This an R package with some parts implemented in Java.</p>
 </div>
-<div id="system-requirements" class="section level1">
-<h1 class="hasAnchor">
-<a href="#system-requirements" class="anchor"></a>System requirements</h1>
+<div class="section level1">
+<h1 id="system-requirements">System requirements<a class="anchor" aria-label="anchor" href="#system-requirements"></a>
+</h1>
 <p>Requires R and Java.</p>
 </div>
-<div id="getting-started" class="section level1">
-<h1 class="hasAnchor">
-<a href="#getting-started" class="anchor"></a>Getting Started</h1>
-<ol>
-<li><p>Make sure your R environment is properly configured. This means that Java must be installed. See <a href="https://ohdsi.github.io/Hades/rSetup.html">these instructions</a> for how to configure your R environment.</p></li>
+<div class="section level1">
+<h1 id="getting-started">Getting Started<a class="anchor" aria-label="anchor" href="#getting-started"></a>
+</h1>
+<ol style="list-style-type: decimal">
+<li><p>Make sure your R environment is properly configured. This means that Java must be installed. See <a href="https://ohdsi.github.io/Hades/rSetup.html" class="external-link">these instructions</a> for how to configure your R environment.</p></li>
 <li>
 <p>In R, use the following commands to download and install EvidenceSynthesis:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span><span class="op">(</span><span class="st">"EvidenceSynthesis"</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"EvidenceSynthesis"</span><span class="op">)</span></span></code></pre></div>
 </li>
 </ol>
 </div>
-<div id="user-documentation" class="section level1">
-<h1 class="hasAnchor">
-<a href="#user-documentation" class="anchor"></a>User Documentation</h1>
-<p>Documentation can be found on the <a href="https://ohdsi.github.io/EvidenceSynthesis/">package website</a>.</p>
+<div class="section level1">
+<h1 id="user-documentation">User Documentation<a class="anchor" aria-label="anchor" href="#user-documentation"></a>
+</h1>
+<p>Documentation can be found on the <a href="https://ohdsi.github.io/EvidenceSynthesis/" class="external-link">package website</a>.</p>
 <p>PDF versions of the documentation are also available:</p>
 <ul>
-<li>Vignette: <a href="https://raw.githubusercontent.com/OHDSI/EvidenceSynthesis/master/extras/NonNormalEffectSynthesis.pdf">Effect estimate using non-normal likelihood approximations</a>
+<li>Vignette: <a href="https://raw.githubusercontent.com/OHDSI/EvidenceSynthesis/main/extras/NonNormalEffectSynthesis.pdf" class="external-link">Effect estimate using non-normal likelihood approximations</a>
 </li>
-<li>Package manual: <a href="https://raw.githubusercontent.com/OHDSI/EvidenceSynthesis/master/extras/EvidenceSynthesis.pdf">EvidenceSynthesis.pdf</a>
+<li>Package manual: <a href="https://raw.githubusercontent.com/OHDSI/EvidenceSynthesis/main/extras/EvidenceSynthesis.pdf" class="external-link">EvidenceSynthesis.pdf</a>
 </li>
 </ul>
 </div>
-<div id="support" class="section level1">
-<h1 class="hasAnchor">
-<a href="#support" class="anchor"></a>Support</h1>
+<div class="section level1">
+<h1 id="support">Support<a class="anchor" aria-label="anchor" href="#support"></a>
+</h1>
 <ul>
-<li>Developer questions/comments/feedback: <a href="http://forums.ohdsi.org/c/developers">OHDSI Forum</a>
+<li>Developer questions/comments/feedback: <a href="http://forums.ohdsi.org/c/developers" class="external-link">OHDSI Forum</a>
 </li>
-<li>We use the <a href="https://github.com/OHDSI/EvidenceSynthesis/issues">GitHub issue tracker</a> for all bugs/issues/enhancements</li>
+<li>We use the <a href="https://github.com/OHDSI/EvidenceSynthesis/issues" class="external-link">GitHub issue tracker</a> for all bugs/issues/enhancements</li>
 </ul>
 </div>
-<div id="contributing" class="section level1">
-<h1 class="hasAnchor">
-<a href="#contributing" class="anchor"></a>Contributing</h1>
-<p>Read <a href="https://ohdsi.github.io/Hades/contribute.html">here</a> how you can contribute to this package.</p>
+<div class="section level1">
+<h1 id="contributing">Contributing<a class="anchor" aria-label="anchor" href="#contributing"></a>
+</h1>
+<p>Read <a href="https://ohdsi.github.io/Hades/contribute.html" class="external-link">here</a> how you can contribute to this package.</p>
 </div>
-<div id="license" class="section level1">
-<h1 class="hasAnchor">
-<a href="#license" class="anchor"></a>License</h1>
+<div class="section level1">
+<h1 id="license">License<a class="anchor" aria-label="anchor" href="#license"></a>
+</h1>
 <p>EvidenceSynthesis is licensed under Apache License 2.0</p>
 </div>
-<div id="development" class="section level1">
-<h1 class="hasAnchor">
-<a href="#development" class="anchor"></a>Development</h1>
+<div class="section level1">
+<h1 id="development">Development<a class="anchor" aria-label="anchor" href="#development"></a>
+</h1>
 <p>This package is being developed in RStudio.</p>
-<div id="development-status" class="section level3">
-<h3 class="hasAnchor">
-<a href="#development-status" class="anchor"></a>Development status</h3>
+<div class="section level3">
+<h3 id="development-status">Development status<a class="anchor" aria-label="anchor" href="#development-status"></a>
+</h3>
 <p>Beta</p>
 </div>
 </div>
@@ -198,52 +194,61 @@
 
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <div class="links">
-<h2>Links</h2>
+<h2 data-toc-skip>Links</h2>
 <ul class="list-unstyled">
-<li>Download from CRAN at <br><a href="https://cloud.r-project.org/package=EvidenceSynthesis">https://​cloud.r-project.org/​package=EvidenceSynthesis</a>
-</li>
-<li>Browse source code at <br><a href="https://github.com/OHDSI/EvidenceSynthesis/">https://​github.com/​OHDSI/​EvidenceSynthesis/​</a>
-</li>
-<li>Report a bug at <br><a href="https://github.com/OHDSI/EvidenceSynthesis/issues">https://​github.com/​OHDSI/​EvidenceSynthesis/​issues</a>
-</li>
-<li>Ask a question at <br><a href="http://forums.ohdsi.org">http://​forums.ohdsi.org</a>
-</li>
+<li><a href="https://cloud.r-project.org/package=EvidenceSynthesis" class="external-link">View on CRAN</a></li>
+<li><a href="https://github.com/OHDSI/EvidenceSynthesis/" class="external-link">Browse source code</a></li>
+<li><a href="https://github.com/OHDSI/EvidenceSynthesis/issues" class="external-link">Report a bug</a></li>
+<li><a href="http://forums.ohdsi.org" class="external-link">Ask a question</a></li>
 </ul>
 </div>
+
 <div class="license">
-<h2>License</h2>
+<h2 data-toc-skip>License</h2>
 <ul class="list-unstyled">
 <li>Apache License 2.0</li>
 </ul>
 </div>
-<div class="developers">
-<h2>Developers</h2>
+
+
+<div class="citation">
+<h2 data-toc-skip>Citation</h2>
 <ul class="list-unstyled">
-<li>Martijn Schuemie <br><small class="roles"> Author, maintainer </small>  </li>
-<li>Marc A. Suchard <br><small class="roles"> Author </small>  </li>
-<li><a href="authors.html">All authors...</a></li>
+<li><a href="authors.html#citation">Citing EvidenceSynthesis</a></li>
 </ul>
 </div>
 
-  <div class="dev-status">
-<h2>Dev status</h2>
+<div class="developers">
+<h2 data-toc-skip>Developers</h2>
 <ul class="list-unstyled">
-<li><a href="https://github.com/OHDSI/EvidenceSynthesis/actions?query=workflow%3AR-CMD-check"><img src="https://github.com/OHDSI/EvidenceSynthesis/workflows/R-CMD-check/badge.svg" alt="Build Status"></a></li>
-<li><a href="https://codecov.io/github/OHDSI/EvidenceSynthesis?branch=master"><img src="https://codecov.io/github/OHDSI/EvidenceSynthesis/coverage.svg?branch=master" alt="codecov.io"></a></li>
-<li><a href="https://cran.r-project.org/package=EvidenceSynthesis"><img src="http://www.r-pkg.org/badges/version/EvidenceSynthesis" alt="CRAN_Status_Badge"></a></li>
-<li><a href="https://cran.r-project.org/package=EvidenceSynthesis"><img src="http://cranlogs.r-pkg.org/badges/EvidenceSynthesis" alt="CRAN_Status_Badge"></a></li>
+<li>Martijn Schuemie <br><small class="roles"> Author, maintainer </small>  </li>
+<li>Marc A. Suchard <br><small class="roles"> Author </small>  </li>
+<li><a href="authors.html">More about authors...</a></li>
 </ul>
 </div>
+
+<div class="dev-status">
+<h2 data-toc-skip>Dev status</h2>
+<ul class="list-unstyled">
+<li><a href="https://github.com/OHDSI/EvidenceSynthesis/actions?query=workflow%3AR-CMD-check" class="external-link"><img src="https://github.com/OHDSI/EvidenceSynthesis/workflows/R-CMD-check/badge.svg" alt="Build Status"></a></li>
+<li><a href="https://codecov.io/github/OHDSI/EvidenceSynthesis?branch=main" class="external-link"><img src="https://codecov.io/github/OHDSI/EvidenceSynthesis/coverage.svg?branch=main" alt="codecov.io"></a></li>
+<li><a href="https://cran.r-project.org/package=EvidenceSynthesis" class="external-link"><img src="http://www.r-pkg.org/badges/version/EvidenceSynthesis" alt="CRAN_Status_Badge"></a></li>
+<li><a href="https://cran.r-project.org/package=EvidenceSynthesis" class="external-link"><img src="http://cranlogs.r-pkg.org/badges/EvidenceSynthesis" alt="CRAN_Status_Badge"></a></li>
+</ul>
 </div>
+
+  </div>
 </div>
 
 
       <footer><div class="copyright">
-  <p>Developed by Martijn Schuemie, Marc A. Suchard.</p>
+  <p></p>
+<p>Developed by Martijn Schuemie, Marc A. Suchard.</p>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
+  <p></p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.6.</p>
 </div>
 
       </footer>
@@ -251,6 +256,8 @@
 
   
 
+
+  
 
   </body>
 </html>
