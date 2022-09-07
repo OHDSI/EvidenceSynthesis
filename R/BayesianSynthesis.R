@@ -71,8 +71,8 @@ approximateSimplePosterior <- function(likelihoodProfile,
     inform(paste("Function is executed as an example in R check:",
                  "Reducing chainLength and burnIn to reduce compute time.",
                  "Result may be unreliable"))
-    chainLength <- 110000
-    burnIn <- 10000
+    chainLength <- 11000
+    burnIn <- 1000
   }
 
   inform("Detected data following grid distribution")

@@ -16,3 +16,4 @@ bin
 ^CRAN-RELEASE$
 ^.*\.iml
 ^\.idea
+^CRAN-SUBMISSION$

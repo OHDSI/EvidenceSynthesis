@@ -1,6 +1,6 @@
-Includes 1 change and 1 fix (see NEWS.md)
+This package was archived on CRAN because its dependency Cyclops was archived. Cyclops is now back, so could this package be restored?
 
-We also hope this will restore this package in CRAN, which we believe to be removed in error.
+Includes 1 change and 1 fix (see NEWS.md)
 
 ---
 
