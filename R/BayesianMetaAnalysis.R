@@ -169,8 +169,9 @@ computeBayesianMetaAnalysis <- function(data,
     inform(paste("Function is executed as an example in R check:",
                  "Reducing chainLength and burnIn to reduce compute time.",
                  "Result may be unreliable"))
-    chainLength <- 11000
-    burnIn <- 1000
+    chainLength <- 110000
+    burnIn <- 10000
+    Sys.sleep(1) # To avoid CRAN message about CPU time being more than 2.5. times elapsed time
   }
 
   # Determine type based on data structure:
