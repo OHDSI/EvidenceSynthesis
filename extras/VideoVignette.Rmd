@@ -1,0 +1,144 @@
+---
+title: "Evidence Synthesis Video Vignette"
+author: "Martijn Schuemie"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(EvidenceSynthesis)
+```
+
+
+# Simulate data 
+
+Simulate 10 sites:
+
+```{r}
+simulationSettings <- createSimulationSettings(nSites = 10,
+                                               n = 10000,
+                                               treatedFraction = 0.8,
+                                               nStrata = 5,
+                                               hazardRatio = 2,
+                                               randomEffectSd = 0.5)
+set.seed(1)
+populations <- simulatePopulations(simulationSettings)
+
+head(populations[[1]])
+table(populations[[1]][, c("x", "y")])
+```
+
+# Fit a model locally
+
+Assume we are at site 1:
+
+```{r message=FALSE}
+library(Cyclops)
+
+population <- populations[[1]]
+
+cyclopsData <- createCyclopsData(Surv(time, y) ~ x + strata(stratumId),
+                                 data = population,
+                                 modelType = "cox")
+cyclopsFit <- fitCyclopsModel(cyclopsData)
+
+# Hazard ratio:
+exp(coef(cyclopsFit))
+
+# 95% confidence interval:
+exp(confint(cyclopsFit, parm = "x")[2:3])
+```
+
+# Approximate the likelihood function at one site
+
+## Normal approximation
+
+```{r}
+normalApproximation <-  approximateLikelihood(
+  cyclopsFit = cyclopsFit,
+  parameter = "x",
+  approximation = "normal"
+)
+normalApproximation
+
+plotLikelihoodFit(approximation = normalApproximation,
+                  cyclopsFit = cyclopsFit,
+                  parameter = "x")
+```
+
+## Adaptive approximation
+
+```{r}
+
+approximation <-  approximateLikelihood(
+  cyclopsFit = cyclopsFit,
+  parameter = "x",
+  approximation = "adaptive grid",
+  bounds = c(log(0.1), log(10))
+)
+head(approximation)
+
+plotLikelihoodFit(approximation = approximation,
+                  cyclopsFit = cyclopsFit,
+                  parameter = "x")
+```
+
+# Approximate at all sites
+
+```{r}
+fitModelInDatabase <- function(population, approximation) {
+  cyclopsData <- createCyclopsData(Surv(time, y) ~ x + strata(stratumId),
+                                   data = population,
+                                   modelType = "cox")
+  cyclopsFit <- fitCyclopsModel(cyclopsData)
+  approximation <-  approximateLikelihood(cyclopsFit,
+                                          parameter = "x",
+                                          approximation = approximation)
+  return(approximation)
+}
+adaptiveGridApproximations <- lapply(populations, fitModelInDatabase, approximation = "adaptive grid")
+normalApproximations <- lapply(populations, fitModelInDatabase, approximation = "normal")
+normalApproximations <- dplyr::bind_rows(normalApproximations)
+```
+
+# Synthesize evidence
+
+## Fixed-effects
+
+Gold standard (pooling data):
+
+```{r message=FALSE}
+computeFixedEffectMetaAnalysis(populations)
+```
+
+Normal approximation: 
+
+```{r message=FALSE}
+computeFixedEffectMetaAnalysis(normalApproximations)
+```
+
+Adaptive grid approximation:
+
+```{r message=FALSE}
+computeFixedEffectMetaAnalysis(adaptiveGridApproximations)
+```
+
+## Random-effects
+
+Gold standard (pooling data):
+
+```{r cache=TRUE,message=FALSE}
+exp(computeBayesianMetaAnalysis(populations)[, 1:3])
+```
+
+Normal approximation: 
+
+```{r message=FALSE}
+exp(computeBayesianMetaAnalysis(normalApproximations)[, 1:3])
+```
+
+Adaptive grid approximation:
+
+```{r message=FALSE}
+exp(computeBayesianMetaAnalysis(adaptiveGridApproximations)[, 1:3])
+```
