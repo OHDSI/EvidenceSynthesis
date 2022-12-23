@@ -55,45 +55,12 @@ plotLikelihoodFit <- function(approximation,
                               xLabel = "Hazard Ratio",
                               limits = c(0.1, 10),
                               fileName = NULL) {
-  if ("logRr" %in% colnames(approximation)) {
-    inform("Detected normal approximation")
-    x <- seq(log(limits[1]), log(limits[2]), length.out = 100)
-    y <- dnorm(x, mean = approximation$logRr, sd = approximation$seLogRr, log = TRUE)
-  } else if ("gamma" %in% colnames(approximation)) {
-    inform("Detected custom parameric approximation")
-    x <- seq(log(limits[1]), log(limits[2]), length.out = 100)
-    y <- customFunction(x,
-                        mu = approximation$mu,
-                        sigma = approximation$sigma,
-                        gamma = approximation$gamma)
-  } else if ("alpha" %in% colnames(approximation)) {
-    inform("Detected skew normal approximation")
-    x <- seq(log(limits[1]), log(limits[2]), length.out = 100)
-    y <- skewNormal(x,
-                    mu = approximation$mu,
-                    sigma = approximation$sigma,
-                    alpha = approximation$alpha)
-  }  else if ("point" %in% names(approximation)) {
-    inform("Detected adaptive grid approximation")
-    x <- approximation$point
-    y <- approximation$value
-  } else {
-    inform("Detected grid approximation")
-    x <- as.numeric(names(approximation))
-    if (any(is.na(x))) {
-      abort("Expecting grid data, but not all column names are numeric")
-    }
-    y <- approximation
-
-  }
-  ll <- getLikelihoodProfile(cyclopsFit, parameter, x)
-  x <- x[!is.nan(ll)]
-  y <- y[!is.nan(ll)]
-  ll <- ll[!is.nan(ll)]
-  ll <- ll - max(ll)
-  y <- y - max(y)
-  plotData <- rbind(data.frame(x = x, ll = ll, type = "Likelihood"),
-                    data.frame(x = x, ll = y, type = "Approximation"))
+  coords <- getLikelihoodCoordinates(approximation, limits)
+  coords$ll <- getLikelihoodProfile(cyclopsFit, parameter, coords$x)
+  coords <- coords[!is.nan(coords$ll), ]
+  coords$ll <- coords$ll - max(coords$ll)
+  plotData <- rbind(data.frame(x = coords$x, ll = coords$ll, type = "Likelihood"),
+                    data.frame(x = coords$x, ll = coords$y, type = "Approximation"))
   if (logScale) {
     yLabel <- "Log Likelihood"
   } else {
@@ -125,6 +92,51 @@ plotLikelihoodFit <- function(approximation,
   if (!is.null(fileName))
     ggplot2::ggsave(fileName, plot, width = 5, height = 5, dpi = 400)
   return(plot)
+}
+
+getLikelihoodCoordinates <- function(approximation, limits, verbose = TRUE) {
+  if ("logRr" %in% colnames(approximation)) {
+    if (verbose) {
+      inform("Detected normal approximation")
+    }
+    x <- seq(log(limits[1]), log(limits[2]), length.out = 100)
+    y <- dnorm(x, mean = approximation$logRr, sd = approximation$seLogRr, log = TRUE)
+  } else if ("gamma" %in% colnames(approximation)) {
+    if (verbose) {
+      inform("Detected custom parameric approximation")
+    }
+    x <- seq(log(limits[1]), log(limits[2]), length.out = 100)
+    y <- customFunction(x,
+                        mu = approximation$mu,
+                        sigma = approximation$sigma,
+                        gamma = approximation$gamma)
+  } else if ("alpha" %in% colnames(approximation)) {
+    if (verbose) {
+      inform("Detected skew normal approximation")
+    }
+    x <- seq(log(limits[1]), log(limits[2]), length.out = 100)
+    y <- skewNormal(x,
+                    mu = approximation$mu,
+                    sigma = approximation$sigma,
+                    alpha = approximation$alpha)
+  }  else if ("point" %in% names(approximation)) {
+    if (verbose) {
+      inform("Detected adaptive grid approximation")
+    }
+    x <- approximation$point
+    y <- approximation$value
+  } else {
+    if (verbose) {
+      inform("Detected grid approximation")
+    }
+    x <- as.numeric(names(approximation))
+    if (any(is.na(x))) {
+      abort("Expecting grid data, but not all column names are numeric")
+    }
+    y <- approximation
+  }
+  y <- y - max(y)
+  return(data.frame(x = x, y = y))
 }
 
 #' Plot MCMC trace

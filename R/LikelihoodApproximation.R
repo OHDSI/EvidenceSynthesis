@@ -282,6 +282,12 @@ computeConfidenceInterval <- function(approximation, alpha = 0.05) {
                                                  sigma = approximation$sigma,
                                                  alpha = approximation$alpha)
     return(estimate)
+  } else if ("point" %in% names(approximation)) {
+    inform("Detected data following adaptive grid distribution")
+    temp <- approximation$value
+    names(temp) <- approximation$point
+    estimate <- computeEstimateFromGrid(temp, alpha = alpha)
+    return(estimate)
   } else {
     inform("Detected data following grid distribution")
     x <- as.numeric(colnames(approximation))

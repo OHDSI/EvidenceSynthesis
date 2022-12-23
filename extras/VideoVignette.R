@@ -1,5 +1,6 @@
 # Code for generating plot for video vignette:
 library(EvidenceSynthesis)
+library(Cyclops)
 simulationSettings <- createSimulationSettings(nSites = 10,
                                                n = 10000,
                                                treatedFraction = 0.8,
@@ -20,10 +21,11 @@ fitModelInDatabase <- function(population, approximation) {
   return(approximation)
 }
 adaptiveGridApproximations <- lapply(populations, fitModelInDatabase, approximation = "adaptive grid")
+normalApproximations <- lapply(populations, fitModelInDatabase, approximation = "normal")
+normalApproximations <- dplyr::bind_rows(normalApproximations)
 
 
-
-
+# Plot example of adaptive grid ------------------------------------------------
 limits = c(0.1, 10)
 breaks <- c(0.1, 0.25, 0.5, 1, 2, 4, 6, 8, 10)
 plotData <- adaptiveGridApproximations[[10]]
@@ -44,3 +46,23 @@ plot <- ggplot2::ggplot(plotData, ggplot2::aes(x = point, y = value)) +
                  legend.position = "top")
 plot
 ggplot2::ggsave(filename = "d:/temp/plot.png", plot = plot, width = 6, height = 3, dpi = 200)
+
+# Plot new forest plot with likelihood curves ----------------------------------
+maEstimate <- computeBayesianMetaAnalysis(adaptiveGridApproximations)
+plotMetaAnalysisForest(
+  data = adaptiveGridApproximations,
+  labels = sprintf("Site %d", seq_along(adaptiveGridApproximations)),
+  estimate = maEstimate,
+  xLabel = "Hazard Ratio",
+  showLikelihood = TRUE
+)
+
+maEstimate <- computeFixedEffectMetaAnalysis(normalApproximations)
+plotMetaAnalysisForest(
+  data = normalApproximations,
+  labels = sprintf("Site %d", seq_len(nrow(normalApproximations))),
+  estimate = maEstimate,
+  xLabel = "Hazard Ratio",
+  showLikelihood = F
+)
+

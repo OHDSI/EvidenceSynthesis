@@ -253,9 +253,20 @@ poolPopulations <- function(populations) {
 
 computeEstimateFromGrid <- function(grid, alpha = 0.05) {
   maxIdx <- which(grid == max(grid))[1]
+  if (maxIdx == 1 || maxIdx == length(grid)) {
+    warn("Point estimate out of range")
+    result <- data.frame(rr = NA,
+                         lb = NA,
+                         ub = NA,
+                         logRr = NA,
+                         seLogRr = NA)
+    return(result)
+  }
+
   logRr <- as.numeric(names(grid)[maxIdx])
   threshold <- unlist(grid[maxIdx]) - qchisq(1 - alpha, df = 1)/2
   lbIdx <- min(which(grid[1:maxIdx] > threshold))
+  # TODO: use interpolation to get more precise CI
   if (lbIdx == 1) {
     warn("Lower bound of confidence interval out of range")
   }
