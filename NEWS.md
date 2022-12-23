@@ -1,3 +1,11 @@
+EvidenceSynthesis 0.4.0
+=======================
+
+Changes
+
+1. Supporting adaptive grid in `plotLikelihoodFit()` and `computeFixedEffectMetaAnalysis()` functions.
+
+
 EvidenceSynthesis 0.3.0
 =======================
 

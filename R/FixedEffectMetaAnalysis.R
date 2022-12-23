@@ -107,7 +107,9 @@ computeFixedEffectMetaAnalysis <- function(data, alpha = 0.05) {
                              seLogRr = (ci95[3] - ci95[2])/(2 * qnorm(0.975)))
       return(estimate)
     } else if ("point" %in% names(data[[1]])) {
-      abort("Adaptive grid data not supported in this function")
+      inform("Detected data following adaptive grid distribution")
+      estimate <- computeFixedEffectAdaptiveGrid(data, alpha)
+      return(estimate)
     } else {
       abort("Unknown input data format")
     }
@@ -126,6 +128,47 @@ computeFixedEffectMetaAnalysis <- function(data, alpha = 0.05) {
     estimate <- computeEstimateFromGrid(grid, alpha = alpha)
     return(estimate)
   }
+}
+
+estimate <- computeFixedEffectAdaptiveGrid <- function(data, alpha) {
+  gridPoints <- sort(unique(do.call(c, lapply(data, function(x) x$point))))
+  values <- rep(0, length(gridPoints))
+  for (i in seq_along(data)) {
+    cleanedData <- as.data.frame(data[[i]])
+    cleanedData$value <- cleanedData$value - max(cleanedData$value)
+    cleanedData <- cleanData(cleanedData,
+                             c("point", "value"),
+                             minValues = c(-100, -1e6),
+                             maxValues = c(100, 0))
+    cleanedData <- cleanedData[order(cleanedData$point), ]
+
+    # Compute likelihood at unioned grid points, using linear interpolation where needed:
+    cursor <- 1
+    for (j in seq_along(gridPoints)) {
+      if (cursor == 1 && gridPoints[j] <= cleanedData$point[cursor]) {
+        value <- cleanedData$value[cursor]
+      } else if (cursor == nrow(cleanedData) && gridPoints[j] >= cleanedData$point[cursor]) {
+        value <- cleanedData$value[cursor]
+      } else {
+        if (gridPoints[j] > cleanedData$point[cursor]) {
+          cursor <- cursor + 1
+        }
+        if (gridPoints[j] == cleanedData$point[cursor]) {
+          value <- cleanedData$value[cursor]
+        } else {
+          x1 <- cleanedData$point[cursor - 1]
+          x2 <- cleanedData$point[cursor]
+          y1 <- cleanedData$value[cursor - 1]
+          y2 <- cleanedData$value[cursor]
+          value <- y1 + ((y2 - y1) * (gridPoints[j] - x1) / (x2 - x1))
+        }
+      }
+      values[j] <- values[j] + value
+    }
+  }
+  names(values) <- gridPoints
+  estimate <- computeEstimateFromGrid(grid = values, alpha = alpha)
+  return(estimate)
 }
 
 combineLogLikelihoodFunctions <- function(x, fits, fun = customFunction) {

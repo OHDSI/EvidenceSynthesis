@@ -73,6 +73,10 @@ plotLikelihoodFit <- function(approximation,
                     mu = approximation$mu,
                     sigma = approximation$sigma,
                     alpha = approximation$alpha)
+  }  else if ("point" %in% names(approximation)) {
+    inform("Detected adaptive grid approximation")
+    x <- approximation$point
+    y <- approximation$value
   } else {
     inform("Detected grid approximation")
     x <- as.numeric(names(approximation))
@@ -80,7 +84,7 @@ plotLikelihoodFit <- function(approximation,
       abort("Expecting grid data, but not all column names are numeric")
     }
     y <- approximation
-    
+
   }
   ll <- getLikelihoodProfile(cyclopsFit, parameter, x)
   x <- x[!is.nan(ll)]
@@ -175,12 +179,12 @@ plotMcmcTrace <- function(estimate, showEstimate = TRUE, dataCutoff = 0.01, file
   }
   data <- rbind(dataMu, dataTau)
   plot <- ggplot2::ggplot(data, ggplot2::aes(x = .data$x,
-                                             y = .data$trace)) + 
-    ggplot2::geom_line(alpha = 0.7) + 
+                                             y = .data$trace)) +
+    ggplot2::geom_line(alpha = 0.7) +
     ggplot2::scale_x_continuous("Iterations") +
-    ggplot2::facet_grid(var ~ ., scales = "free", switch = "both") + 
-    ggplot2::theme(axis.title.y = ggplot2::element_blank(), 
-                   strip.placement = "outside", 
+    ggplot2::facet_grid(var ~ ., scales = "free", switch = "both") +
+    ggplot2::theme(axis.title.y = ggplot2::element_blank(),
+                   strip.placement = "outside",
                    strip.background = ggplot2::element_blank())
   if (showEstimate) {
     mode <- data.frame(trace = c(estimate$mu, estimate$tau), var = c("Mu", "Tau"))
@@ -188,7 +192,7 @@ plotMcmcTrace <- function(estimate, showEstimate = TRUE, dataCutoff = 0.01, file
                                estimate$mu95Ub,
                                estimate$tau95Lb,
                                estimate$tau95Ub), var = c("Mu", "Mu", "Tau", "Tau"))
-    
+
     plot <- plot +
       ggplot2::geom_hline(ggplot2::aes(yintercept = trace), data = mode) +
       ggplot2::geom_hline(ggplot2::aes(yintercept = trace), data = ci, linetype = "dashed")
@@ -250,11 +254,11 @@ plotPerDbMcmcTrace <- function(estimate, showEstimate = TRUE, dataCutoff = 0.01,
   }
   data <- lapply(3:ncol(traces), getDbChain)
   data <- do.call(rbind, data)
-  
-  plot <- ggplot2::ggplot(data, ggplot2::aes(x = .data$x, y = .data$trace)) + 
-    ggplot2::geom_line(alpha = 0.7) + 
-    ggplot2::scale_x_continuous("Iterations") + 
-    ggplot2::scale_y_continuous(expression(theta)) + 
+
+  plot <- ggplot2::ggplot(data, ggplot2::aes(x = .data$x, y = .data$trace)) +
+    ggplot2::geom_line(alpha = 0.7) +
+    ggplot2::scale_x_continuous("Iterations") +
+    ggplot2::scale_y_continuous(expression(theta)) +
     ggplot2::facet_grid(var ~ ., scales = "free")
   if (showEstimate) {
     getDbMedian <- function(i) {
@@ -262,13 +266,13 @@ plotPerDbMcmcTrace <- function(estimate, showEstimate = TRUE, dataCutoff = 0.01,
     }
     mode <- lapply(3:ncol(traces), getDbMedian)
     mode <- do.call(rbind, mode)
-    
+
     getDbCi <- function(i) {
       return(data.frame(trace = HDInterval::hdi(traces[, i]), var = sprintf("Site %s", i - 2)))
     }
     ci <- lapply(3:ncol(traces), getDbCi)
     ci <- do.call(rbind, ci)
-    
+
     plot <- plot +
       ggplot2::geom_hline(ggplot2::aes(yintercept = .data$trace), data = mode) +
       ggplot2::geom_hline(ggplot2::aes(yintercept = .data$trace),
@@ -330,12 +334,12 @@ plotPosterior <- function(estimate, showEstimate = TRUE, dataCutoff = 0.01, file
     dataTau <- dataTau[dataTau$trace > limsTau[1] & dataTau$trace < limsTau[2], ]
   }
   data <- rbind(dataMu, dataTau)
-  plot <- ggplot2::ggplot(data, ggplot2::aes(x = .data$trace)) + 
-    ggplot2::geom_density(alpha = 0.4, fill = rgb(0, 0, 0), color = rgb(0, 0, 0)) + 
-    ggplot2::scale_y_continuous("Density") + 
+  plot <- ggplot2::ggplot(data, ggplot2::aes(x = .data$trace)) +
+    ggplot2::geom_density(alpha = 0.4, fill = rgb(0, 0, 0), color = rgb(0, 0, 0)) +
+    ggplot2::scale_y_continuous("Density") +
     ggplot2::facet_grid(~var, scales = "free", switch = "both") +
-    ggplot2::theme(axis.title.x = ggplot2::element_blank(), 
-                   strip.placement = "outside", 
+    ggplot2::theme(axis.title.x = ggplot2::element_blank(),
+                   strip.placement = "outside",
                    strip.background = ggplot2::element_blank())
   if (showEstimate) {
     mode <- data.frame(trace = c(estimate$mu, estimate$tau), var = c("Mu", "Tau"))
@@ -343,7 +347,7 @@ plotPosterior <- function(estimate, showEstimate = TRUE, dataCutoff = 0.01, file
                                estimate$mu95Ub,
                                estimate$tau95Lb,
                                estimate$tau95Ub), var = c("Mu", "Mu", "Tau", "Tau"))
-    
+
     plot <- plot +
       ggplot2::geom_vline(ggplot2::aes(xintercept = .data$trace), data = mode) +
       ggplot2::geom_vline(ggplot2::aes(xintercept = .data$trace),
@@ -404,11 +408,11 @@ plotPerDbPosterior <- function(estimate, showEstimate = TRUE, dataCutoff = 0.01,
   }
   data <- lapply(3:ncol(traces), getDbChain)
   data <- do.call(rbind, data)
-  
-  plot <- ggplot2::ggplot(data, ggplot2::aes(x = .data$trace)) + 
-    ggplot2::geom_density(alpha = 0.4, fill = rgb(0, 0, 0), color = rgb(0, 0, 0)) + 
-    ggplot2::scale_x_continuous(expression(theta)) + 
-    ggplot2::scale_y_continuous("Density") + 
+
+  plot <- ggplot2::ggplot(data, ggplot2::aes(x = .data$trace)) +
+    ggplot2::geom_density(alpha = 0.4, fill = rgb(0, 0, 0), color = rgb(0, 0, 0)) +
+    ggplot2::scale_x_continuous(expression(theta)) +
+    ggplot2::scale_y_continuous("Density") +
     ggplot2::facet_grid(var ~ ., scales = "free")
   if (showEstimate) {
     getDbMedian <- function(i) {
@@ -416,13 +420,13 @@ plotPerDbPosterior <- function(estimate, showEstimate = TRUE, dataCutoff = 0.01,
     }
     mode <- lapply(3:ncol(traces), getDbMedian)
     mode <- do.call(rbind, mode)
-    
+
     getDbCi <- function(i) {
       return(data.frame(trace = HDInterval::hdi(traces[, i]), var = sprintf("Site %s", i - 2)))
     }
     ci <- lapply(3:ncol(traces), getDbCi)
     ci <- do.call(rbind, ci)
-    
+
     plot <- plot +
       ggplot2::geom_vline(ggplot2::aes(xintercept = trace), data = mode) +
       ggplot2::geom_vline(ggplot2::aes(xintercept = trace), data = ci, linetype = "dashed")

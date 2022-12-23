@@ -79,7 +79,7 @@ test_that("Custom approximation: pooled matches random-effects meta-analysis", {
 # Grid approximation
 data <- createApproximations(populations, "grid")
 
-test_that("Grid approximation: pooled matches meta-analysis", {
+test_that("Grid approximation: pooled matches fixed-effects meta-analysis", {
   estimate <- computeFixedEffectMetaAnalysis(data)
   expect_equal(estimate[, c("rr", "logRr")],
                pooledFixedFxEstimate[, c("rr", "logRr")],
@@ -111,6 +111,20 @@ test_that("Grid approximation: pooled matches random-effects meta-analysis", {
 # Adaptive grid approximation
 data <- createApproximations(populations, "adaptive grid")
 
+test_that("Adaptive grid approximation: pooled matches fixed-effects meta-analysis", {
+  estimate <- computeFixedEffectMetaAnalysis(data)
+  expect_equal(estimate[, c("rr", "logRr")],
+               pooledFixedFxEstimate[, c("rr", "logRr")],
+               tolerance = 0.15,
+               scale = 1,
+               check.attributes = FALSE)
+  expect_equal(estimate[, c("lb", "ub", "seLogRr")],
+               pooledFixedFxEstimate[, c("lb", "ub", "seLogRr")],
+               tolerance = 0.50,
+               scale = 1,
+               check.attributes = FALSE)
+})
+
 test_that("Adaptive grid approximation: pooled matches random-effects meta-analysis", {
   skip_if_not(supportsJava8())
   estimate <- computeBayesianMetaAnalysis(data, seed = seed)
@@ -129,7 +143,7 @@ test_that("Adaptive grid approximation: pooled matches random-effects meta-analy
 # Normal approximation
 data <- createApproximations(populations, "normal")
 
-test_that("Normal approximation: pooled matches meta-analysis", {
+test_that("Normal approximation: pooled matches fixed-effects meta-analysis", {
   estimate <- computeFixedEffectMetaAnalysis(data)
   # Not really expecting normal approximation is close to gold standard:
   expect_equal(estimate, pooledFixedFxEstimate, tolerance = 10, check.attributes = FALSE)
@@ -145,7 +159,7 @@ test_that("Normal approximation: pooled matches random-effects meta-analysis", {
 # Skew-normal approximation
 data <- createApproximations(populations, "skew normal")
 
-test_that("Skew-normal approximation: pooled matches meta-analysis", {
+test_that("Skew-normal approximation: pooled matches fixed-effects meta-analysis", {
   estimate <- computeFixedEffectMetaAnalysis(data)
   # Skew-normal is a poorer approximation, using higher tolerance:
   expect_equal(estimate[, c("rr", "logRr")],
@@ -175,3 +189,4 @@ test_that("Skew-normal approximation: pooled matches random-effects meta-analysi
                scale = 1,
                check.attributes = FALSE)
 })
+
