@@ -71,9 +71,14 @@ plotMetaAnalysisForest <- function(data,
                                    alpha = 0.05,
                                    showLikelihood = TRUE,
                                    fileName = NULL) {
+  if (is.numeric(data)) {
+    data <- apply(data, 1, function(row) row, simplify = FALSE)
+  }
+
   if (is.data.frame(data)) {
     data <- split(data, seq_len(nrow(data)))
   }
+
   if (length(data) != length(labels)) {
     abort("The number of labels should be equal to the number of approximatins in `data`")
   }
@@ -100,12 +105,18 @@ plotMetaAnalysisForest <- function(data,
                      logUb95Ci = log(estimate$ub),
                      type = "ma",
                      label = summaryLabel)
-  } else {
+  } else if ("mu" %in% colnames(estimate)) {
     d3 <- data.frame(logRr = estimate$mu,
                      logLb95Ci = estimate$mu95Lb,
                      logUb95Ci = estimate$mu95Ub,
                      type = "ma",
                      label = sprintf("%s (tau = %.2f)", summaryLabel, estimate$tau))
+  } else {
+    d3 <- data.frame(logRr = estimate$logRr,
+                     logLb95Ci = log(estimate$logLb95Ci ),
+                     logUb95Ci = log(estimate$logUb95Ci ),
+                     type = "ma",
+                     label = summaryLabel)
   }
   d <- rbind(d1, d2, d3)
   d$y <- seq(nrow(d), 1)
@@ -189,7 +200,7 @@ plotMetaAnalysisForest <- function(data,
                    axis.ticks = ggplot2::element_blank(),
                    plot.margin = grid::unit(c(0, 0, 0.1, 0), "lines"))
 
-  p
+  # p
   d$logLb95Ci[is.infinite(d$logLb95Ci)] <- NA
   d$logUb95Ci[is.infinite(d$logUb95Ci)] <- NA
   labels <- sprintf("%0.2f (%0.2f - %0.2f)", exp(d$logRr), exp(d$logLb95Ci), exp(d$logUb95Ci))
@@ -220,6 +231,6 @@ plotMetaAnalysisForest <- function(data,
   plot <- gridExtra::grid.arrange(data_table, p, ncol = 2)
 
   if (!is.null(fileName))
-    ggplot2::ggsave(fileName, plot, width = 7, height = 1 + nrow(data) * 0.3, dpi = 400)
+    ggplot2::ggsave(fileName, plot, width = 7, height = 1 + length(data) * 0.3, dpi = 400)
   invisible(plot)
 }
