@@ -12,6 +12,7 @@ plotMetaAnalysisForest(
   summaryLabel = "Summary",
   limits = c(0.1, 10),
   alpha = 0.05,
+  showLikelihood = TRUE,
   fileName = NULL
 )
 }
@@ -30,6 +31,8 @@ likelihood data. One row per database.}
 \item{limits}{The limits of the effect size axis.}
 
 \item{alpha}{The alpha (expected type I error).}
+
+\item{showLikelihood}{Show the likelihood curve for each estimate?}
 
 \item{fileName}{Name of the file where the plot should be saved, for example 'plot.png'. See the
 function \link[ggplot2:ggsave]{ggplot2::ggsave} ifor supported file formats.}

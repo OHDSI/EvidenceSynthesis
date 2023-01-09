@@ -31,6 +31,7 @@
 #' @param summaryLabel The label for the meta-analytic estimate.
 #' @param limits    The limits of the effect size axis.
 #' @param alpha     The alpha (expected type I error).
+#' @param showLikelihood Show the likelihood curve for each estimate?
 #' @param fileName  Name of the file where the plot should be saved, for example 'plot.png'. See the
 #'                  function [ggplot2::ggsave] ifor supported file formats.
 #'

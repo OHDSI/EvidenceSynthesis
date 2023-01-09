@@ -63,6 +63,6 @@ plotMetaAnalysisForest(
   labels = sprintf("Site %d", seq_len(nrow(normalApproximations))),
   estimate = maEstimate,
   xLabel = "Hazard Ratio",
-  showLikelihood = F
+  showLikelihood = TRUE
 )
 
