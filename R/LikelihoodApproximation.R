@@ -257,44 +257,182 @@ getLikelihoodProfile <- function(cyclopsFit, parameter, x) {
 #'
 #' @export
 computeConfidenceInterval <- function(approximation, alpha = 0.05) {
-  # Determine type based on data structure:
-  if ("logRr" %in% colnames(approximation)) {
-    inform("Detected data following normal distribution")
+  type <- detectApproximationType(approximation)
+  if (type == "normal") {
     estimate <- data.frame(rr = exp(approximation$logRr),
                            lb = exp(approximation$logRr + qnorm(alpha/2) * approximation$seLogRr),
                            ub = exp(approximation$logRr + qnorm(1 - alpha/2) * approximation$seLogRr),
                            logRr = approximation$logRr,
                            seLogRr = approximation$seLogRr)
     return(estimate)
-  } else if ("gamma" %in% colnames(approximation)) {
-    inform("Detected data following custom parameric distribution")
+  } else if (type == "custom") {
     estimate <- computeEstimateFromApproximation(approximationFuntion = customFunction,
                                                  a = alpha,
                                                  mu = approximation$mu,
                                                  sigma = approximation$sigma,
                                                  gamma = approximation$gamma)
     return(estimate)
-  } else if ("alpha" %in% colnames(approximation)) {
-    inform("Detected data following skew normal distribution")
+  } else if  (type == "skew normal") {
     estimate <- computeEstimateFromApproximation(approximationFuntion = skewNormal,
                                                  a = alpha,
                                                  mu = approximation$mu,
                                                  sigma = approximation$sigma,
                                                  alpha = approximation$alpha)
     return(estimate)
-  } else if ("point" %in% names(approximation)) {
-    inform("Detected data following adaptive grid distribution")
+  } else if (type == "adaptive grid") {
     temp <- approximation$value
     names(temp) <- approximation$point
     estimate <- computeEstimateFromGrid(temp, alpha = alpha)
     return(estimate)
+  } else if (type == "grid") {
+    estimate <- computeEstimateFromGrid(approximation, alpha = alpha)
+    return(estimate)
   } else {
-    inform("Detected data following grid distribution")
-    x <- as.numeric(colnames(approximation))
+    abort(sprintf("Approximation type '%s' not supported by this function", type))
+  }
+}
+
+#' Detect the type of likelihood approximation based on the data format
+#'
+#' @param data    The approximation data. Can be a single approximation, or approximations
+#'                from multiple sites.
+#' @param verbose Should the detected type be communicated to the user?
+#'
+#' @return
+#' A character vector with one of the following values: "normal", "custom", "skew normal",
+#' "pooled", "grid", or "adaptive grid".
+#'
+#' @examples
+#' detectApproximationType(data.frame(logRr = 1, seLogRr = 0.1))
+#'
+#' @export
+detectApproximationType <- function(data, verbose = TRUE) {
+  if (is.list(data) && !is.data.frame(data)) {
+    columnNames <- names(data[[1]])
+  } else {
+    columnNames <- colnames(data)
+  }
+
+  if ("logRr" %in% columnNames) {
+    if (verbose) {
+      inform("Detected data following normal distribution")
+    }
+    return("normal")
+  } else if ("gamma" %in% columnNames) {
+    if (verbose) {
+      inform("Detected data following custom parameric distribution")
+    }
+    return("custom")
+  } else if ("alpha" %in% columnNames) {
+    if (verbose) {
+      inform("Detected data following skew normal distribution")
+    }
+    return("skew normal")
+  } else if ("stratumId" %in% columnNames) {
+    if (verbose) {
+      inform("Detected (pooled) patient-level data")
+    }
+    return("pooled")
+  } else if ("point" %in% columnNames) {
+    if (verbose) {
+      inform("Detected data following adaptive grid distribution")
+    }
+    return("adaptive grid")
+  } else {
+    if (verbose) {
+      inform("Detected data following grid distribution")
+    }
+    x <- as.numeric(columnNames)
     if (any(is.na(x))) {
       abort("Expecting grid data, but not all column names are numeric")
     }
-    estimate <- computeEstimateFromGrid(approximation, alpha = alpha)
-    return(estimate)
+    return("grid")
   }
+}
+
+cleanApproximations <- function(data) {
+  type <- detectApproximationType(data, verbose = FALSE)
+  if (type == "normal") {
+    data <- cleanData(data, c("logRr", "seLogRr"), minValues = c(-100, 1e-05))
+  } else if (type == "custom") {
+    data <- cleanData(data, c("mu", "sigma", "gamma"), minValues = c(-100, 1e-05, -100))
+  } else if  (type == "skew normal") {
+    data <- cleanData(data,
+                      c("mu", "sigma", "alpha"),
+                      minValues = c(-100, 1e-05, -10000),
+                      maxValues = c(100, 10000, 10000))
+  } else if (type == "adaptive grid") {
+    for (i in 1:length(data)) {
+      cleanedData <- as.data.frame(data[[i]])
+      cleanedData$value <- cleanedData$value - max(cleanedData$value)
+      cleanedData <- cleanData(cleanedData,
+                               c("point", "value"),
+                               minValues = c(-100, -1e6),
+                               maxValues = c(100, 0))
+      data[[i]] <- cleanedData
+    }
+  } else if (type == "grid") {
+    for (i in 1:length(data)) {
+      data <- cleanData(data,
+                        colnames(data),
+                        minValues = rep(-1e6, ncol(data)),
+                        maxValues = rep(0, ncol(data)),
+                        grid = TRUE)
+    }
+  }
+  return(data)
+}
+
+cleanData <- function(data,
+                      columns,
+                      minValues = rep(-100, length(columns)),
+                      maxValues = rep(100, length(columns)),
+                      grid = FALSE) {
+  for (i in 1:length(columns)) {
+    column <- columns[i]
+    if (any(is.infinite(data[, column]))) {
+      if (grid) {
+        warn(paste("Estimate(s) with infinite log-likelihood detected. Removing before computing meta-analysis."))
+      } else {
+        warn(paste("Estimate(s) with infinite",
+                   column,
+                   "detected. Removing before computing meta-analysis."))
+      }
+      data <- data[!is.infinite(data[, column]), ]
+    }
+    if (any(is.na(data[, column]))) {
+      if (grid) {
+        warn(paste("Estimate(s) with NA log-likelihood detected. Removing before computing meta-analysis."))
+      } else {
+        warn(paste("Estimate(s) with NA",
+                   column,
+                   "detected. Removing before computing meta-analysis."))
+      }
+      data <- data[!is.na(data[, column]), ]
+    }
+    if (any(data[, column] > maxValues[i])) {
+      if (grid) {
+        warn(paste("Estimate(s) with positive log-likelihood detected. Removing before computing meta-analysis."))
+      } else {
+        warn(sprintf("Estimate(s) with extremely high %s (>%s) detected. Removing before computing meta-analysis.",
+                     column,
+                     maxValues[i]))
+      }
+      data <- data[data[, column] <= maxValues[i], ]
+    }
+    if (any(data[, column] < minValues[i])) {
+      if (grid) {
+        warn(paste("Estimate(s) with extremely low log-likelihood detected. Removing before computing meta-analysis."))
+      } else {
+        warn(sprintf("Estimate(s) with extremely low %s (<%s) detected. Removing before computing meta-analysis.",
+                     column,
+                     minValues[i]))
+      }
+      data <- data[data[, column] >= minValues[i], ]
+    }
+  }
+  if (nrow(data) == 0) {
+    warn("No estimates left after removing estimates with NA, infinite or extreme values")
+  }
+  return(data)
 }

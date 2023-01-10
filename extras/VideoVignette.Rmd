@@ -5,7 +5,7 @@ date: "`r Sys.Date()`"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
+```{r setup, include = FALSE}
 library(EvidenceSynthesis)
 ```
 
@@ -32,7 +32,7 @@ table(populations[[1]][, c("x", "y")])
 
 Assume we are at site 1:
 
-```{r message=FALSE}
+```{r message = FALSE}
 library(Cyclops)
 
 population <- populations[[1]]
@@ -107,38 +107,92 @@ normalApproximations <- dplyr::bind_rows(normalApproximations)
 
 Gold standard (pooling data):
 
-```{r message=FALSE}
-computeFixedEffectMetaAnalysis(populations)
+```{r message = FALSE,cache = TRUE}
+fixedFxPooled <- computeFixedEffectMetaAnalysis(populations)
+fixedFxPooled
 ```
 
 Normal approximation: 
 
-```{r message=FALSE}
-computeFixedEffectMetaAnalysis(normalApproximations)
+```{r message = FALSE}
+fixedFxNormal <- computeFixedEffectMetaAnalysis(normalApproximations)
+fixedFxNormal
 ```
 
 Adaptive grid approximation:
 
-```{r message=FALSE}
-computeFixedEffectMetaAnalysis(adaptiveGridApproximations)
+```{r message = FALSE}
+fixedFxAdaptiveGrid <- computeFixedEffectMetaAnalysis(adaptiveGridApproximations)
+fixedFxAdaptiveGrid
+```
+
+### Visualization
+
+Normal approximation: 
+
+```{r message = FALSE, warning = FALSE, fig.width = 9, fig.height = 5}
+plotMetaAnalysisForest(
+  data = normalApproximations,
+  labels = paste("Site", 1:10),
+  estimate = fixedFxNormal,
+  xLabel = "Hazard Ratio"
+)
+```
+
+Adaptive grid approximation:
+
+```{r message = FALSE, warning = FALSE, fig.width = 9, fig.height = 5}
+plotMetaAnalysisForest(
+  data = adaptiveGridApproximations,
+  labels = paste("Site", 1:10),
+  estimate = fixedFxAdaptiveGrid,
+  xLabel = "Hazard Ratio"
+)
 ```
 
 ## Random-effects
 
 Gold standard (pooling data):
 
-```{r cache=TRUE,message=FALSE}
-exp(computeBayesianMetaAnalysis(populations)[, 1:3])
+```{r cache = TRUE, message = FALSE,cache=TRUE}
+randomFxPooled <- computeBayesianMetaAnalysis(populations)
+exp(randomFxPooled[, 1:3])
 ```
 
 Normal approximation: 
 
-```{r message=FALSE}
-exp(computeBayesianMetaAnalysis(normalApproximations)[, 1:3])
+```{r message = FALSE}
+randomFxNormal <- computeBayesianMetaAnalysis(normalApproximations)
+exp(randomFxNormal[, 1:3])
 ```
 
 Adaptive grid approximation:
 
-```{r message=FALSE}
-exp(computeBayesianMetaAnalysis(adaptiveGridApproximations)[, 1:3])
+```{r message = FALSE}
+randomFxAdaptiveGrid <- computeBayesianMetaAnalysis(adaptiveGridApproximations)
+exp(randomFxAdaptiveGrid[, 1:3])
+```
+
+### Visualization
+
+Normal approximation: 
+
+```{r message = FALSE, warning = FALSE, fig.width = 8, fig.height = 5}
+plotMetaAnalysisForest(
+  data = normalApproximations,
+  labels = paste("Site", 1:10),
+  estimate = randomFxNormal,
+  xLabel = "Hazard Ratio"
+)
+```
+
+Adaptive grid approximation:
+
+```{r message = FALSE, warning = FALSE, fig.width = 8, fig.height = 5}
+plotMetaAnalysisForest(
+  data = adaptiveGridApproximations,
+  labels = paste("Site", 1:10),
+  estimate = randomFxAdaptiveGrid,
+  xLabel = "Hazard Ratio"
+)
 ```

@@ -203,8 +203,10 @@ plotMetaAnalysisForest <- function(data,
   # p
   d$logLb95Ci[is.infinite(d$logLb95Ci)] <- NA
   d$logUb95Ci[is.infinite(d$logUb95Ci)] <- NA
+  d$logRr[exp(d$logRr) < limits[1] | exp(d$logRr) > limits[2]] <- NA
   labels <- sprintf("%0.2f (%0.2f - %0.2f)", exp(d$logRr), exp(d$logLb95Ci), exp(d$logUb95Ci))
   labels <- gsub("NA", "", labels)
+  labels <- gsub(" \\( - \\)", "-", labels)
   labels <- data.frame(y = rep(d$y, 2),
                        x = rep(1:2, each = nrow(d)),
                        label = c(as.character(d$label), labels),

@@ -95,45 +95,30 @@ plotLikelihoodFit <- function(approximation,
 }
 
 getLikelihoodCoordinates <- function(approximation, limits, verbose = TRUE) {
-  if ("logRr" %in% colnames(approximation)) {
-    if (verbose) {
-      inform("Detected normal approximation")
-    }
+  type <- detectApproximationType(approximation, verbose = verbose)
+  if (type == "normal") {
     x <- seq(log(limits[1]), log(limits[2]), length.out = 100)
     y <- dnorm(x, mean = approximation$logRr, sd = approximation$seLogRr, log = TRUE)
-  } else if ("gamma" %in% colnames(approximation)) {
-    if (verbose) {
-      inform("Detected custom parameric approximation")
-    }
+  } else if (type == "custom") {
     x <- seq(log(limits[1]), log(limits[2]), length.out = 100)
     y <- customFunction(x,
                         mu = approximation$mu,
                         sigma = approximation$sigma,
                         gamma = approximation$gamma)
-  } else if ("alpha" %in% colnames(approximation)) {
-    if (verbose) {
-      inform("Detected skew normal approximation")
-    }
+  } else if  (type == "skew normal") {
     x <- seq(log(limits[1]), log(limits[2]), length.out = 100)
     y <- skewNormal(x,
                     mu = approximation$mu,
                     sigma = approximation$sigma,
                     alpha = approximation$alpha)
-  }  else if ("point" %in% names(approximation)) {
-    if (verbose) {
-      inform("Detected adaptive grid approximation")
-    }
+  } else if (type == "adaptive grid") {
     x <- approximation$point
     y <- approximation$value
-  } else {
-    if (verbose) {
-      inform("Detected grid approximation")
-    }
+  } else if (type == "grid") {
     x <- as.numeric(names(approximation))
-    if (any(is.na(x))) {
-      abort("Expecting grid data, but not all column names are numeric")
-    }
     y <- approximation
+  } else {
+    abort(sprintf("Approximation type '%s' not supported by this function", type))
   }
   y <- y - max(y)
   return(data.frame(x = x, y = y))

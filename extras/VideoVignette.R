@@ -48,16 +48,33 @@ plot
 ggplot2::ggsave(filename = "d:/temp/plot.png", plot = plot, width = 6, height = 3, dpi = 200)
 
 # Plot new forest plot with likelihood curves ----------------------------------
+# maEstimate <- computeFixedEffectMetaAnalysis(adaptiveGridApproximations)
+# plotMetaAnalysisForest(
+#   data = adaptiveGridApproximations,
+#   labels = sprintf("Site %d", seq_along(adaptiveGridApproximations)),
+#   estimate = maEstimate,
+#   xLabel = "Hazard Ratio",
+#   showLikelihood = TRUE
+# )
+
 maEstimate <- computeBayesianMetaAnalysis(adaptiveGridApproximations)
 plotMetaAnalysisForest(
   data = adaptiveGridApproximations,
   labels = sprintf("Site %d", seq_along(adaptiveGridApproximations)),
   estimate = maEstimate,
   xLabel = "Hazard Ratio",
-  showLikelihood = TRUE
+  fileName = "d:/temp/"
 )
 
-maEstimate <- computeFixedEffectMetaAnalysis(normalApproximations)
+# maEstimate <- computeFixedEffectMetaAnalysis(normalApproximations)
+# plotMetaAnalysisForest(
+#   data = normalApproximations,
+#   labels = sprintf("Site %d", seq_len(nrow(normalApproximations))),
+#   estimate = maEstimate,
+#   xLabel = "Hazard Ratio",
+#   showLikelihood = TRUE
+# )
+maEstimate <- computeBayesianMetaAnalysis(normalApproximations)
 plotMetaAnalysisForest(
   data = normalApproximations,
   labels = sprintf("Site %d", seq_len(nrow(normalApproximations))),
@@ -65,4 +82,3 @@ plotMetaAnalysisForest(
   xLabel = "Hazard Ratio",
   showLikelihood = TRUE
 )
-
