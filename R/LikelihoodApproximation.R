@@ -372,7 +372,15 @@ cleanApproximations <- function(data) {
       data[[i]] <- cleanedData
     }
   } else if (type == "grid") {
-    for (i in 1:length(data)) {
+    if (is.list(data) && !is.data.frame(data)) {
+      for (i in 1:length(data)) {
+        data <- cleanData(data,
+                          colnames(data),
+                          minValues = rep(-1e6, ncol(data)),
+                          maxValues = rep(0, ncol(data)),
+                          grid = TRUE)
+      }
+    } else {
       data <- cleanData(data,
                         colnames(data),
                         minValues = rep(-1e6, ncol(data)),
