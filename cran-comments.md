@@ -1,14 +1,12 @@
-This package was archived on CRAN because its dependency Cyclops was archived. Cyclops is now back, so could this package be restored?
-
-Includes 1 change and 1 fix (see NEWS.md)
+Includes 2 changes (see NEWS.md)
 
 ---
 
 ## Test environments
-* Ubuntu 20.03, R 4.2.1
-* Microsoft Windows Server 2019, R 4.2.1
-* MacOS, R 4.2.1
-* Windows 10, R 4.2.1
+* Ubuntu 20.03, R 4.2.2
+* Microsoft Windows Server 2019, R 4.2.2
+* MacOS, R 4.2.2
+* Windows 10, R 4.2.2
 
 ## R CMD check results
 

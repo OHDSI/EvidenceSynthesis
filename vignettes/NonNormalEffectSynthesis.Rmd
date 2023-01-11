@@ -93,18 +93,23 @@ Note that an estimate may not exist at a database, for example if no one in the 
 Next, we approximate the likelihood function of our parameter of interest:
 
 ```{r eval=TRUE}
-approximation <-  approximateLikelihood(cyclopsFit, parameter = "x", approximation = "custom")
-approximation
+approximation <-  approximateLikelihood(
+  cyclopsFit = cyclopsFit, 
+  parameter = "x", 
+  approximation = "adaptive grid"
+)
+head(approximation)
 ```
 
-Here we use the custom parametric approximation, which in research has shown to provide a good approximation in many situations. This function has only three parameters ($\mu$, $\sigma$, and $\gamma$). These parameters can be shared with the study coordinator, without sharing patient-level data.
+Here we use the adaptive grid approximation, which in research has shown to provide a good approximation in many situations. The approximation is represented as a data frame with grid points (log effect size) and values (log likelihood) at the grid points. These parameters can be shared with the study coordinator, without sharing patient-level data.
 
-The `EvidenceSynthesis` package offers three types of approximation:
+The `EvidenceSynthesis` package offers five types of approximation:
 
-- "**custom**": A custom parametric function designed to approximate a Cox likelihood function. This function has three parameters ($\mu$, $\sigma$, and $\gamma$).
 - "**normal**": A normal approximation of the likelihood. This is the traditional choice for meta-analysis, but may not be appropriate when sample sizes are small. This function has two parameters ($\mu$, and $\sigma$).
 - "**skew normal**: Uses the skew normal distribution to approximate the likelihood. This function has three parameters ($\mu$, $\sigma$, and $\alpha$).
+- "**custom**": A custom parametric function designed to approximate a Cox likelihood function. This function has three parameters ($\mu$, $\sigma$, and $\gamma$).
 - "**grid**": Records the log likelihood at various pre-defined grid points. This function has as many parameters as there are grid points, which by default is 991.
+- "**adaptive grid**": Records the log likelihood at grid points that are spaced to most efficiently capture the curvature. 
 
 In case we're interested, we can see how closely our fitted function approximates the likelihood:
 
@@ -127,11 +132,10 @@ fitModelInDatabase <- function(population) {
   cyclopsFit <- fitCyclopsModel(cyclopsData)
   approximation <-  approximateLikelihood(cyclopsFit, 
                                           parameter = "x",
-                                          approximation = "custom")
+                                          approximation = "adaptive grid")
   return(approximation)
 }
 approximations <- lapply(populations, fitModelInDatabase)
-approximations
 ```
 
 Here, for each population we fit the model, and create the approximation. The resulting object is a list of approximations, one for each site.
@@ -142,15 +146,11 @@ Assuming we have gathered the approximations from all participating sites, we ca
 
 ## Fixed-effects model.
 
-A fixed-effects model assumes the true effect size is identical at each site. This assumption is reasonable if the sites are highly homogeneous, and have recruited very similar individuals. We use the `computeFixedEffectMetaAnalysis()` function, which takes a single table containing all per-database approximations as input:
+A fixed-effects model assumes the true effect size is identical at each site. This assumption is reasonable if the sites are highly homogeneous, and have recruited very similar individuals. We use the `computeFixedEffectMetaAnalysis()` function:
 
 
 ```{r eval=TRUE, message=FALSE}
-# Combine the various approximations into a single data frame, one row per database:
-approximationsTable <- do.call(rbind, approximations)
-
-# Do meta-analysis
-estimate <- computeFixedEffectMetaAnalysis(approximationsTable)
+estimate <- computeFixedEffectMetaAnalysis(approximations)
 estimate
 ```
 
@@ -158,14 +158,10 @@ estimate
 
 Alternatively, we can use a random-effects model, assuming that the effect sizes at each site might be slightly different, but are all drawn from the same distribution of effect sizes. We assume that distribution is a normal distribution with mean $\mu$ and standard deviation $\tau$. Because such a model tends to be unstable when sample sizes are small, we treat this as a Bayesian problem, and use Markov chain Monte Carlo sampling to sample from the posterior distribution.
 
-We can use the `computeBayesianMetaAnalysis()` function to combine the approximations into a single estimate. This function also takes a single table containing all per-database approximations as input:
+We can use the `computeBayesianMetaAnalysis()` function to combine the approximations into a single estimate:
 
 ```{r eval=TRUE, message=FALSE}
-# Combine the various approximations into a single data frame, one row per database:
-approximationsTable <- do.call(rbind, approximations)
-
-# Do meta-analysis
-estimate <- computeBayesianMetaAnalysis(approximationsTable)
+estimate <- computeBayesianMetaAnalysis(approximations)
 exp(estimate[1:3])
 ```
 
@@ -191,7 +187,7 @@ With less data, the choice of prior becomes more important. In a small-sample sc
 
 
 ```{r eval=TRUE, message=FALSE}
-estimate2 <- computeBayesianMetaAnalysis(approximationsTable, priorSd = c(2, 0.1))
+estimate2 <- computeBayesianMetaAnalysis(approximations, priorSd = c(2, 0.1))
 exp(estimate2[1:3])
 ```
 
@@ -205,5 +201,12 @@ We can plot the results using a standard forest plot:
 # Make up some data site labels:
 labels <- paste("Data site", LETTERS[1:length(populations)])
 
-plotMetaAnalysisForest(approximationsTable, labels, estimate)
+plotMetaAnalysisForest(
+  data = approximations, 
+  labels = labels, 
+  estimate = estimate,
+  xLabel = "Hazard Ratio",
+  showLikelihood = TRUE)
 ```
+
+The plot also shows the (appriximated) partial likelihood curves of each site and the posterior distribution of the meta-analysis.
