@@ -1,8 +1,11 @@
 ---
-title: "Evidence Synthesis Video Vignette"
+title: "A Short Demonstration of the EvidenceSynthesis Package"
 author: "Martijn Schuemie"
 date: "`r Sys.Date()`"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
+subtitle: Code used in the EvidenceSynthesis video vignette
 ---
 
 ```{r setup, include = FALSE}
@@ -96,8 +99,14 @@ fitModelInDatabase <- function(population, approximation) {
                                           approximation = approximation)
   return(approximation)
 }
-adaptiveGridApproximations <- lapply(populations, fitModelInDatabase, approximation = "adaptive grid")
-normalApproximations <- lapply(populations, fitModelInDatabase, approximation = "normal")
+adaptiveGridApproximations <- lapply(
+  X = populations, 
+  FUN = fitModelInDatabase, 
+  approximation = "adaptive grid")
+normalApproximations <- lapply(
+  X = populations, 
+  FUN = fitModelInDatabase, 
+  approximation = "normal")
 normalApproximations <- dplyr::bind_rows(normalApproximations)
 ```
 
