@@ -112,7 +112,7 @@ normalApproximations <- lapply(
   X = populations, 
   FUN = fitModelInDatabase, 
   approximation = "normal")
-normalApproximations <- dplyr::bind_rows(normalApproximations)
+normalApproximations <- do.call(rbind, (normalApproximations))
 ```
 
 # Synthesize evidence
