@@ -1,17 +1,22 @@
 ---
-title: "A Short Demonstration of the EvidenceSynthesis Package"
+title: "Code used in the video vignette"
 author: "Martijn Schuemie"
 date: "`r Sys.Date()`"
 output:
   pdf_document: default
   html_document: default
-subtitle: Code used in the EvidenceSynthesis video vignette
+subtitle: A short demonstration of the EvidenceSynthesis package
+vignette: >
+  %\VignetteIndexEntry{Code used in the video vignette}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
 
 ```{r setup, include = FALSE}
 library(EvidenceSynthesis)
 ```
 
+This vignette contains the code used in a short video on the EvidenceSynthesis package: [https://youtu.be/dho7E97vpgQ](https://youtu.be/dho7E97vpgQ).
 
 # Simulate data 
 

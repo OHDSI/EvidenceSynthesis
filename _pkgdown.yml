@@ -6,11 +6,20 @@ home:
   links:
   - text: Ask a question
     href: http://forums.ohdsi.org
-    
+
 navbar:
   structure:
+    left:
+    - home
+    - reference
+    - articles
+    - videoVignette
+    - news
     right: [hades, github]
   components:
+    videoVignette:
+      text: Video vignette
+      href: https://youtu.be/dho7E97vpgQ
     hades:
       text: hadesLogo
       href: https://ohdsi.github.io/Hades

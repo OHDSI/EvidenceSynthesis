@@ -1,12 +1,12 @@
-Includes 2 changes (see NEWS.md)
+Includes 1 change (see NEWS.md)
 
 ---
 
 ## Test environments
-* Ubuntu 20.03, R 4.2.2
-* Microsoft Windows Server 2019, R 4.2.2
-* MacOS, R 4.2.2
-* Windows 10, R 4.2.2
+* Ubuntu 20.03, R 4.2.3
+* Microsoft Windows Server 2019, R 4.2.3
+* MacOS, R 4.2.3
+* Windows 10, R 4.2.3
 
 ## R CMD check results
 

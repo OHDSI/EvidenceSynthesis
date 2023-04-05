@@ -31,7 +31,11 @@ rmarkdown::render("vignettes/NonNormalEffectSynthesis.Rmd",
                   rmarkdown::pdf_document(latex_engine = "pdflatex",
                                           toc = TRUE,
                                           number_sections = TRUE))
-
+rmarkdown::render("vignettes/VideoVignette.Rmd",
+                  output_file = "../extras/VideoVignette.pdf",
+                  rmarkdown::pdf_document(latex_engine = "pdflatex",
+                                          toc = TRUE,
+                                          number_sections = TRUE))
 pkgdown::build_site()
 OhdsiRTools::fixHadesLogo()
 

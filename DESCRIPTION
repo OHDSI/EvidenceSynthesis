@@ -1,8 +1,8 @@
 Package: EvidenceSynthesis
 Type: Package
 Title: Synthesizing Causal Evidence in a Distributed Research Network
-Version: 0.4.0
-Date: 2023-01-11
+Version: 0.4.1
+Date: 2023-04-05
 Authors@R: c(
   person("Martijn", "Schuemie", email = "schuemie@ohdsi.org", role = c("aut", "cre")),
   person("Marc A.", "Suchard", , "msuchard@ucla.edu", role = c("aut")),

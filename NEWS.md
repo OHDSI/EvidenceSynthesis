@@ -1,3 +1,11 @@
+EvidenceSynthesis 0.4.1
+=======================
+
+Changes
+
+1. Added a video vignette.
+
+
 EvidenceSynthesis 0.4.0
 =======================
 
