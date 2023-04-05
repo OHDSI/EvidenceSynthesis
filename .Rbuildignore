@@ -17,3 +17,4 @@ bin
 ^.*\.iml
 ^\.idea
 ^CRAN-SUBMISSION$
+_cache
