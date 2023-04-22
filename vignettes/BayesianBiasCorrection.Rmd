@@ -1,0 +1,63 @@
+---
+title: "Bayesian adaptive bias correction using profile likelihood approximation"
+author: "Fan Bu"
+date: "`r Sys.Date()`"
+output:
+  pdf_document:
+    number_sections: yes
+    toc: yes
+  html_document:
+    number_sections: yes
+    toc: yes
+subtitle: Example code using the EvidenceSynthesis package
+vignette: >
+  %\VignetteIndexEntry{Bayesian adaptive bias correction using profile likelihood approximation}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r eval=TRUE,echo=FALSE}
+set.seed(42)
+```
+
+## Introduction
+
+We demonstrate Bayesian adaptive bias correction through an example dataset. We will go through the following steps in this vignette:
+
+- Learning an empirical bias distribution by simultaneously analyzing a large set of negative control outcomes;
+- Perform bias correction for the analysis on a synthesized outcome of interest;
+- Visualize and interpret results.
+
+To accommodate a federated data network setting where patient-level information has to be protected but summary-level information is allowed to be shared, we extract from each data site profile likelihoods regarding the main effect of interest. 
+For each particular pair of adverse event outcome and vaccine exposure and for each epidemiological design, let $\mathcal{L}(\beta, \gamma; \mathbf{x})$ denote the likelihood function.
+Here, $\beta$ is the log rate ratio, the main effect size of interest; $\gamma$ represents nuisance parameters; $\mathbf{x}$ indicates the data. 
+We profile the multivariate likelihood function and approximate it with a 1d function as follows:
+$$
+\tilde{\mathcal{L}}(\beta; \mathbf{x}) :=  \max_{\gamma}\mathcal{L}(\beta, \gamma; \mathbf{x}).
+$$
+Then we save the function values evaluated at $\beta$ values on an adaptively chosen grid. 
+At each analysis time $t$, for a specific vaccine exposure and under a particular design, we would extract a profile likelihood for each negative control outcome and each outcome of interest. 
+
+We provide two example datasets, `negativeControlsProfileLikelihoods` and `outcomeProfileLikelihoods`, that contain example profile likelihoods for a large set of negative control outcomes and for a particular synthesic outcome, respectively. 
+They are extracted from real-world observational healthcare databases. 
+Each profile likelihood takes the form of a two-column dataframe, where `point` includes grid points for $\beta$ and `value` includes the corresponding profile likelihood values. 
+
+For example, we can check out the profile likelihood for one of the negative control outcomes at the first analysis period:
+```{r example profile checkout}
+library(EvidenceSynthesis)
+suppressPackageStartupMessages(library(dplyr))
+data("ncLikelihoods")
+
+ncLikelihoods[[1]][[1]] %>% head(10)
+```
+
+## Learning bias distribution through negative control outcomes
+
+At time $t$, given the profile likelihoods regarding the negative control outcomes, we can learn an empirical bias distribution by fitting a hierarchical Bayesian model, using the `computeBayesianMetaAnalysis` function. 
+
+We assume that the estimation bias $b_i$ associated with the $i$th negative control outcome centers around a global ``average'' bias $\bar{b}$ with variability measured by $\tau$.
+We have implemented two model classes for the bias distribution, a normal model, and a $t$-model. 
