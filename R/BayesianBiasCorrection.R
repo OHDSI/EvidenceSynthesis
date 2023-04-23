@@ -40,6 +40,14 @@
 #' `scale` for the sd/scale parameter,
 #' and `bias` for predictive samples of the bias.
 #'
+#' @examples
+#' # load example data
+#' data("likelihoods")
+#'
+#' # fit a bias distributions by analyzing a set of negative control outcomes
+#' # for example, for the 5th analysis period, and using the t model
+#' biasDistribution = fitBiasDistribution(ncLikelihoods[[5]], robust = TRUE)
+#'
 #' @export
 fitBiasDistribution <- function(likelihoodProfiles,
                                 priorSds = c(2,0.5),
@@ -100,6 +108,13 @@ fitBiasDistribution <- function(likelihoodProfiles,
 #' `scale` for the sd/scale parameter,
 #' `bias` for predictive samples of the bias, and
 #' `Id` for the period ID or group ID.
+#'
+#' @examples
+#' # load example data
+#' data("likelihoods")
+#'
+#' # fit bias distributions over analysis periods
+#' biasDistributions = sequentialFitBiasDistribution(ncLikelihoods, seed = 42)
 #'
 #' @export
 sequentialFitBiasDistribution <- function(LikelihoodProfileList,
@@ -171,6 +186,19 @@ sequentialFitBiasDistribution <- function(LikelihoodProfileList,
 #'   - `biasDistributions`: the learned empirical bias distribution from negative control analysis.
 #'   - `summaryRaw`: a summary dataframe (same format as in the main result) without bias correction.
 #'   - `corrected`: a logical flag indicating if bias correction has been performed; = TRUE if `doCorrection = TRUE`.
+#'
+#' @examples
+#' # load example data
+#' data("likelihoods")
+#'
+#' # perform sequential analysis with bias correction, using the t model
+#' bbcResults = biasCorrectionInference(ooiLikelihoods,
+#'                                      ncLikelihoodProfiles = ncLikelihoods,
+#'                                      robust = TRUE,
+#'                                      seed = 42)
+#'
+#' # check out analysis summary
+#' bbcResults
 #'
 #' @export
 biasCorrectionInference <- function(likelihoodProfiles,
