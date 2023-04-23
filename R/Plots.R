@@ -455,10 +455,12 @@ plotPerDbPosterior <- function(estimate, showEstimate = TRUE, dataCutoff = 0.01,
 #' @examples
 #' # Fit a bias distribution for this example:
 #' data("likelihoods")
-#' singleBiasDist = fitBiasDistribution(ncLikelihoods[[5]], seed = 1)
+#' # NOT RUN
+#' # singleBiasDist = fitBiasDistribution(ncLikelihoods[[5]], seed = 1)
 #'
 #' # Plot it
-#' plotBiasDistribution(singleBiasDist)
+#' # NOT RUN
+#' # plotBiasDistribution(singleBiasDist)
 #'
 #' @export
 plotBiasDistribution <- function(biasDist,
@@ -487,7 +489,7 @@ plotBiasDistribution <- function(biasDist,
 
     if(numericId){
       if(any(gsub("[0-9.-]", "", biasDist$Id) != "")){
-        error("Id column cannot be converted to numerics. Try with `numericId = FALSE` instead?")
+        stop("Id column cannot be converted to numerics. Try with `numericId = FALSE` instead?")
       }
 
       biasDist$Id = as.integer(biasDist$Id)
@@ -571,10 +573,12 @@ plotBiasDistribution <- function(biasDist,
 #' @examples
 #' # Perform sequential analysis using Bayesian bias correction for this example:
 #' data("likelihoods")
-#' bbcSequential = biasCorrectionInference(ooiLikelihoods, ncLikelihoodProfiles = ncLikelihoods)
+#' # NOT RUN
+#' # bbcSequential = biasCorrectionInference(ooiLikelihoods, ncLikelihoodProfiles = ncLikelihoods)
 #'
 #' # Plot it
-#' plotBiasCorrectionInference(bbcSequential, type = "corrected")
+#' # NOT RUN
+#' # plotBiasCorrectionInference(bbcSequential, type = "corrected")
 #'
 #' @export
 plotBiasCorrectionInference <- function(bbcResult,
@@ -615,7 +619,7 @@ plotBiasCorrectionInference <- function(bbcResult,
 
     if(numericId){
       if(any(gsub("[0-9.-]", "", dat$Id) != "")){
-        error("Id column cannot be converted to numerics. Try with `numericId = FALSE` instead?")
+        stop("Id column cannot be converted to numerics. Try with `numericId = FALSE` instead?")
       }
 
       dat$Id = as.integer(dat$Id)
@@ -644,15 +648,15 @@ plotBiasCorrectionInference <- function(bbcResult,
       dat = attr(bbcResult, 'samples')
       capt = "(with bias correction)"
 
-      datProbs = bind_rows(data.frame(prob = bbcResult$p1, Id = bbcResult$Id, label = "P(H1)"),
-                           data.frame(prob = 1- bbcResult$p1, Id = bbcResult$Id, label = "P(H0)"))
+      datProbs = dplyr::bind_rows(data.frame(prob = bbcResult$p1, Id = bbcResult$Id, label = "P(H1)"),
+                                  data.frame(prob = 1- bbcResult$p1, Id = bbcResult$Id, label = "P(H0)"))
     }else{
       dat = attr(bbcResult, 'samplesRaw')
       capt = "(without bias correction)"
 
       resultRaw = attr(bbcResult, 'summaryRaw')
-      datProbs = bind_rows(data.frame(prob = resultRaw$p1, Id = resultRaw$Id, label = "P(H1)"),
-                           data.frame(prob = 1- resultRaw$p1, Id = resultRaw$Id, label = "P(H0)"))
+      datProbs = dplyr::bind_rows(data.frame(prob = resultRaw$p1, Id = resultRaw$Id, label = "P(H1)"),
+                                  data.frame(prob = 1- resultRaw$p1, Id = resultRaw$Id, label = "P(H0)"))
     }
 
     dat = dat[dat$Id %in% ids,]
@@ -660,7 +664,7 @@ plotBiasCorrectionInference <- function(bbcResult,
 
     if(numericId){
       if(any(gsub("[0-9.-]", "", dat$Id) != "")){
-        error("Id column cannot be converted to numerics. Try with `numericId = FALSE` instead?")
+        stop("Id column cannot be converted to numerics. Try with `numericId = FALSE` instead?")
       }
 
       dat$Id = as.integer(dat$Id)
