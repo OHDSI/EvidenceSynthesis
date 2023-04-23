@@ -12,7 +12,6 @@ computeBayesianMetaAnalysis(
   priorSd = c(2, 0.5),
   alpha = 0.05,
   robust = FALSE,
-  df = 4,
   seed = 1
 )
 }
@@ -32,8 +31,6 @@ and tau, respectively.}
 \item{alpha}{The alpha (expected type I error) used for the credible intervals.}
 
 \item{robust}{Whether or not to use a t-distribution model; default: FALSE.}
-
-\item{df}{Degrees of freedom of the t-model if robust is TRUE; default: 4.}
 
 \item{seed}{The seed for the random number generator.}
 }
