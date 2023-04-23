@@ -46,7 +46,8 @@
 #'
 #' # fit a bias distributions by analyzing a set of negative control outcomes
 #' # for example, for the 5th analysis period, and using the t model
-#' biasDistribution = fitBiasDistribution(ncLikelihoods[[5]], robust = TRUE)
+#' # NOT RUN
+#' # biasDistribution = fitBiasDistribution(ncLikelihoods[[5]], robust = TRUE)
 #'
 #' @export
 fitBiasDistribution <- function(likelihoodProfiles,
@@ -96,8 +97,11 @@ fitBiasDistribution <- function(likelihoodProfiles,
 #' step or analysis group, bias distributions is learned by by simultaneously analyzing
 #' a large set of negative control outcomes by a Bayesian hierarchical model through MCMC.
 #'
-#' @param LikelihoodProfileList   A list of lists, each of which is a set of grid profile likelihoods regarding negative controls,
-#'                                indexed by analysis period ID for sequential analyses or group ID for group analyses.
+#' @param LikelihoodProfileList   A list of lists, each of which is a set of grid profile likelihoods
+#'                                regarding negative controls, indexed by analysis period ID
+#'                                for sequential analyses or group ID for group analyses.
+#' @param ...                     Arguments passed to the [fitBiasDistribution()] function.
+#'
 #'
 #' @seealso
 #' [fitBiasDistribution], [computeBayesianMetaAnalysis]
@@ -114,18 +118,19 @@ fitBiasDistribution <- function(likelihoodProfiles,
 #' data("likelihoods")
 #'
 #' # fit bias distributions over analysis periods
-#' biasDistributions = sequentialFitBiasDistribution(ncLikelihoods, seed = 42)
+#' # NOT RUN
+#' # biasDistributions = sequentialFitBiasDistribution(ncLikelihoods, seed = 42)
 #'
 #' @export
 sequentialFitBiasDistribution <- function(LikelihoodProfileList,
                                           ...){
   if(typeof(LikelihoodProfileList) != 'list'){
     stop('Data format incompatible. Should be a list!')
-  }else if(typeof(ncLikelihoods[[1]][[1]]) != 'list'){
+  }else if(typeof(LikelihoodProfileList[[1]][[1]]) != 'list'){
     stop('Data format incompatible. Make sure `LikelihoodProfileList` is a list of lists of profile likelihoods.')
-  }else if(length(ncLikelihoods) == 1 &&
-           typeof(ncLikelihoods[[1]][[1]]) == 'list' &&
-           typeof(ncLikelihoods[[1]][[1]][[1]]) == 'double'){
+  }else if(length(LikelihoodProfileList) == 1 &&
+           typeof(LikelihoodProfileList[[1]][[1]]) == 'list' &&
+           typeof(LikelihoodProfileList[[1]][[1]][[1]]) == 'double'){
     warning('Looks like a single period/group of profile likelihoods! Deferring to `fitBiasDistribution`...')
     return(fitBiasDistribution(LikelihoodProfileList[[1]], ...))
   }
@@ -170,6 +175,8 @@ sequentialFitBiasDistribution <- function(LikelihoodProfileList,
 #' @param thin                    Thinning frequency: how many iterations before another sample is obtained?
 #' @param doCorrection            Whether or not to perform bias correction; default: TRUE.
 #' @param seed                    Seed for the random number generator.
+#' @param ...                     Arguments to be passed to [sequentialFitBiasDistribution()] to fit
+#'                                bias distributions if `biasDistributions` is NULL.
 #'
 #' @seealso
 #' [approximateSimplePosterior], [fitBiasDistribution]
@@ -192,13 +199,14 @@ sequentialFitBiasDistribution <- function(LikelihoodProfileList,
 #' data("likelihoods")
 #'
 #' # perform sequential analysis with bias correction, using the t model
-#' bbcResults = biasCorrectionInference(ooiLikelihoods,
-#'                                      ncLikelihoodProfiles = ncLikelihoods,
-#'                                      robust = TRUE,
-#'                                      seed = 42)
+#' # NOT RUN
+#' # bbcResults = biasCorrectionInference(ooiLikelihoods,
+#' #                                      ncLikelihoodProfiles = ncLikelihoods,
+#' #                                      robust = TRUE,
+#' #                                      seed = 42)
 #'
 #' # check out analysis summary
-#' bbcResults
+#' # bbcResults
 #'
 #' @export
 biasCorrectionInference <- function(likelihoodProfiles,
