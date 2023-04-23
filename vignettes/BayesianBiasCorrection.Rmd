@@ -1,5 +1,5 @@
 ---
-title: "Bayesian adaptive bias correction using profile likelihood approximation"
+title: "Bayesian adaptive bias correction using profile likelihoods"
 author: "Fan Bu"
 date: "`r Sys.Date()`"
 output:
@@ -9,7 +9,7 @@ output:
   html_document:
     number_sections: yes
     toc: yes
-subtitle: Example code using the EvidenceSynthesis package
+subtitle: Example code using the `EvidenceSynthesis` package
 vignette: >
   %\VignetteIndexEntry{Bayesian adaptive bias correction using profile likelihood approximation}
   %\VignetteEngine{knitr::rmarkdown}
@@ -24,13 +24,13 @@ knitr::opts_chunk$set(echo = TRUE)
 set.seed(42)
 ```
 
-## Introduction
+# Introduction
 
-We demonstrate Bayesian adaptive bias correction through an example dataset. We will go through the following steps in this vignette:
+We demonstrate Bayesian adaptive bias correction using an example dataset. 
+We will go through these two key components this vignette:
 
-- Learning an empirical bias distribution by simultaneously analyzing a large set of negative control outcomes;
-- Perform bias correction for the analysis on a synthesized outcome of interest;
-- Visualize and interpret results.
+- Learn empirical bias distributions by simultaneously analyzing a large set of negative control outcomes, adaptively in time. 
+- Perform bias correction to analyze a synthesized outcome of interest. 
 
 To accommodate a federated data network setting where patient-level information has to be protected but summary-level information is allowed to be shared, we extract from each data site profile likelihoods regarding the main effect of interest. 
 For each particular pair of adverse event outcome and vaccine exposure and for each epidemiological design, let $\mathcal{L}(\beta, \gamma; \mathbf{x})$ denote the likelihood function.
@@ -42,22 +42,91 @@ $$
 Then we save the function values evaluated at $\beta$ values on an adaptively chosen grid. 
 At each analysis time $t$, for a specific vaccine exposure and under a particular design, we would extract a profile likelihood for each negative control outcome and each outcome of interest. 
 
-We provide two example datasets, `negativeControlsProfileLikelihoods` and `outcomeProfileLikelihoods`, that contain example profile likelihoods for a large set of negative control outcomes and for a particular synthesic outcome, respectively. 
-They are extracted from real-world observational healthcare databases. 
+We provide two example data objects, `ncLikelihoods` and `ooiLikelihoods`, that contain example profile likelihoods for a large set of negative control outcomes and for a synthetic outcome, respectively. 
+They are extracted from a real-world observational healthcare database, and can be loaded by the command `data("likelihoods")`. 
 Each profile likelihood takes the form of a two-column dataframe, where `point` includes grid points for $\beta$ and `value` includes the corresponding profile likelihood values. 
 
-For example, we can check out the profile likelihood for one of the negative control outcomes at the first analysis period:
-```{r example profile checkout}
+For example, we can check out the profile likelihood for one of the negative control outcomes at the 1st analysis period:
+```{r example profile checkout, message=FALSE}
 library(EvidenceSynthesis)
-suppressPackageStartupMessages(library(dplyr))
-data("ncLikelihoods")
+data("likelihoods")
 
-ncLikelihoods[[1]][[1]] %>% head(10)
+knitr::kable(ncLikelihoods[[1]][[1]])
 ```
 
-## Learning bias distribution through negative control outcomes
+
+# Learning bias distribution through negative control outcomes
 
 At time $t$, given the profile likelihoods regarding the negative control outcomes, we can learn an empirical bias distribution by fitting a hierarchical Bayesian model, using the `computeBayesianMetaAnalysis` function. 
 
-We assume that the estimation bias $b_i$ associated with the $i$th negative control outcome centers around a global ``average'' bias $\bar{b}$ with variability measured by $\tau$.
-We have implemented two model classes for the bias distribution, a normal model, and a $t$-model. 
+We assume that the estimation biases associated with the negative control outcomes are exchangeable and center around a global ``average'' bias $\bar{b}$ with variability measured by a scale parameter $\tau$.
+
+We have implemented a hierarchical normal model and a hierarchical $t$-model for the bias distribution, with the normal model as default, and carry out Bayesian posterior inference through a random walk Markov chain Monte Carlo (MCMC). 
+
+For instance, to learn the bias distribution at the 1st period using the example dataset, we can call the `fitBiasDistribution`:
+```{r, message=FALSE, results='hide'}
+singleBiasDist = fitBiasDistribution(ncLikelihoods[[1]],
+                                     seed = 42)
+```
+
+The default setting would fit a hierarchical normal model. To fit a more robust distribution that can better handle heavy tails and outliers, we can set `robust = TRUE`:
+
+```{r, message=FALSE, results='hide'}
+singleBiasDistRobust = fitBiasDistribution(ncLikelihoods[[1]], 
+                                           robust = TRUE, 
+                                           seed = 42)
+```
+
+To learn the bias distribution over multiple analyses, in the setting of either sequential analysis or group analysis, we can call the `sequentialFitBiasDistribution` function. 
+For example, to adaptively learn all empirical bias distributions across all $12$ analysis periods in the example data, under the $t$ model:
+
+```{r, message=FALSE, warning=FALSE, results='hide', cache=TRUE}
+BiasDistRobust = sequentialFitBiasDistribution(ncLikelihoods, 
+                                               robust = TRUE, 
+                                               seed = 42)
+```
+
+We can visualize the learned bias distributions over time using the `plotBiasDistribution` function:
+```{r, message=FALSE, warning=FALSE}
+plotBiasDistribution(BiasDistRobust)
+```
+
+
+# Perform Bayesian adaptive bias correction
+
+```{r, message=FALSE, warning=FALSE, results='hide', cache=TRUE}
+ooiLik5 = list(ooiLikelihoods[["5"]])
+ncLik5 = list(ncLikelihoods[["5"]])
+
+bbcResult = biasCorrectionInference(ooiLik5, 
+                                    ncLikelihoodProfiles = ncLik5, 
+                                    priorMean = 0,
+                                    priorSd = 2,
+                                    doCorrection = TRUE,
+                                    seed = 42)
+```
+
+```{r, message=FALSE, warning=FALSE}
+library(dplyr)
+
+knitr::kable(bind_rows(bbcResult %>% mutate(biasCorrection = "yes"),
+                       attr(bbcResult, 'summaryRaw') %>% mutate(biasCorrection = "no")) %>%
+               select(-Id), digits = 4)
+```
+
+```{r, message=FALSE, warning=FALSE, results='hide', cache=TRUE}
+bbcSequential = biasCorrectionInference(ooiLikelihoods,
+                                        biasDistributions = BiasDistRobust,
+                                        priorMean = 0,
+                                        priorSd = 4,
+                                        doCorrection = TRUE,
+                                        seed = 42)
+```
+
+```{r, message=FALSE, warning=FALSE}
+knitr::kable(bbcSequential %>% select(period = Id, median:p1), digits = 4)
+```
+
+
+
+
