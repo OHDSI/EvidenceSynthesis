@@ -11,17 +11,13 @@ output:
     toc: yes
 subtitle: Example code using the `EvidenceSynthesis` package
 vignette: >
-  %\VignetteIndexEntry{Bayesian adaptive bias correction using profile likelihood approximation}
+  %\VignetteIndexEntry{Bayesian adaptive bias correction using profile likelihoods}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-```
-
-```{r eval=TRUE,echo=FALSE}
-set.seed(42)
 ```
 
 # Introduction
@@ -43,13 +39,15 @@ Then we save the function values evaluated at $\beta$ values on an adaptively ch
 At each analysis time $t$, for a specific vaccine exposure and under a particular design, we would extract a profile likelihood for each negative control outcome and each outcome of interest. 
 
 We provide two example data objects, `ncLikelihoods` and `ooiLikelihoods`, that contain example profile likelihoods for a large set of negative control outcomes and for a synthetic outcome, respectively. 
-They are extracted from a real-world observational healthcare database, and can be loaded by the command `data("likelihoods")`. 
+They are extracted from a real-world observational healthcare database, and can be loaded by the commands `data("ncLikelihoods")` and `data("ooiLikelihoods")`. 
 Each profile likelihood takes the form of a two-column dataframe, where `point` includes grid points for $\beta$ and `value` includes the corresponding profile likelihood values. 
 
 For example, we can check out the profile likelihood for one of the negative control outcomes at the 1st analysis period:
 ```{r example profile checkout, message=FALSE}
 library(EvidenceSynthesis)
-data("likelihoods")
+
+data("ncLikelihoods")
+data("ooiLikelihoods")
 
 knitr::kable(ncLikelihoods[[1]][[1]])
 ```
@@ -94,25 +92,61 @@ plotBiasDistribution(BiasDistRobust)
 
 # Perform Bayesian adaptive bias correction
 
+Now we demonstrate how to perform Bayesian adaptive bias correction for sequential analysis.
+At each analysis time $t$, we use the learned empirical bias distribution by analyzing negative controls observed up to time $t$ to de-bias our analysis regarding the outcome of interest.
+We can do this either for time $t$ only, or for all analysis timepoints $t = 1, 2, \ldots, T_{\max}$. 
+
+We provide implementation in the function `biasCorrectionInference`. 
+To perform bias correction for the $5$th analysis, for example:
+
 ```{r, message=FALSE, warning=FALSE, results='hide', cache=TRUE}
+# select profile likelihoods for the 5th analysis period
 ooiLik5 = list(ooiLikelihoods[["5"]])
 ncLik5 = list(ncLikelihoods[["5"]])
 
-bbcResult = biasCorrectionInference(ooiLik5, 
-                                    ncLikelihoodProfiles = ncLik5, 
-                                    priorMean = 0,
-                                    priorSd = 2,
-                                    doCorrection = TRUE,
-                                    seed = 42)
+# specify prior mean and prior standard deviation for the effect size (log RR)
+bbcResult5 = biasCorrectionInference(ooiLik5, 
+                                     ncLikelihoodProfiles = ncLik5, 
+                                     priorMean = 0,
+                                     priorSd = 4,
+                                     doCorrection = TRUE,
+                                     seed = 42)
 ```
+
+We note that the input should include (1) profile likelihoods on the outcome of interest (e.g., `ooiLik5`), and (2) profile likelihoods (e.g., `ncLik5`) or the learned bias distributions. 
+The likelihoods must be provided as a list, where each entry contains the profile likelihood(s) from one analysis period or group. 
+Therefore, if only one period or group of data needs to be analyzed, then the profile likelihoods must be supplied as a list of length $1$. 
+
+If the bias distribution is already available or has been learned separately, then we can also specify it in the `biasDistributions` argument. 
+This can be more convenient and efficient if there are more than one outcomes of interest to analyze, as the learned bias distributions can then be re-used. 
+For example:
+
+```{r, message=FALSE, warning=FALSE, results='hide', cache=TRUE}
+# learn bias distribution for the 5th analysis period first
+biasDist5 = fitBiasDistribution(ncLikelihoods[["5"]])
+
+# then recycle the bias distribution
+bbcResult5 = biasCorrectionInference(ooiLik5, 
+                                     biasDistributions = biasDist5,
+                                     priorMean = 0,
+                                     priorSd = 4,
+                                     doCorrection = TRUE,
+                                     seed = 42)
+```
+
+The main output is a summary table of the analysis results, including posterior median and mean (columns `median` and `mean`), the 95% credible interval (columns `ci95Lb` and `ci95Ub`), and the posterior probability that there is a positive effect (in column `p1`). 
+Estimates without bias correction can be accessed in the `summaryRaw` attribute, and so we can compare the results with and without bias correction.  
 
 ```{r, message=FALSE, warning=FALSE}
 library(dplyr)
 
-knitr::kable(bind_rows(bbcResult %>% mutate(biasCorrection = "yes"),
-                       attr(bbcResult, 'summaryRaw') %>% mutate(biasCorrection = "no")) %>%
+knitr::kable(bind_rows(bbcResult5 %>% mutate(biasCorrection = "yes"),
+                       attr(bbcResult5, 'summaryRaw') %>% mutate(biasCorrection = "no")) %>%
                select(-Id), digits = 4)
 ```
+
+To perform sequential analysis with adaptive bias correction over time, we should supply profile likelihoods across all analysis periods/groups in the input.
+For example, if we use the already learned bias distributions `BiasDistRobust`:
 
 ```{r, message=FALSE, warning=FALSE, results='hide', cache=TRUE}
 bbcSequential = biasCorrectionInference(ooiLikelihoods,
@@ -123,10 +157,25 @@ bbcSequential = biasCorrectionInference(ooiLikelihoods,
                                         seed = 42)
 ```
 
+We can then check out the sequential analysis results:
 ```{r, message=FALSE, warning=FALSE}
 knitr::kable(bbcSequential %>% select(period = Id, median:p1), digits = 4)
 ```
 
+The `plotBiasCorrectionInference` function provides some simple plotting functionality to visualize the analysis results.
+For example, we can visualize the posterior distributions of the bias corrected log RR across analysis periods, along with posterior probabilities for a positive effect size (`P(H1)`) or a non-positive effect size (`P(H0)`):
+```{r, message=FALSE, warning=FALSE}
+plotBiasCorrectionInference(bbcSequential, 
+                            type = "corrected", 
+                            limits = c(-3, 3))
+```
 
+Meanwhile, we can also compare the estimates with and without bias correction. 
+It is also possible to only examine certain analysis periods/groups by specifying the `ids` argument. 
 
-
+```{r, message=FALSE, warning=FALSE}
+plotBiasCorrectionInference(bbcSequential, 
+                            type = "compare", 
+                            limits = c(-3, 3), 
+                            ids = as.character(3:12))
+```
