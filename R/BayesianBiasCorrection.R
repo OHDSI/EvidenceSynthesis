@@ -42,7 +42,7 @@
 #'
 #' @examples
 #' # load example data
-#' data("likelihoods")
+#' data("ncLikelihoods")
 #'
 #' # fit a bias distributions by analyzing a set of negative control outcomes
 #' # for example, for the 5th analysis period, and using the t model
@@ -115,7 +115,7 @@ fitBiasDistribution <- function(likelihoodProfiles,
 #'
 #' @examples
 #' # load example data
-#' data("likelihoods")
+#' data("ncLikelihoods")
 #'
 #' # fit bias distributions over analysis periods
 #' # NOT RUN
@@ -196,7 +196,8 @@ sequentialFitBiasDistribution <- function(LikelihoodProfileList,
 #'
 #' @examples
 #' # load example data
-#' data("likelihoods")
+#' data("ncLikelihoods")
+#' data("ooiLikelihoods")
 #'
 #' # perform sequential analysis with bias correction, using the t model
 #' # NOT RUN
