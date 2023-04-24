@@ -6,7 +6,8 @@
 \usage{
 biasCorrectionInference(
   likelihoodProfiles,
-  biasDistribution = NULL,
+  ncLikelihoodProfiles = NULL,
+  biasDistributions = NULL,
   priorMean = 0,
   priorSd = 1,
   numsamps = 10000,
@@ -17,33 +18,67 @@ biasCorrectionInference(
 )
 }
 \arguments{
-\item{likelihoodProfiles}{A list of grid profile likelihoods regarding negative controls.}
+\item{likelihoodProfiles}{A list of grid profile likelihoods for the outcome of interest.}
+
+\item{ncLikelihoodProfiles}{Likelihood profiles for the negative control outcomes.
+Must be a list of lists of profile likelihoods;
+if there is only one analysis period, then this must be a length-1 list,
+with the first item as a list all outcome-wise profile likelihoods.}
+
+\item{biasDistributions}{Pre-saved bias distribution(s), formatted as the output
+from \code{\link[=fitBiasDistribution]{fitBiasDistribution()}} or \code{\link[=sequentialFitBiasDistribution]{sequentialFitBiasDistribution()}}.
+If NULL, then \code{ncLikelihoodProfiles} must be provided.}
+
+\item{priorMean}{Prior mean for the effect size (log rate ratio).}
+
+\item{priorSd}{Prior standard deviation for the effect size (log rate ratio).}
 
 \item{numsamps}{Total number of MCMC samples needed.}
 
 \item{thin}{Thinning frequency: how many iterations before another sample is obtained?}
 
+\item{doCorrection}{Whether or not to perform bias correction; default: TRUE.}
+
 \item{seed}{Seed for the random number generator.}
 
-\item{priorSds}{A two-dimensional vector with the standard deviation of the prior for
-the average bias and the sd/scale parameter, respectively.}
-
-\item{minNCs}{Minimum number of negative controls needed to fit a bias distribution;
-default (also recommended): 5.}
-
-\item{robust}{Whether or not to use a t-distribution model; default: FALSE.}
+\item{...}{Arguments to be passed to \code{\link[=sequentialFitBiasDistribution]{sequentialFitBiasDistribution()}} to fit
+bias distributions if \code{biasDistributions} is NULL.}
 }
 \value{
-A dataframe with three columns and \code{numsamps} number of rows.
-Column \code{mean} includes MCMC samples for the average bias,
-\code{scale} for the sd/scale parameter,
-and \code{bias} for predictive samples of the bias.
+A dataframe with five columns, including posterior \code{median} and \code{mean} of log RR
+effect size estimates, 95\% credible intervals (\code{ci95Lb} and \code{ci95Ub}),
+posterior probability that log RR > 0 (\code{p1}), and the period or group ID (\code{Id}).
+
+It is accompanied by the following attributes:
+\itemize{
+\item \code{samplesCorrected}: all MCMC samples for the bias corrected log RR effect size estimate.
+\item \code{samplesRaw}: all MCMC samples for log RR effect size estimate, without bias correction.
+\item \code{biasDistributions}: the learned empirical bias distribution from negative control analysis.
+\item \code{summaryRaw}: a summary dataframe (same format as in the main result) without bias correction.
+\item \code{corrected}: a logical flag indicating if bias correction has been performed; = TRUE if \code{doCorrection = TRUE}.
+}
 }
 \description{
 Perform Bayesian posterior inference regarding an outcome of interest with bias correction
 using negative control analysis. There is an option to not perform bias correction so that
 un-corrected results can be obtained.
 }
+\examples{
+# load example data
+data("ncLikelihoods")
+data("ooiLikelihoods")
+
+# perform sequential analysis with bias correction, using the t model
+# NOT RUN
+# bbcResults = biasCorrectionInference(ooiLikelihoods,
+#                                      ncLikelihoodProfiles = ncLikelihoods,
+#                                      robust = TRUE,
+#                                      seed = 42)
+
+# check out analysis summary
+# bbcResults
+
+}
 \seealso{
-\link{computeBayesianMetaAnalysis}
+\link{approximateSimplePosterior}, \link{fitBiasDistribution}
 }

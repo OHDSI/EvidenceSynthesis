@@ -42,6 +42,16 @@ Learn an empirical distribution on estimation bias by simultaneously analyzing
 a large set of negative control outcomes by a Bayesian hierarchical model through MCMC.
 Analysis is based on a list of extracted likelihood profiles.
 }
+\examples{
+# load example data
+data("ncLikelihoods")
+
+# fit a bias distributions by analyzing a set of negative control outcomes
+# for example, for the 5th analysis period, and using the t model
+# NOT RUN
+# biasDistribution = fitBiasDistribution(ncLikelihoods[[5]], robust = TRUE)
+
+}
 \seealso{
 \link{computeBayesianMetaAnalysis}
 }
