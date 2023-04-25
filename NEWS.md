@@ -1,3 +1,14 @@
+EvidenceSynthesis 0.5.0
+=======================
+
+Changes
+
+1. Supporting Bayesian adaptive bias correction in sequential analysis by adding `fitBiasDistribution()`, `sequentialFitBiasDistribution()` and `biasCorrectionInference()` functions
+
+2. Added relevant plotting functions, `plotBiasDistribution()` and `plotBiasCorrectionInference()`. 
+
+3. Added a vignette on Bayesian adaptive bias correction.
+
 EvidenceSynthesis 0.4.1
 =======================
 
