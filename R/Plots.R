@@ -503,12 +503,12 @@ plotBiasDistribution <- function(biasDist,
 
     medianDat$y = ypadding
 
-    plot = ggplot2::ggplot(biasDist, ggplot2::aes(x=bias)) +
+    plot = ggplot2::ggplot(biasDist, ggplot2::aes(x = .data$bias)) +
       ggplot2::geom_vline(xintercept = 0, linetype = 2,
                           linewidth = 1, color = 'gray40')+
       ggplot2::geom_density(fill = 'gray80') +
       ggplot2::geom_point(data = medianDat,
-                          mapping = ggplot2::aes(x=x,y=y),
+                          mapping = ggplot2::aes(x = .data$x, y = .data$y),
                           shape = 4) +
       ggplot2::scale_x_continuous(limits = xlims,
                                   breaks = xbreaks,
@@ -529,7 +529,7 @@ plotBiasDistribution <- function(biasDist,
   }else{
 
     # plot only one bias distribution
-    plot = ggplot2::ggplot(biasDist, ggplot2::aes(x=bias)) +
+    plot = ggplot2::ggplot(biasDist, ggplot2::aes(x= .data$bias)) +
       ggplot2::geom_vline(xintercept = 0, linetype = 2,
                           linewidth = 1, color = 'gray40')+
       ggplot2::geom_density(fill = 'gray80') +
@@ -629,10 +629,13 @@ plotBiasCorrectionInference <- function(bbcResult,
       xbreaks = seq(from=min(dat$Id), to=max(dat$Id), by=2)
     }
 
-    plot = ggplot2::ggplot(dat, ggplot2::aes(x = Id, y = median, color = biasCorrected)) +
+    plot = ggplot2::ggplot(dat, ggplot2::aes(x = .data$Id,
+                                             y = .data$median,
+                                             color = .data$biasCorrected)) +
       ggplot2::geom_hline(yintercept = 0, color = 'gray50',
                           linewidth = 1, linetype = 2)+
-      ggplot2::geom_pointrange(ggplot2::aes(ymin = ci95Lb, ymax = ci95Ub),
+      ggplot2::geom_pointrange(ggplot2::aes(ymin = .data$ci95Lb,
+                                            ymax = .data$ci95Ub),
                                position = ggplot2::position_dodge(width = 0.3),
                                size = 0.5, linewidth = 1.2)+
       ggplot2::labs(x= 'Sequential analysis period',
@@ -680,12 +683,12 @@ plotBiasCorrectionInference <- function(bbcResult,
                            Id = unique(dat$Id))
     medianDat$y = 0.05
 
-    plot1 = ggplot2::ggplot(dat, ggplot2::aes(x=beta)) +
+    plot1 = ggplot2::ggplot(dat, ggplot2::aes(x = .data$beta)) +
       ggplot2::geom_vline(xintercept = 0, linetype = 2,
                           linewidth = 1, color = 'gray40')+
       ggplot2::geom_density(fill = 'gray80') +
       ggplot2::geom_point(data = medianDat,
-                          mapping = ggplot2::aes(x=x,y=y),
+                          mapping = ggplot2::aes(x=.data$x, y=.data$y),
                           shape = 4) +
       ggplot2::scale_x_continuous(limits = ylims,
                                   breaks = ybreaks,
@@ -703,7 +706,9 @@ plotBiasCorrectionInference <- function(bbcResult,
                      plot.caption = ggplot2::element_text(size=14, hjust=0.5))
 
     plot2 = ggplot2::ggplot(datProbs,
-                            ggplot2::aes(x=Id, y = prob, color = label)) +
+                            ggplot2::aes(x = .data$Id,
+                                         y = .data$prob,
+                                         color = .data$label)) +
       ggplot2::geom_line(size = 1)+
       ggplot2::scale_y_continuous(limits = c(0,1))+
       ggplot2::labs(y = 'Posterior probability',
