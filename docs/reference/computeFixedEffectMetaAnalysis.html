@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">EvidenceSynthesis</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.4.1</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.5.0</span>
       </span>
     </div>
 
@@ -32,6 +32,9 @@
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu"><li>
+      <a href="../articles/BayesianBiasCorrection.html">Bayesian adaptive bias correction using profile likelihoods</a>
+    </li>
+    <li>
       <a href="../articles/NonNormalEffectSynthesis.html">Effect estimate synthesis using non-normal likelihood approximations</a>
     </li>
     <li>
@@ -119,8 +122,8 @@ error (seLogRr).</p>
 <span class="r-in"><span><span class="co"># At study coordinating center, perform meta-analysis using per-site approximations:</span></span></span>
 <span class="r-in"><span><span class="fu">computeFixedEffectMetaAnalysis</span><span class="op">(</span><span class="va">approximations</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Detected data following custom parameric distribution</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        rr       lb       ub     logRr   seLogRr</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 2.32144 1.330068 3.908058 0.8421875 0.2749566</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         rr     lb       ub     logRr  seLogRr</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 2.224672 1.2967 3.694158 0.7996094 0.267079</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># (Estimates in this example will vary due to the random simulation)</span></span></span>
 <span class="r-in"><span></span></span>
@@ -134,7 +137,7 @@ error (seLogRr).</p>
 
 
       <footer><div class="copyright">
-  <p></p><p>Developed by Martijn Schuemie, Marc A. Suchard.</p>
+  <p></p><p>Developed by Martijn Schuemie, Marc A. Suchard, Fan Bu.</p>
 </div>
 
 <div class="pkgdown">

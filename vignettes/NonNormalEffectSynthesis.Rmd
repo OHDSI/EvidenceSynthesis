@@ -43,12 +43,14 @@ To demonstrate how to use the `EvidenceSynthesis` package, we will generate some
 
 ```{r eval=TRUE, warning=FALSE, message=FALSE}
 library(EvidenceSynthesis)
-simulationSettings <- createSimulationSettings(nSites = 5,
-                                               n = 10000,
-                                               treatedFraction = 0.75,
-                                               nStrata = 5,
-                                               hazardRatio = 2,
-                                               randomEffectSd = 0.5)
+simulationSettings <- createSimulationSettings(
+  nSites = 5,
+  n = 10000,
+  treatedFraction = 0.75,
+  nStrata = 5,
+  hazardRatio = 2,
+  randomEffectSd = 0.5
+)
 populations <- simulatePopulations(simulationSettings)
 ```
 
@@ -72,9 +74,10 @@ library(Cyclops)
 # Assume we are at site 1:
 population <- populations[[1]]
 
-cyclopsData <- createCyclopsData(Surv(time, y) ~ x + strata(stratumId), 
-                                 data = population, 
-                                 modelType = "cox")
+cyclopsData <- createCyclopsData(Surv(time, y) ~ x + strata(stratumId),
+  data = population,
+  modelType = "cox"
+)
 cyclopsFit <- fitCyclopsModel(cyclopsData)
 ```
 
@@ -93,9 +96,9 @@ Note that an estimate may not exist at a database, for example if no one in the 
 Next, we approximate the likelihood function of our parameter of interest:
 
 ```{r eval=TRUE}
-approximation <-  approximateLikelihood(
-  cyclopsFit = cyclopsFit, 
-  parameter = "x", 
+approximation <- approximateLikelihood(
+  cyclopsFit = cyclopsFit,
+  parameter = "x",
   approximation = "adaptive grid"
 )
 head(approximation)
@@ -114,9 +117,11 @@ The `EvidenceSynthesis` package offers five types of approximation:
 In case we're interested, we can see how closely our fitted function approximates the likelihood:
 
 ```{r eval=TRUE}
-plotLikelihoodFit(approximation = approximation,
-                  cyclopsFit = cyclopsFit,
-                  parameter = "x")
+plotLikelihoodFit(
+  approximation = approximation,
+  cyclopsFit = cyclopsFit,
+  parameter = "x"
+)
 ```
 
 
@@ -126,13 +131,15 @@ For this example we will create the approximations for all sites in one short sc
 
 ```{r eval=TRUE}
 fitModelInDatabase <- function(population) {
-  cyclopsData <- createCyclopsData(Surv(time, y) ~ x + strata(stratumId), 
-                                   data = population, 
-                                   modelType = "cox")
+  cyclopsData <- createCyclopsData(Surv(time, y) ~ x + strata(stratumId),
+    data = population,
+    modelType = "cox"
+  )
   cyclopsFit <- fitCyclopsModel(cyclopsData)
-  approximation <-  approximateLikelihood(cyclopsFit, 
-                                          parameter = "x",
-                                          approximation = "adaptive grid")
+  approximation <- approximateLikelihood(cyclopsFit,
+    parameter = "x",
+    approximation = "adaptive grid"
+  )
   return(approximation)
 }
 approximations <- lapply(populations, fitModelInDatabase)
@@ -202,11 +209,12 @@ We can plot the results using a standard forest plot:
 labels <- paste("Data site", LETTERS[1:length(populations)])
 
 plotMetaAnalysisForest(
-  data = approximations, 
-  labels = labels, 
+  data = approximations,
+  labels = labels,
   estimate = estimate,
   xLabel = "Hazard Ratio",
-  showLikelihood = TRUE)
+  showLikelihood = TRUE
+)
 ```
 
 The plot also shows the (appriximated) partial likelihood curves of each site and the posterior distribution of the meta-analysis.

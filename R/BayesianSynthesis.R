@@ -40,14 +40,17 @@
 #'
 #' # Fit a Cox regression at each data site, and approximate likelihood function:
 #' cyclopsData <- Cyclops::createCyclopsData(Surv(time, y) ~ x + strata(stratumId),
-#'                                           data = population,
-#'                                           modelType = "cox")
+#'   data = population,
+#'   modelType = "cox"
+#' )
 #' cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
 #' likelihoodProfile <- approximateLikelihood(cyclopsFit, parameter = "x", approximation = "grid")
 #'
 #' # Run MCMC
-#' mcmcTraces <- approximateSimplePosterior(likelihoodProfile = likelihoodProfile,
-#'                                          priorMean = 0, priorSd = 100)
+#' mcmcTraces <- approximateSimplePosterior(
+#'   likelihoodProfile = likelihoodProfile,
+#'   priorMean = 0, priorSd = 100
+#' )
 #'
 #' # Report posterior expectation
 #' mean(mcmcTraces$theta)
@@ -68,9 +71,11 @@ approximateSimplePosterior <- function(likelihoodProfile,
     return(NULL) # TODO Return something more informative
   }
   if (isRmdCheck() && !isUnitTest()) {
-    inform(paste("Function is executed as an example in R check:",
-                 "Reducing chainLength and burnIn to reduce compute time.",
-                 "Result may be unreliable"))
+    inform(paste(
+      "Function is executed as an example in R check:",
+      "Reducing chainLength and burnIn to reduce compute time.",
+      "Result may be unreliable"
+    ))
     chainLength <- 110000
     burnIn <- 10000
     Sys.sleep(1) # To avoid CRAN message about CPU time being more than 2.5. times elapsed time
@@ -87,15 +92,19 @@ approximateSimplePosterior <- function(likelihoodProfile,
   dataModel$finish()
 
   inform("Performing MCMC. This may take a while")
-  analysis <- rJava::.jnew("org.ohdsi.simpleDesign.ProfileNormalAnalysis",
-                           rJava::.jcast(dataModel, "org.ohdsi.metaAnalysis.EmpiricalDataModel"),
-                           priorMean, priorSd, startingValue)
-  runner <- rJava::.jnew("org.ohdsi.mcmc/Runner",
-                         rJava::.jcast(analysis, "org.ohdsi.mcmc.Analysis"),
-                         as.integer(chainLength),
-                         as.integer(burnIn),
-                         as.integer(subSampleFrequency),
-                         as.numeric(seed))
+  analysis <- rJava::.jnew(
+    "org.ohdsi.simpleDesign.ProfileNormalAnalysis",
+    rJava::.jcast(dataModel, "org.ohdsi.metaAnalysis.EmpiricalDataModel"),
+    priorMean, priorSd, startingValue
+  )
+  runner <- rJava::.jnew(
+    "org.ohdsi.mcmc/Runner",
+    rJava::.jcast(analysis, "org.ohdsi.mcmc.Analysis"),
+    as.integer(chainLength),
+    as.integer(burnIn),
+    as.integer(subSampleFrequency),
+    as.numeric(seed)
+  )
 
   runner$setConsoleWidth(getOption("width"))
   runner$run()
@@ -103,7 +112,9 @@ approximateSimplePosterior <- function(likelihoodProfile,
   runner$processSamples() # TODO Comment out at some point
 
   names <- runner$getParameterNames()
-  traces <- as.data.frame(sapply(1:length(names), function(i) { runner$getTrace(as.integer(i)) }))
+  traces <- as.data.frame(sapply(1:length(names), function(i) {
+    runner$getTrace(as.integer(i))
+  }))
   colnames(traces) <- names
 
   return(traces)
@@ -141,7 +152,7 @@ approximateSimplePosterior <- function(likelihoodProfile,
 #' Attributes of the data frame contain the MCMC trace for diagnostics.
 #'
 #' @examples
-#' #TBD
+#' # TBD
 #'
 #' @export
 approximateHierarchicalNormalPosterior <- function(likelihoodProfiles,
@@ -160,9 +171,11 @@ approximateHierarchicalNormalPosterior <- function(likelihoodProfiles,
     return(NULL) # TODO Return something more informative
   }
   if (isRmdCheck() && !isUnitTest()) {
-    inform(paste("Function is executed as an example in R check:",
-                 "Reducing chainLength and burnIn to reduce compute time.",
-                 "Result may be unreliable"))
+    inform(paste(
+      "Function is executed as an example in R check:",
+      "Reducing chainLength and burnIn to reduce compute time.",
+      "Result may be unreliable"
+    ))
     chainLength <- 110000
     burnIn <- 10000
   }
@@ -173,9 +186,9 @@ approximateHierarchicalNormalPosterior <- function(likelihoodProfiles,
   type <- "grid"
 
   dataModelList <- list()
-  for(likelihood in likelihoodProfiles){
+  for (likelihood in likelihoodProfiles) {
     this.dataModel <- rJava::.jnew("org.ohdsi.metaAnalysis.ExtendingEmpiricalDataModel")
-    x = as.numeric(names(likelihood))
+    x <- as.numeric(names(likelihood))
     if (any(is.na(x))) {
       stop("Expecting grid data, but not all column names are numeric")
     }
@@ -183,27 +196,31 @@ approximateHierarchicalNormalPosterior <- function(likelihoodProfiles,
     this.dataModel$finish()
 
     # cast data model to class "org.ohdsi.metaAnalysis.EmpiricalDataModel" here instead of later on
-    this.dataModel = rJava::.jcast(this.dataModel, "org.ohdsi.metaAnalysis.EmpiricalDataModel")
+    this.dataModel <- rJava::.jcast(this.dataModel, "org.ohdsi.metaAnalysis.EmpiricalDataModel")
 
-    dataModelList = c(dataModelList, this.dataModel)
+    dataModelList <- c(dataModelList, this.dataModel)
   }
 
   # translate nu0 and sigma0 to shape and rate parameters for gamma prior
-  precisionShape = nu0/2
-  precisionRate = nu0 * sigma0/2 # assuming we use rate (not scale) for gamma distribution in BEAST
+  precisionShape <- nu0 / 2
+  precisionRate <- nu0 * sigma0 / 2 # assuming we use rate (not scale) for gamma distribution in BEAST
 
   # specify model and run the MCMC
   inform("Performing MCMC. This may take a while")
-  analysis <- rJava::.jnew("org.ohdsi.simpleDesign.ProfileHierarchicalNormalAnalysis", #<- use Hierarchical here
-                           rJava::.jarray(dataModelList),  #<- not sure this is correct...
-                           effectPriorMean, effectPriorSd, effectStartingValue, #<- prior and init info for beta
-                           precisionShape, precisionRate, precisionStartingValue) #<- prior and init info for precision
-  runner <- rJava::.jnew("org.ohdsi.mcmc/Runner",
-                         rJava::.jcast(analysis, "org.ohdsi.mcmc.Analysis"),
-                         as.integer(chainLength),
-                         as.integer(burnIn),
-                         as.integer(subSampleFrequency),
-                         as.numeric(seed))
+  analysis <- rJava::.jnew(
+    "org.ohdsi.simpleDesign.ProfileHierarchicalNormalAnalysis", #<- use Hierarchical here
+    rJava::.jarray(dataModelList), #<- not sure this is correct...
+    effectPriorMean, effectPriorSd, effectStartingValue, #<- prior and init info for beta
+    precisionShape, precisionRate, precisionStartingValue
+  ) #<- prior and init info for precision
+  runner <- rJava::.jnew(
+    "org.ohdsi.mcmc/Runner",
+    rJava::.jcast(analysis, "org.ohdsi.mcmc.Analysis"),
+    as.integer(chainLength),
+    as.integer(burnIn),
+    as.integer(subSampleFrequency),
+    as.numeric(seed)
+  )
 
   runner$setConsoleWidth(getOption("width"))
   runner$run()
@@ -211,7 +228,9 @@ approximateHierarchicalNormalPosterior <- function(likelihoodProfiles,
   runner$processSamples() # TODO Comment out at some point
 
   names <- runner$getParameterNames()
-  traces <- as.data.frame(sapply(1:length(names), function(i) { runner$getTrace(as.integer(i)) }))
+  traces <- as.data.frame(sapply(1:length(names), function(i) {
+    runner$getTrace(as.integer(i))
+  }))
   colnames(traces) <- names
 
   return(traces)

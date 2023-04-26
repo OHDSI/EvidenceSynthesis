@@ -33,7 +33,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">EvidenceSynthesis</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.4.1</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.5.0</span>
       </span>
     </div>
 
@@ -50,6 +50,9 @@
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
+      <a href="../articles/BayesianBiasCorrection.html">Bayesian adaptive bias correction using profile likelihoods</a>
+    </li>
+    <li>
       <a href="../articles/NonNormalEffectSynthesis.html">Effect estimate synthesis using non-normal likelihood approximations</a>
     </li>
     <li>
@@ -87,10 +90,12 @@
       </header><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
-      <h1 data-toc-skip>Effect estimate synthesis using non-normal likelihood approximations</h1>
-                        <h4 data-toc-skip class="author">Martijn J. Schuemie</h4>
+      <h1 data-toc-skip>Effect estimate synthesis using non-normal
+likelihood approximations</h1>
+                        <h4 data-toc-skip class="author">Martijn J.
+Schuemie</h4>
             
-            <h4 data-toc-skip class="date">2023-04-05</h4>
+            <h4 data-toc-skip class="date">2023-04-26</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/OHDSI/EvidenceSynthesis/blob/HEAD/vignettes/NonNormalEffectSynthesis.Rmd" class="external-link"><code>vignettes/NonNormalEffectSynthesis.Rmd</code></a></small>
       <div class="hidden name"><code>NonNormalEffectSynthesis.Rmd</code></div>
@@ -102,76 +107,139 @@
 <div class="section level2">
 <h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
 </h2>
-<p>Observational studies on the effects of treatments are often done across a distributed network of health care databases, with the following characteristics</p>
+<p>Observational studies on the effects of treatments are often done
+across a distributed network of health care databases, with the
+following characteristics</p>
 <ul>
-<li><p><strong>Sharing of individual patient data (IPD) is often not allowed</strong> due to patient privacy concerns and local governance regulations.</p></li>
-<li><p>Patients are often exposed for varying lengths of time, and may stop being followed for various reasons, making a time-to-event analysis with right-censoring such as a <strong>Cox proportional hazards</strong> regression the most prevalent analysis.</p></li>
-<li><p>Due to the observational nature of the data, some correction for baseline differences between exposure groups is often necessary to avoid confounding. This is often done by <strong>stratifying, matching, or weighting</strong> by propensity score or disease risk score.</p></li>
-<li><p>Since data sites often differ in the population they capture or in their capture process, some <strong>heterogeneity between sites</strong> should be assumed to exist.</p></li>
+<li><p><strong>Sharing of individual patient data (IPD) is often not
+allowed</strong> due to patient privacy concerns and local governance
+regulations.</p></li>
+<li><p>Patients are often exposed for varying lengths of time, and may
+stop being followed for various reasons, making a time-to-event analysis
+with right-censoring such as a <strong>Cox proportional hazards</strong>
+regression the most prevalent analysis.</p></li>
+<li><p>Due to the observational nature of the data, some correction for
+baseline differences between exposure groups is often necessary to avoid
+confounding. This is often done by <strong>stratifying, matching, or
+weighting</strong> by propensity score or disease risk score.</p></li>
+<li><p>Since data sites often differ in the population they capture or
+in their capture process, some <strong>heterogeneity between
+sites</strong> should be assumed to exist.</p></li>
 </ul>
-<p>Because no IPD may be shared, data must be aggregated in some way to avoid patient identifiability before communication. Current practice is to estimate the hazard ratio (with standard error) per database, and combine these across sites using a traditional meta-analysis for random effects. However, with small counts the true per-database likelihood function may no longer be approximately normally distributed, as is assumed by this approach. Especially when zero events are observed in one of the treatment arms but not both, the likelihood is far from normally distributed, yet still holds information on the parameter of interest. Even though databases in a network are typically large in terms of the total number of patients covered, when restricting to patients having specific outcomes while exposed to specific treatments the numbers quickly dwindle to numbers small enough for this issue to be of concern.</p>
-<p>This vignette describes how this problem can be solved by using a non-normal approximation of the per-database likelihood. The <code>EvidenceSynthesis</code> package supports various approximations of the likelihood that are more appropriate when sample size is small and also still apply when sample sizes are large, allowing sites to contribute information on the overall likelihood distribution of a parameter of interest (ie. the effect of the treatment on the outcome) without sharing IPD. This package further provides functions for synthesizing the likelihood approximations from the various sites to a single estimate.</p>
+<p>Because no IPD may be shared, data must be aggregated in some way to
+avoid patient identifiability before communication. Current practice is
+to estimate the hazard ratio (with standard error) per database, and
+combine these across sites using a traditional meta-analysis for random
+effects. However, with small counts the true per-database likelihood
+function may no longer be approximately normally distributed, as is
+assumed by this approach. Especially when zero events are observed in
+one of the treatment arms but not both, the likelihood is far from
+normally distributed, yet still holds information on the parameter of
+interest. Even though databases in a network are typically large in
+terms of the total number of patients covered, when restricting to
+patients having specific outcomes while exposed to specific treatments
+the numbers quickly dwindle to numbers small enough for this issue to be
+of concern.</p>
+<p>This vignette describes how this problem can be solved by using a
+non-normal approximation of the per-database likelihood. The
+<code>EvidenceSynthesis</code> package supports various approximations
+of the likelihood that are more appropriate when sample size is small
+and also still apply when sample sizes are large, allowing sites to
+contribute information on the overall likelihood distribution of a
+parameter of interest (ie. the effect of the treatment on the outcome)
+without sharing IPD. This package further provides functions for
+synthesizing the likelihood approximations from the various sites to a
+single estimate.</p>
 </div>
 <div class="section level2">
 <h2 id="simulating-some-data">Simulating some data<a class="anchor" aria-label="anchor" href="#simulating-some-data"></a>
 </h2>
-<p>To demonstrate how to use the <code>EvidenceSynthesis</code> package, we will generate some simple simulated data. For this, we will use the <code><a href="../reference/simulatePopulations.html">simulatePopulations()</a></code> function included in the <code>EvidenceSynthesis</code> package:</p>
+<p>To demonstrate how to use the <code>EvidenceSynthesis</code> package,
+we will generate some simple simulated data. For this, we will use the
+<code><a href="../reference/simulatePopulations.html">simulatePopulations()</a></code> function included in the
+<code>EvidenceSynthesis</code> package:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ohdsi.github.io/EvidenceSynthesis/" class="external-link">EvidenceSynthesis</a></span><span class="op">)</span></span>
-<span><span class="va">simulationSettings</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createSimulationSettings.html">createSimulationSettings</a></span><span class="op">(</span>nSites <span class="op">=</span> <span class="fl">5</span>,</span>
-<span>                                               n <span class="op">=</span> <span class="fl">10000</span>,</span>
-<span>                                               treatedFraction <span class="op">=</span> <span class="fl">0.75</span>,</span>
-<span>                                               nStrata <span class="op">=</span> <span class="fl">5</span>,</span>
-<span>                                               hazardRatio <span class="op">=</span> <span class="fl">2</span>,</span>
-<span>                                               randomEffectSd <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></span>
+<span><span class="va">simulationSettings</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createSimulationSettings.html">createSimulationSettings</a></span><span class="op">(</span></span>
+<span>  nSites <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>  n <span class="op">=</span> <span class="fl">10000</span>,</span>
+<span>  treatedFraction <span class="op">=</span> <span class="fl">0.75</span>,</span>
+<span>  nStrata <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>  hazardRatio <span class="op">=</span> <span class="fl">2</span>,</span>
+<span>  randomEffectSd <span class="op">=</span> <span class="fl">0.5</span></span>
+<span><span class="op">)</span></span>
 <span><span class="va">populations</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simulatePopulations.html">simulatePopulations</a></span><span class="op">(</span><span class="va">simulationSettings</span><span class="op">)</span></span></code></pre></div>
-<p>Here we specify we want to simulate 5 data sites, each with 10,000 subjects. Of these, 75% should be exposed to the target treatment (the remaining 25% will be in the comparator cohort). At each site, the data are stratified in to 5 strata (e.g. propensity score strata), each with a different baseline risk of the outcome. The target hazard ratio is 2, but there is a random effect with standard deviation = 2 (ie. each site draws its log(hazard ratio) from a normal distribution with mean = log(2) and standard deviation = 0.5).</p>
-<p>The resulting <code>populations</code> object is a list of data frames, each with person-level data:</p>
+<p>Here we specify we want to simulate 5 data sites, each with 10,000
+subjects. Of these, 75% should be exposed to the target treatment (the
+remaining 25% will be in the comparator cohort). At each site, the data
+are stratified in to 5 strata (e.g. propensity score strata), each with
+a different baseline risk of the outcome. The target hazard ratio is 2,
+but there is a random effect with standard deviation = 2 (ie. each site
+draws its log(hazard ratio) from a normal distribution with mean =
+log(2) and standard deviation = 0.5).</p>
+<p>The resulting <code>populations</code> object is a list of data
+frames, each with person-level data:</p>
 <ul>
 <li>
-<strong>x</strong>: Whether the subject is exposed to the target (1) or comparator (0).</li>
+<strong>x</strong>: Whether the subject is exposed to the target (1)
+or comparator (0).</li>
 <li>
-<strong>time</strong>: days of follow-up time (until end of observation or the occurrence of the outcome, whichever came first).</li>
+<strong>time</strong>: days of follow-up time (until end of
+observation or the occurrence of the outcome, whichever came
+first).</li>
 <li>
-<strong>y</strong>: whether the outcome occurred (1) or not (0) at the end of follow-up.</li>
+<strong>y</strong>: whether the outcome occurred (1) or not (0) at
+the end of follow-up.</li>
 <li>
-<strong>stratumId</strong>: an integer identifying the stratum (e.g. a propensity-score stratum).</li>
+<strong>stratumId</strong>: an integer identifying the stratum
+(e.g. a propensity-score stratum).</li>
 </ul>
 </div>
 <div class="section level2">
 <h2 id="approximating-the-likelihood-at-each-site">Approximating the likelihood at each site<a class="anchor" aria-label="anchor" href="#approximating-the-likelihood-at-each-site"></a>
 </h2>
-<p>In a real study, we would not have all the person-level data available at one site. Instead, each site would have their data behind their organization’s firewall, without the ability to share person-level data. To be able to synthesize evidence across sites, we need to share information about the parameter of interest (the effect size) without sharing person-level data. We can do this by approximating the likelihood function of the parameter at each site, and communicating only the parameters of the approximation.</p>
-<p>First, we fit our model for the effect of interest. For this we use the <code>Cyclops</code> package:</p>
+<p>In a real study, we would not have all the person-level data
+available at one site. Instead, each site would have their data behind
+their organization’s firewall, without the ability to share person-level
+data. To be able to synthesize evidence across sites, we need to share
+information about the parameter of interest (the effect size) without
+sharing person-level data. We can do this by approximating the
+likelihood function of the parameter at each site, and communicating
+only the parameters of the approximation.</p>
+<p>First, we fit our model for the effect of interest. For this we use
+the <code>Cyclops</code> package:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/ohdsi/cyclops" class="external-link">Cyclops</a></span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Warning: package 'Cyclops' was built under R version 4.1.3</span></span></code></pre>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Assume we are at site 1:</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/ohdsi/cyclops" class="external-link">Cyclops</a></span><span class="op">)</span></span>
+<span><span class="co"># Assume we are at site 1:</span></span>
 <span><span class="va">population</span> <span class="op">&lt;-</span> <span class="va">populations</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
 <span></span>
-<span><span class="va">cyclopsData</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/Cyclops/man/createCyclopsData.html" class="external-link">createCyclopsData</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">y</span><span class="op">)</span> <span class="op">~</span> <span class="va">x</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/pkg/survival/man/strata.html" class="external-link">strata</a></span><span class="op">(</span><span class="va">stratumId</span><span class="op">)</span>, </span>
-<span>                                 data <span class="op">=</span> <span class="va">population</span>, </span>
-<span>                                 modelType <span class="op">=</span> <span class="st">"cox"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">cyclopsData</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/Cyclops/man/createCyclopsData.html" class="external-link">createCyclopsData</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">y</span><span class="op">)</span> <span class="op">~</span> <span class="va">x</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/pkg/survival/man/strata.html" class="external-link">strata</a></span><span class="op">(</span><span class="va">stratumId</span><span class="op">)</span>,</span>
+<span>  data <span class="op">=</span> <span class="va">population</span>,</span>
+<span>  modelType <span class="op">=</span> <span class="st">"cox"</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## as(&lt;numLike&gt;, "dgeMatrix") is deprecated since Matrix 1.5-0; do as(as(as(., "dMatrix"), "generalMatrix"), "unpackedMatrix") instead</span></span></code></pre>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cyclopsFit</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/Cyclops/man/fitCyclopsModel.html" class="external-link">fitCyclopsModel</a></span><span class="op">(</span><span class="va">cyclopsData</span><span class="op">)</span></span></code></pre></div>
-<p>If we are interested, we can see what the local estimate was of the hazard ratio and its confidence interval:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<p>If we are interested, we can see what the local estimate was of the
+hazard ratio and its confidence interval:</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Hazard ratio:</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">cyclopsFit</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##         x </span></span>
 <span><span class="co">## 0.8000462</span></span></code></pre>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># 95% confidence interval:</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint</a></span><span class="op">(</span><span class="va">cyclopsFit</span>, parm <span class="op">=</span> <span class="st">"x"</span><span class="op">)</span><span class="op">[</span><span class="fl">2</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## [1] 0.2965148 2.5159796</span></span></code></pre>
-<p>Note that an estimate may not exist at a database, for example if no one in the target or comparator group has the outcome. However, the likelihood may still be informative.</p>
-<p>Next, we approximate the likelihood function of our parameter of interest:</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">approximation</span> <span class="op">&lt;-</span>  <span class="fu"><a href="../reference/approximateLikelihood.html">approximateLikelihood</a></span><span class="op">(</span></span>
-<span>  cyclopsFit <span class="op">=</span> <span class="va">cyclopsFit</span>, </span>
-<span>  parameter <span class="op">=</span> <span class="st">"x"</span>, </span>
+<p>Note that an estimate may not exist at a database, for example if no
+one in the target or comparator group has the outcome. However, the
+likelihood may still be informative.</p>
+<p>Next, we approximate the likelihood function of our parameter of
+interest:</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">approximation</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/approximateLikelihood.html">approximateLikelihood</a></span><span class="op">(</span></span>
+<span>  cyclopsFit <span class="op">=</span> <span class="va">cyclopsFit</span>,</span>
+<span>  parameter <span class="op">=</span> <span class="st">"x"</span>,</span>
 <span>  approximation <span class="op">=</span> <span class="st">"adaptive grid"</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">approximation</span><span class="op">)</span></span></code></pre></div>
@@ -184,50 +252,81 @@
 <span><span class="co">## <span style="color: #BCBCBC;">4</span> -<span style="color: #BB0000;">2.25</span> -<span style="color: #BB0000;">122.</span></span></span>
 <span><span class="co">## <span style="color: #BCBCBC;">5</span> -<span style="color: #BB0000;">2.24</span> -<span style="color: #BB0000;">122.</span></span></span>
 <span><span class="co">## <span style="color: #BCBCBC;">6</span> -<span style="color: #BB0000;">2.22</span> -<span style="color: #BB0000;">122.</span></span></span></code></pre>
-<p>Here we use the adaptive grid approximation, which in research has shown to provide a good approximation in many situations. The approximation is represented as a data frame with grid points (log effect size) and values (log likelihood) at the grid points. These parameters can be shared with the study coordinator, without sharing patient-level data.</p>
-<p>The <code>EvidenceSynthesis</code> package offers five types of approximation:</p>
+<p>Here we use the adaptive grid approximation, which in research has
+shown to provide a good approximation in many situations. The
+approximation is represented as a data frame with grid points (log
+effect size) and values (log likelihood) at the grid points. These
+parameters can be shared with the study coordinator, without sharing
+patient-level data.</p>
+<p>The <code>EvidenceSynthesis</code> package offers five types of
+approximation:</p>
 <ul>
-<li>“<strong>normal</strong>”: A normal approximation of the likelihood. This is the traditional choice for meta-analysis, but may not be appropriate when sample sizes are small. This function has two parameters (<span class="math inline">\(\mu\)</span>, and <span class="math inline">\(\sigma\)</span>).</li>
-<li>“<strong>skew normal</strong>: Uses the skew normal distribution to approximate the likelihood. This function has three parameters (<span class="math inline">\(\mu\)</span>, <span class="math inline">\(\sigma\)</span>, and <span class="math inline">\(\alpha\)</span>).</li>
-<li>“<strong>custom</strong>”: A custom parametric function designed to approximate a Cox likelihood function. This function has three parameters (<span class="math inline">\(\mu\)</span>, <span class="math inline">\(\sigma\)</span>, and <span class="math inline">\(\gamma\)</span>).</li>
-<li>“<strong>grid</strong>”: Records the log likelihood at various pre-defined grid points. This function has as many parameters as there are grid points, which by default is 991.</li>
-<li>“<strong>adaptive grid</strong>”: Records the log likelihood at grid points that are spaced to most efficiently capture the curvature.</li>
+<li>“<strong>normal</strong>”: A normal approximation of the likelihood.
+This is the traditional choice for meta-analysis, but may not be
+appropriate when sample sizes are small. This function has two
+parameters (<span class="math inline">\(\mu\)</span>, and <span class="math inline">\(\sigma\)</span>).</li>
+<li>“<strong>skew normal</strong>: Uses the skew normal distribution to
+approximate the likelihood. This function has three parameters (<span class="math inline">\(\mu\)</span>, <span class="math inline">\(\sigma\)</span>, and <span class="math inline">\(\alpha\)</span>).</li>
+<li>“<strong>custom</strong>”: A custom parametric function designed to
+approximate a Cox likelihood function. This function has three
+parameters (<span class="math inline">\(\mu\)</span>, <span class="math inline">\(\sigma\)</span>, and <span class="math inline">\(\gamma\)</span>).</li>
+<li>“<strong>grid</strong>”: Records the log likelihood at various
+pre-defined grid points. This function has as many parameters as there
+are grid points, which by default is 991.</li>
+<li>“<strong>adaptive grid</strong>”: Records the log likelihood at grid
+points that are spaced to most efficiently capture the curvature.</li>
 </ul>
-<p>In case we’re interested, we can see how closely our fitted function approximates the likelihood:</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/plotLikelihoodFit.html">plotLikelihoodFit</a></span><span class="op">(</span>approximation <span class="op">=</span> <span class="va">approximation</span>,</span>
-<span>                  cyclopsFit <span class="op">=</span> <span class="va">cyclopsFit</span>,</span>
-<span>                  parameter <span class="op">=</span> <span class="st">"x"</span><span class="op">)</span></span></code></pre></div>
+<p>In case we’re interested, we can see how closely our fitted function
+approximates the likelihood:</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plotLikelihoodFit.html">plotLikelihoodFit</a></span><span class="op">(</span></span>
+<span>  approximation <span class="op">=</span> <span class="va">approximation</span>,</span>
+<span>  cyclopsFit <span class="op">=</span> <span class="va">cyclopsFit</span>,</span>
+<span>  parameter <span class="op">=</span> <span class="st">"x"</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## Detected data following adaptive grid distribution</span></span></code></pre>
 <p><img src="NonNormalEffectSynthesis_files/figure-html/unnamed-chunk-6-1.png" width="700"></p>
 <div class="section level3">
 <h3 id="generating-approximations-at-all-sites">Generating approximations at all sites<a class="anchor" aria-label="anchor" href="#generating-approximations-at-all-sites"></a>
 </h3>
-<p>For this example we will create the approximations for all sites in one short script. In reality, each site will have to execute the code described above.</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<p>For this example we will create the approximations for all sites in
+one short script. In reality, each site will have to execute the code
+described above.</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fitModelInDatabase</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">population</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="va">cyclopsData</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/Cyclops/man/createCyclopsData.html" class="external-link">createCyclopsData</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">y</span><span class="op">)</span> <span class="op">~</span> <span class="va">x</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/pkg/survival/man/strata.html" class="external-link">strata</a></span><span class="op">(</span><span class="va">stratumId</span><span class="op">)</span>, </span>
-<span>                                   data <span class="op">=</span> <span class="va">population</span>, </span>
-<span>                                   modelType <span class="op">=</span> <span class="st">"cox"</span><span class="op">)</span></span>
+<span>  <span class="va">cyclopsData</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/Cyclops/man/createCyclopsData.html" class="external-link">createCyclopsData</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">y</span><span class="op">)</span> <span class="op">~</span> <span class="va">x</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/pkg/survival/man/strata.html" class="external-link">strata</a></span><span class="op">(</span><span class="va">stratumId</span><span class="op">)</span>,</span>
+<span>    data <span class="op">=</span> <span class="va">population</span>,</span>
+<span>    modelType <span class="op">=</span> <span class="st">"cox"</span></span>
+<span>  <span class="op">)</span></span>
 <span>  <span class="va">cyclopsFit</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/Cyclops/man/fitCyclopsModel.html" class="external-link">fitCyclopsModel</a></span><span class="op">(</span><span class="va">cyclopsData</span><span class="op">)</span></span>
-<span>  <span class="va">approximation</span> <span class="op">&lt;-</span>  <span class="fu"><a href="../reference/approximateLikelihood.html">approximateLikelihood</a></span><span class="op">(</span><span class="va">cyclopsFit</span>, </span>
-<span>                                          parameter <span class="op">=</span> <span class="st">"x"</span>,</span>
-<span>                                          approximation <span class="op">=</span> <span class="st">"adaptive grid"</span><span class="op">)</span></span>
+<span>  <span class="va">approximation</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/approximateLikelihood.html">approximateLikelihood</a></span><span class="op">(</span><span class="va">cyclopsFit</span>,</span>
+<span>    parameter <span class="op">=</span> <span class="st">"x"</span>,</span>
+<span>    approximation <span class="op">=</span> <span class="st">"adaptive grid"</span></span>
+<span>  <span class="op">)</span></span>
 <span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="va">approximation</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span><span class="va">approximations</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">populations</span>, <span class="va">fitModelInDatabase</span><span class="op">)</span></span></code></pre></div>
-<p>Here, for each population we fit the model, and create the approximation. The resulting object is a list of approximations, one for each site.</p>
+<p>Here, for each population we fit the model, and create the
+approximation. The resulting object is a list of approximations, one for
+each site.</p>
 </div>
 </div>
 <div class="section level2">
 <h2 id="combining-evidence-across-sites">Combining evidence across sites<a class="anchor" aria-label="anchor" href="#combining-evidence-across-sites"></a>
 </h2>
-<p>Assuming we have gathered the approximations from all participating sites, we can now produce a single estimate of the effect size. The <code>EvidenceSynthesis</code> package implements two different approaches to achieve this: assuming fixed-effects, or using a Bayesian model for random-effects.</p>
+<p>Assuming we have gathered the approximations from all participating
+sites, we can now produce a single estimate of the effect size. The
+<code>EvidenceSynthesis</code> package implements two different
+approaches to achieve this: assuming fixed-effects, or using a Bayesian
+model for random-effects.</p>
 <div class="section level3">
 <h3 id="fixed-effects-model-">Fixed-effects model.<a class="anchor" aria-label="anchor" href="#fixed-effects-model-"></a>
 </h3>
-<p>A fixed-effects model assumes the true effect size is identical at each site. This assumption is reasonable if the sites are highly homogeneous, and have recruited very similar individuals. We use the <code><a href="../reference/computeFixedEffectMetaAnalysis.html">computeFixedEffectMetaAnalysis()</a></code> function:</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<p>A fixed-effects model assumes the true effect size is identical at
+each site. This assumption is reasonable if the sites are highly
+homogeneous, and have recruited very similar individuals. We use the
+<code><a href="../reference/computeFixedEffectMetaAnalysis.html">computeFixedEffectMetaAnalysis()</a></code> function:</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">estimate</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/computeFixedEffectMetaAnalysis.html">computeFixedEffectMetaAnalysis</a></span><span class="op">(</span><span class="va">approximations</span><span class="op">)</span></span>
 <span><span class="va">estimate</span></span></code></pre></div>
 <pre><code><span><span class="co">##        rr       lb       ub     logRr   seLogRr</span></span>
@@ -236,52 +335,75 @@
 <div class="section level3">
 <h3 id="bayesian-random-effects-model-">Bayesian random-effects model.<a class="anchor" aria-label="anchor" href="#bayesian-random-effects-model-"></a>
 </h3>
-<p>Alternatively, we can use a random-effects model, assuming that the effect sizes at each site might be slightly different, but are all drawn from the same distribution of effect sizes. We assume that distribution is a normal distribution with mean <span class="math inline">\(\mu\)</span> and standard deviation <span class="math inline">\(\tau\)</span>. Because such a model tends to be unstable when sample sizes are small, we treat this as a Bayesian problem, and use Markov chain Monte Carlo sampling to sample from the posterior distribution.</p>
-<p>We can use the <code><a href="../reference/computeBayesianMetaAnalysis.html">computeBayesianMetaAnalysis()</a></code> function to combine the approximations into a single estimate:</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<p>Alternatively, we can use a random-effects model, assuming that the
+effect sizes at each site might be slightly different, but are all drawn
+from the same distribution of effect sizes. We assume that distribution
+is a normal distribution with mean <span class="math inline">\(\mu\)</span> and standard deviation <span class="math inline">\(\tau\)</span>. Because such a model tends to be
+unstable when sample sizes are small, we treat this as a Bayesian
+problem, and use Markov chain Monte Carlo sampling to sample from the
+posterior distribution.</p>
+<p>We can use the <code><a href="../reference/computeBayesianMetaAnalysis.html">computeBayesianMetaAnalysis()</a></code> function to
+combine the approximations into a single estimate:</p>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">estimate</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/computeBayesianMetaAnalysis.html">computeBayesianMetaAnalysis</a></span><span class="op">(</span><span class="va">approximations</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">estimate</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##         mu   mu95Lb   mu95Ub</span></span>
 <span><span class="co">## 1 2.162737 1.019833 4.998508</span></span></code></pre>
-<p>We output the point estimate and 95% credible interval of our main parameter of interest <span class="math inline">\(\mu\)</span>, and exponentiate these to convert to the hazard ratio scale.</p>
+<p>We output the point estimate and 95% credible interval of our main
+parameter of interest <span class="math inline">\(\mu\)</span>, and
+exponentiate these to convert to the hazard ratio scale.</p>
 <p>We can also view the full posterior distribution:</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotPosterior.html">plotPosterior</a></span><span class="op">(</span><span class="va">estimate</span><span class="op">)</span></span></code></pre></div>
 <p><img src="NonNormalEffectSynthesis_files/figure-html/unnamed-chunk-10-1.png" width="700"></p>
 <p>And the trace of the MCMC:</p>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotMcmcTrace.html">plotMcmcTrace</a></span><span class="op">(</span><span class="va">estimate</span><span class="op">)</span></span></code></pre></div>
 <p><img src="NonNormalEffectSynthesis_files/figure-html/unnamed-chunk-11-1.png" width="700"></p>
 </div>
 <div class="section level3">
 <h3 id="choice-of-prior">Choice of prior<a class="anchor" aria-label="anchor" href="#choice-of-prior"></a>
 </h3>
-<p>The <code>computeBayesianMetaAnalysis</code> uses a normal and half-normal prior for the <span class="math inline">\(\mu\)</span> and <span class="math inline">\(\tau\)</span> parameters, respectively. By default, the standard deviations are set to 2 for <span class="math inline">\(\mu\)</span> and 0.5 for <span class="math inline">\(\tau\)</span>. A standard deviation of 2 on the <span class="math inline">\(\mu\)</span> parameter expresses the belief of a 95% probability that the true value of <span class="math inline">\(\mu\)</span> is between -3.92 and 3.92, corresponding to hazard ratios from 0.02 to 50.40.</p>
-<p>With less data, the choice of prior becomes more important. In a small-sample scenario, we may for example choose a stronger prior on <span class="math inline">\(\tau\)</span> if we have reasons to believe between-site heterogeneity of the effect size will be small:</p>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<p>The <code>computeBayesianMetaAnalysis</code> uses a normal and
+half-normal prior for the <span class="math inline">\(\mu\)</span> and
+<span class="math inline">\(\tau\)</span> parameters, respectively. By
+default, the standard deviations are set to 2 for <span class="math inline">\(\mu\)</span> and 0.5 for <span class="math inline">\(\tau\)</span>. A standard deviation of 2 on the
+<span class="math inline">\(\mu\)</span> parameter expresses the belief
+of a 95% probability that the true value of <span class="math inline">\(\mu\)</span> is between -3.92 and 3.92,
+corresponding to hazard ratios from 0.02 to 50.40.</p>
+<p>With less data, the choice of prior becomes more important. In a
+small-sample scenario, we may for example choose a stronger prior on
+<span class="math inline">\(\tau\)</span> if we have reasons to believe
+between-site heterogeneity of the effect size will be small:</p>
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">estimate2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/computeBayesianMetaAnalysis.html">computeBayesianMetaAnalysis</a></span><span class="op">(</span><span class="va">approximations</span>, priorSd <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">0.1</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">estimate2</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##        mu   mu95Lb   mu95Ub</span></span>
 <span><span class="co">## 1 2.09469 1.053163 3.905699</span></span></code></pre>
-<p>Here we still use a prior with a standard deviation of 2 on <span class="math inline">\(\mu\)</span>, but for <span class="math inline">\(\tau\)</span> we specify a prior with a standard deviation of 0.1 instead of 0.5. As can be seen by the narrow credible interval, this stronger prior on <span class="math inline">\(\tau\)</span> leads to less uncertainty around <span class="math inline">\(\mu\)</span>.</p>
+<p>Here we still use a prior with a standard deviation of 2 on <span class="math inline">\(\mu\)</span>, but for <span class="math inline">\(\tau\)</span> we specify a prior with a standard
+deviation of 0.1 instead of 0.5. As can be seen by the narrow credible
+interval, this stronger prior on <span class="math inline">\(\tau\)</span> leads to less uncertainty around
+<span class="math inline">\(\mu\)</span>.</p>
 </div>
 </div>
 <div class="section level2">
 <h2 id="forest-plot">Forest plot<a class="anchor" aria-label="anchor" href="#forest-plot"></a>
 </h2>
 <p>We can plot the results using a standard forest plot:</p>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Make up some data site labels:</span></span>
 <span><span class="va">labels</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"Data site"</span>, <span class="va">LETTERS</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">populations</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="../reference/plotMetaAnalysisForest.html">plotMetaAnalysisForest</a></span><span class="op">(</span></span>
-<span>  data <span class="op">=</span> <span class="va">approximations</span>, </span>
-<span>  labels <span class="op">=</span> <span class="va">labels</span>, </span>
+<span>  data <span class="op">=</span> <span class="va">approximations</span>,</span>
+<span>  labels <span class="op">=</span> <span class="va">labels</span>,</span>
 <span>  estimate <span class="op">=</span> <span class="va">estimate</span>,</span>
 <span>  xLabel <span class="op">=</span> <span class="st">"Hazard Ratio"</span>,</span>
-<span>  showLikelihood <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<span>  showLikelihood <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 <p><img src="NonNormalEffectSynthesis_files/figure-html/unnamed-chunk-13-1.png" width="700"></p>
-<p>The plot also shows the (appriximated) partial likelihood curves of each site and the posterior distribution of the meta-analysis.</p>
+<p>The plot also shows the (appriximated) partial likelihood curves of
+each site and the posterior distribution of the meta-analysis.</p>
 </div>
   </div>
 
@@ -297,7 +419,7 @@
 
       <footer><div class="copyright">
   <p></p>
-<p>Developed by Martijn Schuemie, Marc A. Suchard.</p>
+<p>Developed by Martijn Schuemie, Marc A. Suchard, Fan Bu.</p>
 </div>
 
 <div class="pkgdown">

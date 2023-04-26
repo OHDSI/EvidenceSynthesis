@@ -38,8 +38,9 @@
 #' # Fit a Cox regression at each data site, and approximate likelihood function:
 #' fitModelInDatabase <- function(population) {
 #'   cyclopsData <- Cyclops::createCyclopsData(Surv(time, y) ~ x + strata(stratumId),
-#'                                             data = population,
-#'                                             modelType = "cox")
+#'     data = population,
+#'     modelType = "cox"
+#'   )
 #'   cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
 #'   approximation <- approximateLikelihood(cyclopsFit, parameter = "x", approximation = "custom")
 #'   return(approximation)
@@ -57,54 +58,66 @@ computeFixedEffectMetaAnalysis <- function(data, alpha = 0.05) {
   type <- detectApproximationType(data)
   data <- cleanApproximations(data)
   if (type == "normal") {
-    m <- meta::metagen(TE = data$logRr,
-                       seTE = data$seLogRr,
-                       studlab = rep("", nrow(data)),
-                       byvar = NULL,
-                       sm = "RR",
-                       level.comb = 1 - alpha)
+    m <- meta::metagen(
+      TE = data$logRr,
+      seTE = data$seLogRr,
+      studlab = rep("", nrow(data)),
+      byvar = NULL,
+      sm = "RR",
+      level.comb = 1 - alpha
+    )
     ffx <- summary(m)$fixed
-    estimate <- data.frame(rr = exp(ffx$TE),
-                           lb = exp(ffx$lower),
-                           ub = exp(ffx$upper),
-                           logRr = ffx$TE,
-                           seLogRr = ffx$seTE)
+    estimate <- data.frame(
+      rr = exp(ffx$TE),
+      lb = exp(ffx$lower),
+      ub = exp(ffx$upper),
+      logRr = ffx$TE,
+      seLogRr = ffx$seTE
+    )
     return(estimate)
   } else if (type == "custom") {
-    estimate <- computeEstimateFromApproximation(approximationFuntion = combineLogLikelihoodFunctions,
-                                                 a = alpha,
-                                                 fits = data,
-                                                 fun = customFunction)
+    estimate <- computeEstimateFromApproximation(
+      approximationFuntion = combineLogLikelihoodFunctions,
+      a = alpha,
+      fits = data,
+      fun = customFunction
+    )
     return(estimate)
-  } else if  (type == "skew normal") {
-    estimate <- computeEstimateFromApproximation(approximationFuntion = combineLogLikelihoodFunctions,
-                                                 a = alpha,
-                                                 fits = data,
-                                                 fun = skewNormal)
+  } else if (type == "skew normal") {
+    estimate <- computeEstimateFromApproximation(
+      approximationFuntion = combineLogLikelihoodFunctions,
+      a = alpha,
+      fits = data,
+      fun = skewNormal
+    )
     return(estimate)
   } else if (type == "pooled") {
     population <- poolPopulations(data)
     cyclopsData <- Cyclops::createCyclopsData(Surv(time, y) ~ x + strata(stratumId),
-                                              data = population,
-                                              modelType = "cox")
+      data = population,
+      modelType = "cox"
+    )
     cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
     mode <- coef(cyclopsFit)
     ci95 <- confint(cyclopsFit, 1, level = 0.95)
-    estimate <- data.frame(rr = exp(mode),
-                           lb = exp(ci95[2]),
-                           ub = exp(ci95[3]),
-                           logRr = mode,
-                           seLogRr = (ci95[3] - ci95[2])/(2 * qnorm(0.975)))
+    estimate <- data.frame(
+      rr = exp(mode),
+      lb = exp(ci95[2]),
+      ub = exp(ci95[3]),
+      logRr = mode,
+      seLogRr = (ci95[3] - ci95[2]) / (2 * qnorm(0.975))
+    )
     return(estimate)
   } else if (type == "adaptive grid") {
     estimate <- computeFixedEffectAdaptiveGrid(data, alpha)
     return(estimate)
   } else if (type == "grid") {
     data <- cleanData(data,
-                      colnames(data),
-                      minValues = rep(-1e6, ncol(data)),
-                      maxValues = rep(0, ncol(data)),
-                      grid = TRUE)
+      colnames(data),
+      minValues = rep(-1e6, ncol(data)),
+      maxValues = rep(0, ncol(data)),
+      grid = TRUE
+    )
     grid <- apply(data, 2, sum)
     estimate <- computeEstimateFromGrid(grid, alpha = alpha)
     return(estimate)
@@ -120,9 +133,10 @@ estimate <- computeFixedEffectAdaptiveGrid <- function(data, alpha) {
     cleanedData <- as.data.frame(data[[i]])
     cleanedData$value <- cleanedData$value - max(cleanedData$value)
     cleanedData <- cleanData(cleanedData,
-                             c("point", "value"),
-                             minValues = c(-100, -1e6),
-                             maxValues = c(100, 0))
+      c("point", "value"),
+      minValues = c(-100, -1e6),
+      maxValues = c(100, 0)
+    )
     cleanedData <- cleanedData[order(cleanedData$point), ]
 
     # Compute likelihood at unioned grid points, using linear interpolation where needed:
@@ -163,7 +177,7 @@ combineLogLikelihoodFunctions <- function(x, fits, fun = customFunction) {
 computeEstimateFromApproximation <- function(approximationFuntion, a = 0.05, ...) {
   fit <- suppressWarnings(optim(0, function(x) -approximationFuntion(x, ...)))
   logRr <- fit$par
-  threshold <- -fit$value - qchisq(1 - a, df = 1)/2
+  threshold <- -fit$value - qchisq(1 - a, df = 1) / 2
 
   precision <- 1e-07
 
@@ -172,7 +186,7 @@ computeEstimateFromApproximation <- function(approximationFuntion, a = 0.05, ...
   H <- 10
   ub <- Inf
   while (H >= L) {
-    M <- L + (H - L)/2
+    M <- L + (H - L) / 2
     llM <- approximationFuntion(M, ...)
     metric <- threshold - llM
     if (metric > precision) {
@@ -197,7 +211,7 @@ computeEstimateFromApproximation <- function(approximationFuntion, a = 0.05, ...
   H <- logRr
   lb <- -Inf
   while (H >= L) {
-    M <- L + (H - L)/2
+    M <- L + (H - L) / 2
     llM <- approximationFuntion(M, ...)
     metric <- threshold - llM
     if (metric > precision) {
@@ -216,11 +230,13 @@ computeEstimateFromApproximation <- function(approximationFuntion, a = 0.05, ...
       break
     }
   }
-  result <- data.frame(rr = exp(logRr),
-                       lb = exp(lb),
-                       ub = exp(ub),
-                       logRr = logRr,
-                       seLogRr = (ub - lb)/(2 * qnorm(0.975)))
+  result <- data.frame(
+    rr = exp(logRr),
+    lb = exp(lb),
+    ub = exp(ub),
+    logRr = logRr,
+    seLogRr = (ub - lb) / (2 * qnorm(0.975))
+  )
   return(result)
 }
 
@@ -238,16 +254,18 @@ computeEstimateFromGrid <- function(grid, alpha = 0.05) {
   maxIdx <- which(grid == max(grid))[1]
   if (maxIdx == 1 || maxIdx == length(grid)) {
     warn("Point estimate out of range")
-    result <- data.frame(rr = NA,
-                         lb = NA,
-                         ub = NA,
-                         logRr = NA,
-                         seLogRr = NA)
+    result <- data.frame(
+      rr = NA,
+      lb = NA,
+      ub = NA,
+      logRr = NA,
+      seLogRr = NA
+    )
     return(result)
   }
 
   logRr <- as.numeric(names(grid)[maxIdx])
-  threshold <- unlist(grid[maxIdx]) - qchisq(1 - alpha, df = 1)/2
+  threshold <- unlist(grid[maxIdx]) - qchisq(1 - alpha, df = 1) / 2
   lbIdx <- min(which(grid[1:maxIdx] > threshold))
   # TODO: use interpolation to get more precise CI
   if (lbIdx == 1) {
@@ -259,10 +277,12 @@ computeEstimateFromGrid <- function(grid, alpha = 0.05) {
     warn("Upper bound of confidence interval out of range")
   }
   ub <- as.numeric(names(grid)[ubIdx])
-  result <- data.frame(rr = exp(logRr),
-                       lb = exp(lb),
-                       ub = exp(ub),
-                       logRr = logRr,
-                       seLogRr = (ub - lb)/(2 * qnorm(0.975)))
+  result <- data.frame(
+    rr = exp(logRr),
+    lb = exp(lb),
+    ub = exp(ub),
+    logRr = logRr,
+    seLogRr = (ub - lb) / (2 * qnorm(0.975))
+  )
   return(result)
 }

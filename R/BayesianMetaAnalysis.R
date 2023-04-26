@@ -14,13 +14,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 createNaEstimate <- function(type) {
-  estimate <- data.frame(mu = NA,
-                         mu95Lb = NA,
-                         mu95Ub = NA,
-                         muSe = NA,
-                         tau = NA,
-                         tau95Lb = NA,
-                         tau95Ub = NA)
+  estimate <- data.frame(
+    mu = NA,
+    mu95Lb = NA,
+    mu95Ub = NA,
+    muSe = NA,
+    tau = NA,
+    tau95Lb = NA,
+    tau95Ub = NA
+  )
   attr(estimate, "traces") <- matrix(ncol = 2)
   attr(estimate, "type") <- type
   return(estimate)
@@ -58,8 +60,9 @@ createNaEstimate <- function(type) {
 #' # Fit a Cox regression at each data site, and approximate likelihood function:
 #' fitModelInDatabase <- function(population) {
 #'   cyclopsData <- Cyclops::createCyclopsData(Surv(time, y) ~ x + strata(stratumId),
-#'                                             data = population,
-#'                                             modelType = "cox")
+#'     data = population,
+#'     modelType = "cox"
+#'   )
 #'   cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
 #'   approximation <- approximateLikelihood(cyclopsFit, parameter = "x", approximation = "custom")
 #'   return(approximation)
@@ -84,16 +87,18 @@ computeBayesianMetaAnalysis <- function(data,
                                         seed = 1) {
   if (!supportsJava8()) {
     inform("Java 8 or higher is required, but older version was found. Cannot compute estimate.")
-    estimate <- data.frame(mu = as.numeric(NA),
-                           mu95Lb = as.numeric(NA),
-                           mu95Ub = as.numeric(NA),
-                           muSe = as.numeric(NA),
-                           tau = as.numeric(NA),
-                           tau95Lb = as.numeric(NA),
-                           tau95Ub = as.numeric(NA),
-                           logRr = as.numeric(NA),
-                           seLogRr = as.numeric(NA),
-                           row.names = NULL)
+    estimate <- data.frame(
+      mu = as.numeric(NA),
+      mu95Lb = as.numeric(NA),
+      mu95Ub = as.numeric(NA),
+      muSe = as.numeric(NA),
+      tau = as.numeric(NA),
+      tau95Lb = as.numeric(NA),
+      tau95Ub = as.numeric(NA),
+      logRr = as.numeric(NA),
+      seLogRr = as.numeric(NA),
+      row.names = NULL
+    )
     traces <- matrix(runif(700), ncol = 7, nrow = 100)
     attr(estimate, "traces") <- traces
     attr(estimate, "type") <- "Unknown"
@@ -101,9 +106,11 @@ computeBayesianMetaAnalysis <- function(data,
     return(estimate)
   }
   if (isRmdCheck() && !isUnitTest()) {
-    inform(paste("Function is executed as an example in R check:",
-                 "Reducing chainLength and burnIn to reduce compute time.",
-                 "Result may be unreliable"))
+    inform(paste(
+      "Function is executed as an example in R check:",
+      "Reducing chainLength and burnIn to reduce compute time.",
+      "Result may be unreliable"
+    ))
     chainLength <- 110000
     burnIn <- 10000
     Sys.sleep(1) # To avoid CRAN message about CPU time being more than 2.5. times elapsed time
@@ -112,39 +119,50 @@ computeBayesianMetaAnalysis <- function(data,
   type <- detectApproximationType(data)
   data <- cleanApproximations(data)
   if (type == "normal") {
-    if (nrow(data) == 0)
+    if (nrow(data) == 0) {
       return(createNaEstimate(type))
+    }
     dataModel <- rJava::.jnew("org.ohdsi.metaAnalysis.NormalDataModel")
     for (i in 1:nrow(data)) {
-      dataModel$addLikelihoodParameters(as.numeric(c(data$logRr[i], data$seLogRr[i])),
-                                        as.numeric(c(NA, NA)))
+      dataModel$addLikelihoodParameters(
+        as.numeric(c(data$logRr[i], data$seLogRr[i])),
+        as.numeric(c(NA, NA))
+      )
     }
     dataModel$finish()
   } else if (type == "custom") {
-    if (nrow(data) == 0)
+    if (nrow(data) == 0) {
       return(createNaEstimate(type))
+    }
     dataModel <- rJava::.jnew("org.ohdsi.metaAnalysis.ParametricDataModel")
     for (i in 1:nrow(data)) {
-      dataModel$addLikelihoodParameters(as.numeric(c(data$mu[i], data$sigma[i], data$gamma[i])),
-                                        as.numeric(c(NA, NA)))
+      dataModel$addLikelihoodParameters(
+        as.numeric(c(data$mu[i], data$sigma[i], data$gamma[i])),
+        as.numeric(c(NA, NA))
+      )
     }
     dataModel$finish()
-  } else if  (type == "skew normal") {
-    if (nrow(data) == 0)
+  } else if (type == "skew normal") {
+    if (nrow(data) == 0) {
       return(createNaEstimate(type))
+    }
     dataModel <- rJava::.jnew("org.ohdsi.metaAnalysis.SkewNormalDataModel")
     for (i in 1:nrow(data)) {
-      dataModel$addLikelihoodParameters(as.numeric(c(data$mu[i], data$sigma[i], data$alpha[i])),
-                                        as.numeric(c(NA, NA)))
+      dataModel$addLikelihoodParameters(
+        as.numeric(c(data$mu[i], data$sigma[i], data$alpha[i])),
+        as.numeric(c(NA, NA))
+      )
     }
     dataModel$finish()
   } else if (type == "pooled") {
     dataModel <- rJava::.jnew("org.ohdsi.metaAnalysis.CoxDataModel")
     for (i in 1:length(data)) {
-      dataModel$addLikelihoodData(as.integer(data[[i]]$stratumId),
-                                  as.integer(data[[i]]$y),
-                                  as.numeric(data[[i]]$time),
-                                  as.numeric(data[[i]]$x))
+      dataModel$addLikelihoodData(
+        as.integer(data[[i]]$stratumId),
+        as.integer(data[[i]]$y),
+        as.numeric(data[[i]]$time),
+        as.numeric(data[[i]]$x)
+      )
     }
     dataModel$finish()
   } else if (type == "adaptive grid") {
@@ -153,15 +171,17 @@ computeBayesianMetaAnalysis <- function(data,
       cleanedData <- as.data.frame(data[[i]])
       cleanedData$value <- cleanedData$value - max(cleanedData$value)
       cleanedData <- cleanData(cleanedData,
-                               c("point", "value"),
-                               minValues = c(-100, -1e6),
-                               maxValues = c(100, 0))
+        c("point", "value"),
+        minValues = c(-100, -1e6),
+        maxValues = c(100, 0)
+      )
       dataModel$addLikelihoodParameters(cleanedData$point, cleanedData$value)
     }
     dataModel$finish()
   } else if (type == "grid") {
-    if (nrow(data) == 0)
+    if (nrow(data) == 0) {
       return(createNaEstimate(type))
+    }
     x <- as.numeric(colnames(data))
     data <- as.matrix(data)
     dataModel <- rJava::.jnew("org.ohdsi.metaAnalysis.ExtendingEmpiricalDataModel")
@@ -176,26 +196,36 @@ computeBayesianMetaAnalysis <- function(data,
   inform("Performing MCMC. This may take a while")
   prior <- rJava::.jnew("org.ohdsi.metaAnalysis.HalfNormalOnStdDevPrior", 0, as.numeric(priorSd[2]))
   if (robust) {
-    metaAnalysis <- rJava::.jnew("org.ohdsi.mcmc.Runner",
-                                 rJava::.jcast(rJava::.jnew("org.ohdsi.metaAnalysis.RobustMetaAnalysis",
-                                                            rJava::.jcast(dataModel, "org.ohdsi.metaAnalysis.DataModel"),
-                                                            rJava::.jcast(prior, "org.ohdsi.metaAnalysis.ScalePrior"),
-                                                            as.numeric(priorSd[1])),
-                                               "org.ohdsi.mcmc.Analysis"),
-                                 as.integer(chainLength),
-                                 as.integer(burnIn),
-                                 as.integer(subSampleFrequency),
-                                 as.numeric(seed))
+    metaAnalysis <- rJava::.jnew(
+      "org.ohdsi.mcmc.Runner",
+      rJava::.jcast(
+        rJava::.jnew(
+          "org.ohdsi.metaAnalysis.RobustMetaAnalysis",
+          rJava::.jcast(dataModel, "org.ohdsi.metaAnalysis.DataModel"),
+          rJava::.jcast(prior, "org.ohdsi.metaAnalysis.ScalePrior"),
+          as.numeric(priorSd[1])
+        ),
+        "org.ohdsi.mcmc.Analysis"
+      ),
+      as.integer(chainLength),
+      as.integer(burnIn),
+      as.integer(subSampleFrequency),
+      as.numeric(seed)
+    )
   } else {
-    metaAnalysis <- rJava::.jnew("org.ohdsi.mcmc.Runner",
-                                 rJava::.jcast(rJava::.jnew("org.ohdsi.metaAnalysis.MetaAnalysis",
-                                                            rJava::.jcast(dataModel, "org.ohdsi.metaAnalysis.DataModel"),
-                                                            rJava::.jcast(prior, "org.ohdsi.metaAnalysis.ScalePrior"),
-                                                            as.numeric(priorSd[1])), "org.ohdsi.mcmc.Analysis"),
-                                 as.integer(chainLength),
-                                 as.integer(burnIn),
-                                 as.integer(subSampleFrequency),
-                                 as.numeric(seed))
+    metaAnalysis <- rJava::.jnew(
+      "org.ohdsi.mcmc.Runner",
+      rJava::.jcast(rJava::.jnew(
+        "org.ohdsi.metaAnalysis.MetaAnalysis",
+        rJava::.jcast(dataModel, "org.ohdsi.metaAnalysis.DataModel"),
+        rJava::.jcast(prior, "org.ohdsi.metaAnalysis.ScalePrior"),
+        as.numeric(priorSd[1])
+      ), "org.ohdsi.mcmc.Analysis"),
+      as.integer(chainLength),
+      as.integer(burnIn),
+      as.integer(subSampleFrequency),
+      as.numeric(seed)
+    )
   }
 
   metaAnalysis$setConsoleWidth(getOption("width"))
@@ -211,16 +241,18 @@ computeBayesianMetaAnalysis <- function(data,
   hdiMu <- HDInterval::hdi(traces[, 1], credMass = 1 - alpha)
   hdiTau <- HDInterval::hdi(traces[, 2], credMass = 1 - alpha)
   mu <- mean(traces[, 1])
-  estimate <- data.frame(mu = mu,
-                         mu95Lb = hdiMu[1],
-                         mu95Ub = hdiMu[2],
-                         muSe = sqrt(mean((traces[, 1] - mu)^2)),
-                         tau = median(traces[, 2]),
-                         tau95Lb = hdiTau[1],
-                         tau95Ub = hdiTau[2],
-                         logRr = mu,
-                         seLogRr = sqrt(mean((traces[, 1] - mu)^2)),
-                         row.names = NULL)
+  estimate <- data.frame(
+    mu = mu,
+    mu95Lb = hdiMu[1],
+    mu95Ub = hdiMu[2],
+    muSe = sqrt(mean((traces[, 1] - mu)^2)),
+    tau = median(traces[, 2]),
+    tau95Lb = hdiTau[1],
+    tau95Ub = hdiTau[2],
+    logRr = mu,
+    seLogRr = sqrt(mean((traces[, 1] - mu)^2)),
+    row.names = NULL
+  )
   attr(estimate, "traces") <- traces
   attr(estimate, "type") <- type
   attr(estimate, "ess") <- coda::effectiveSize(traces)

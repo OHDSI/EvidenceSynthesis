@@ -1,4 +1,4 @@
-Includes 1 change (see NEWS.md)
+Includes 3 changes (see NEWS.md), and modifies the System Requirements Java notation as requested by Prof. Ripley. 
 
 ---
 

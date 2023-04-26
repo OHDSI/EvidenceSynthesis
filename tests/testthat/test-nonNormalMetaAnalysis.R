@@ -9,10 +9,12 @@ library(survival)
 createApproximations <- function(populations, approximation) {
   fitModelInDatabase <- function(population, approximation) {
     cyclopsData <- Cyclops::createCyclopsData(Surv(time, y) ~ x + strata(stratumId),
-                                              data = population,
-                                              modelType = "cox")
+      data = population,
+      modelType = "cox"
+    )
     cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData,
-                                           fixedCoefficients = c(approximation != "normal"))
+      fixedCoefficients = c(approximation != "normal")
+    )
     approximation <- approximateLikelihood(cyclopsFit, "x", approximation = approximation)
     return(approximation)
   }
@@ -25,11 +27,13 @@ createApproximations <- function(populations, approximation) {
 
 if (recomputeGoldStandard) {
   set.seed(1)
-  populations <- simulatePopulations(settings = createSimulationSettings(nSites = 10,
-                                                                         n = 2500,
-                                                                         treatedFraction = 0.25,
-                                                                         hazardRatio = 2,
-                                                                         randomEffectSd = 0.5))
+  populations <- simulatePopulations(settings = createSimulationSettings(
+    nSites = 10,
+    n = 2500,
+    treatedFraction = 0.25,
+    hazardRatio = 2,
+    randomEffectSd = 0.5
+  ))
   pooledFixedFxEstimate <- computeFixedEffectMetaAnalysis(populations)
   pooledRandomFxEstimate <- computeBayesianMetaAnalysis(populations)
   saveRDS(populations, "resources/populations.rds")
@@ -50,30 +54,34 @@ data <- createApproximations(populations, "custom")
 test_that("Custom approximation: pooled matches fixed-effects meta-analysis", {
   estimate <- computeFixedEffectMetaAnalysis(data)
   expect_equal(estimate[, c("rr", "logRr")],
-               pooledFixedFxEstimate[, c("rr", "logRr")],
-               tolerance = 0.15,
-               scale = 1,
-               check.attributes = FALSE)
+    pooledFixedFxEstimate[, c("rr", "logRr")],
+    tolerance = 0.15,
+    scale = 1,
+    check.attributes = FALSE
+  )
   expect_equal(estimate[, c("lb", "ub", "seLogRr")],
-               pooledFixedFxEstimate[, c("lb", "ub", "seLogRr")],
-               tolerance = 0.50,
-               scale = 1,
-               check.attributes = FALSE)
+    pooledFixedFxEstimate[, c("lb", "ub", "seLogRr")],
+    tolerance = 0.50,
+    scale = 1,
+    check.attributes = FALSE
+  )
 })
 
 test_that("Custom approximation: pooled matches random-effects meta-analysis", {
   skip_if_not(supportsJava8())
   estimate <- computeBayesianMetaAnalysis(data, seed = seed)
   expect_equal(estimate[, c("mu", "tau", "logRr")],
-               pooledRandomFxEstimate[, c("mu", "tau", "logRr")],
-               tolerance = 0.10,
-               scale = 1,
-               check.attributes = FALSE)
+    pooledRandomFxEstimate[, c("mu", "tau", "logRr")],
+    tolerance = 0.10,
+    scale = 1,
+    check.attributes = FALSE
+  )
   expect_equal(estimate[, c("mu95Lb", "mu95Ub", "muSe", "tau95Lb", "tau95Ub", "seLogRr")],
-               pooledRandomFxEstimate[, c("mu95Lb", "mu95Ub", "muSe", "tau95Lb", "tau95Ub", "seLogRr")],
-               tolerance = 0.50,
-               scale = 1,
-               check.attributes = FALSE)
+    pooledRandomFxEstimate[, c("mu95Lb", "mu95Ub", "muSe", "tau95Lb", "tau95Ub", "seLogRr")],
+    tolerance = 0.50,
+    scale = 1,
+    check.attributes = FALSE
+  )
 })
 
 # Grid approximation
@@ -82,30 +90,34 @@ data <- createApproximations(populations, "grid")
 test_that("Grid approximation: pooled matches fixed-effects meta-analysis", {
   estimate <- computeFixedEffectMetaAnalysis(data)
   expect_equal(estimate[, c("rr", "logRr")],
-               pooledFixedFxEstimate[, c("rr", "logRr")],
-               tolerance = 0.15,
-               scale = 1,
-               check.attributes = FALSE)
+    pooledFixedFxEstimate[, c("rr", "logRr")],
+    tolerance = 0.15,
+    scale = 1,
+    check.attributes = FALSE
+  )
   expect_equal(estimate[, c("lb", "ub", "seLogRr")],
-               pooledFixedFxEstimate[, c("lb", "ub", "seLogRr")],
-               tolerance = 0.50,
-               scale = 1,
-               check.attributes = FALSE)
+    pooledFixedFxEstimate[, c("lb", "ub", "seLogRr")],
+    tolerance = 0.50,
+    scale = 1,
+    check.attributes = FALSE
+  )
 })
 
 test_that("Grid approximation: pooled matches random-effects meta-analysis", {
   skip_if_not(supportsJava8())
   estimate <- computeBayesianMetaAnalysis(data, seed = seed)
   expect_equal(estimate[, c("mu", "tau", "logRr")],
-               pooledRandomFxEstimate[, c("mu", "tau", "logRr")],
-               tolerance = 0.10,
-               scale = 1,
-               check.attributes = FALSE)
+    pooledRandomFxEstimate[, c("mu", "tau", "logRr")],
+    tolerance = 0.10,
+    scale = 1,
+    check.attributes = FALSE
+  )
   expect_equal(estimate[, c("mu95Lb", "mu95Ub", "muSe", "tau95Lb", "tau95Ub", "seLogRr")],
-               pooledRandomFxEstimate[, c("mu95Lb", "mu95Ub", "muSe", "tau95Lb", "tau95Ub", "seLogRr")],
-               tolerance = 0.50,
-               scale = 1,
-               check.attributes = FALSE)
+    pooledRandomFxEstimate[, c("mu95Lb", "mu95Ub", "muSe", "tau95Lb", "tau95Ub", "seLogRr")],
+    tolerance = 0.50,
+    scale = 1,
+    check.attributes = FALSE
+  )
 })
 
 # Adaptive grid approximation
@@ -114,30 +126,34 @@ data <- createApproximations(populations, "adaptive grid")
 test_that("Adaptive grid approximation: pooled matches fixed-effects meta-analysis", {
   estimate <- computeFixedEffectMetaAnalysis(data)
   expect_equal(estimate[, c("rr", "logRr")],
-               pooledFixedFxEstimate[, c("rr", "logRr")],
-               tolerance = 0.15,
-               scale = 1,
-               check.attributes = FALSE)
+    pooledFixedFxEstimate[, c("rr", "logRr")],
+    tolerance = 0.15,
+    scale = 1,
+    check.attributes = FALSE
+  )
   expect_equal(estimate[, c("lb", "ub", "seLogRr")],
-               pooledFixedFxEstimate[, c("lb", "ub", "seLogRr")],
-               tolerance = 0.50,
-               scale = 1,
-               check.attributes = FALSE)
+    pooledFixedFxEstimate[, c("lb", "ub", "seLogRr")],
+    tolerance = 0.50,
+    scale = 1,
+    check.attributes = FALSE
+  )
 })
 
 test_that("Adaptive grid approximation: pooled matches random-effects meta-analysis", {
   skip_if_not(supportsJava8())
   estimate <- computeBayesianMetaAnalysis(data, seed = seed)
   expect_equal(estimate[, c("mu", "tau", "logRr")],
-               pooledRandomFxEstimate[, c("mu", "tau", "logRr")],
-               tolerance = 0.10,
-               scale = 1,
-               check.attributes = FALSE)
+    pooledRandomFxEstimate[, c("mu", "tau", "logRr")],
+    tolerance = 0.10,
+    scale = 1,
+    check.attributes = FALSE
+  )
   expect_equal(estimate[, c("mu95Lb", "mu95Ub", "muSe", "tau95Lb", "tau95Ub", "seLogRr")],
-               pooledRandomFxEstimate[, c("mu95Lb", "mu95Ub", "muSe", "tau95Lb", "tau95Ub", "seLogRr")],
-               tolerance = 0.50,
-               scale = 1,
-               check.attributes = FALSE)
+    pooledRandomFxEstimate[, c("mu95Lb", "mu95Ub", "muSe", "tau95Lb", "tau95Ub", "seLogRr")],
+    tolerance = 0.50,
+    scale = 1,
+    check.attributes = FALSE
+  )
 })
 
 # Normal approximation
@@ -163,15 +179,17 @@ test_that("Skew-normal approximation: pooled matches fixed-effects meta-analysis
   estimate <- computeFixedEffectMetaAnalysis(data)
   # Skew-normal is a poorer approximation, using higher tolerance:
   expect_equal(estimate[, c("rr", "logRr")],
-               pooledFixedFxEstimate[, c("rr", "logRr")],
-               tolerance = 0.30,
-               scale = 1,
-               check.attributes = FALSE)
+    pooledFixedFxEstimate[, c("rr", "logRr")],
+    tolerance = 0.30,
+    scale = 1,
+    check.attributes = FALSE
+  )
   expect_equal(estimate[, c("lb", "ub", "seLogRr")],
-               pooledFixedFxEstimate[, c("lb", "ub", "seLogRr")],
-               tolerance = 1.00,
-               scale = 1,
-               check.attributes = FALSE)
+    pooledFixedFxEstimate[, c("lb", "ub", "seLogRr")],
+    tolerance = 1.00,
+    scale = 1,
+    check.attributes = FALSE
+  )
 })
 
 test_that("Skew-normal approximation: pooled matches random-effects meta-analysis", {
@@ -179,14 +197,15 @@ test_that("Skew-normal approximation: pooled matches random-effects meta-analysi
   estimate <- computeBayesianMetaAnalysis(data, seed = seed)
   # Skew-normal is a poorer approximation, using higher tolerance:
   expect_equal(estimate[, c("mu", "tau", "logRr")],
-               pooledRandomFxEstimate[, c("mu", "tau", "logRr")],
-               tolerance = 0.50,
-               scale = 1,
-               check.attributes = FALSE)
+    pooledRandomFxEstimate[, c("mu", "tau", "logRr")],
+    tolerance = 0.50,
+    scale = 1,
+    check.attributes = FALSE
+  )
   expect_equal(estimate[, c("mu95Lb", "mu95Ub", "muSe", "tau95Lb", "tau95Ub", "seLogRr")],
-               pooledRandomFxEstimate[, c("mu95Lb", "mu95Ub", "muSe", "tau95Lb", "tau95Ub", "seLogRr")],
-               tolerance = 1.00,
-               scale = 1,
-               check.attributes = FALSE)
+    pooledRandomFxEstimate[, c("mu95Lb", "mu95Ub", "muSe", "tau95Lb", "tau95Ub", "seLogRr")],
+    tolerance = 1.00,
+    scale = 1,
+    check.attributes = FALSE
+  )
 })
-

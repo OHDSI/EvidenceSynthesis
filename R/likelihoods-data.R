@@ -32,8 +32,10 @@
 #'
 #' @examples
 #' data("ncLikelihoods")
-#' ncLikEx = ncLikelihoods[["5"]][[1]]
-#' \donttest{plot(value ~ point, data = ncLikEx)}
+#' ncLikEx <- ncLikelihoods[["5"]][[1]]
+#' \donttest{
+#' plot(value ~ point, data = ncLikEx)
+#' }
 "ncLikelihoods"
 
 
@@ -56,9 +58,8 @@
 #'
 #' @examples
 #' data("ooiLikelihoods")
-#' ooiLikEx = ooiLikelihoods[["5"]][[1]]
-#' \donttest{plot(value ~ point, data = ooiLikEx)}
+#' ooiLikEx <- ooiLikelihoods[["5"]][[1]]
+#' \donttest{
+#' plot(value ~ point, data = ooiLikEx)
+#' }
 "ooiLikelihoods"
-
-
-

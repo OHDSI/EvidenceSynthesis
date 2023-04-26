@@ -33,7 +33,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">EvidenceSynthesis</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.4.1</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.5.0</span>
       </span>
     </div>
 
@@ -50,6 +50,9 @@
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
+      <a href="../articles/BayesianBiasCorrection.html">Bayesian adaptive bias correction using profile likelihoods</a>
+    </li>
+    <li>
       <a href="../articles/NonNormalEffectSynthesis.html">Effect estimate synthesis using non-normal likelihood approximations</a>
     </li>
     <li>
@@ -88,10 +91,12 @@
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>Code used in the video vignette</h1>
-            <h3 data-toc-skip class="subtitle">A short demonstration of the EvidenceSynthesis package</h3>
-                        <h4 data-toc-skip class="author">Martijn Schuemie</h4>
+            <h3 data-toc-skip class="subtitle">A short demonstration of
+the EvidenceSynthesis package</h3>
+                        <h4 data-toc-skip class="author">Martijn
+Schuemie</h4>
             
-            <h4 data-toc-skip class="date">2023-04-05</h4>
+            <h4 data-toc-skip class="date">2023-04-26</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/OHDSI/EvidenceSynthesis/blob/HEAD/vignettes/VideoVignette.Rmd" class="external-link"><code>vignettes/VideoVignette.Rmd</code></a></small>
       <div class="hidden name"><code>VideoVignette.Rmd</code></div>
@@ -100,18 +105,21 @@
 
     
     
-<p>This vignette contains the code used in a short video on the EvidenceSynthesis package: <a href="https://youtu.be/dho7E97vpgQ" class="external-link">https://youtu.be/dho7E97vpgQ</a>.</p>
+<p>This vignette contains the code used in a short video on the
+EvidenceSynthesis package: <a href="https://youtu.be/dho7E97vpgQ" class="external-link">https://youtu.be/dho7E97vpgQ</a>.</p>
 <div class="section level2">
 <h2 id="simulate-data">Simulate data<a class="anchor" aria-label="anchor" href="#simulate-data"></a>
 </h2>
 <p>Simulate 10 sites:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">simulationSettings</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createSimulationSettings.html">createSimulationSettings</a></span><span class="op">(</span>nSites <span class="op">=</span> <span class="fl">10</span>,</span>
-<span>                                               n <span class="op">=</span> <span class="fl">10000</span>,</span>
-<span>                                               treatedFraction <span class="op">=</span> <span class="fl">0.8</span>,</span>
-<span>                                               nStrata <span class="op">=</span> <span class="fl">5</span>,</span>
-<span>                                               hazardRatio <span class="op">=</span> <span class="fl">2</span>,</span>
-<span>                                               randomEffectSd <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">simulationSettings</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/createSimulationSettings.html">createSimulationSettings</a></span><span class="op">(</span></span>
+<span>  nSites <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>  n <span class="op">=</span> <span class="fl">10000</span>,</span>
+<span>  treatedFraction <span class="op">=</span> <span class="fl">0.8</span>,</span>
+<span>  nStrata <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>  hazardRatio <span class="op">=</span> <span class="fl">2</span>,</span>
+<span>  randomEffectSd <span class="op">=</span> <span class="fl">0.5</span></span>
+<span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
 <span><span class="va">populations</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simulatePopulations.html">simulatePopulations</a></span><span class="op">(</span><span class="va">simulationSettings</span><span class="op">)</span></span>
 <span></span>
@@ -135,21 +143,21 @@
 </h2>
 <p>Assume we are at site 1:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/ohdsi/cyclops" class="external-link">Cyclops</a></span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Warning: package 'Cyclops' was built under R version 4.1.3</span></span></code></pre>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">population</span> <span class="op">&lt;-</span> <span class="va">populations</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/ohdsi/cyclops" class="external-link">Cyclops</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">population</span> <span class="op">&lt;-</span> <span class="va">populations</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
 <span></span>
 <span><span class="va">cyclopsData</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/Cyclops/man/createCyclopsData.html" class="external-link">createCyclopsData</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">y</span><span class="op">)</span> <span class="op">~</span> <span class="va">x</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/pkg/survival/man/strata.html" class="external-link">strata</a></span><span class="op">(</span><span class="va">stratumId</span><span class="op">)</span>,</span>
-<span>                                 data <span class="op">=</span> <span class="va">population</span>,</span>
-<span>                                 modelType <span class="op">=</span> <span class="st">"cox"</span><span class="op">)</span></span>
+<span>  data <span class="op">=</span> <span class="va">population</span>,</span>
+<span>  modelType <span class="op">=</span> <span class="st">"cox"</span></span>
+<span><span class="op">)</span></span>
 <span><span class="va">cyclopsFit</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/Cyclops/man/fitCyclopsModel.html" class="external-link">fitCyclopsModel</a></span><span class="op">(</span><span class="va">cyclopsData</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Hazard ratio:</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">cyclopsFit</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##        x </span></span>
 <span><span class="co">## 2.378318</span></span></code></pre>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># 95% confidence interval:</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint</a></span><span class="op">(</span><span class="va">cyclopsFit</span>, parm <span class="op">=</span> <span class="st">"x"</span><span class="op">)</span><span class="op">[</span><span class="fl">2</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## [1]  0.6888127 14.9382268</span></span></code></pre>
@@ -160,8 +168,8 @@
 <div class="section level3">
 <h3 id="normal-approximation">Normal approximation<a class="anchor" aria-label="anchor" href="#normal-approximation"></a>
 </h3>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">normalApproximation</span> <span class="op">&lt;-</span>  <span class="fu"><a href="../reference/approximateLikelihood.html">approximateLikelihood</a></span><span class="op">(</span></span>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">normalApproximation</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/approximateLikelihood.html">approximateLikelihood</a></span><span class="op">(</span></span>
 <span>  cyclopsFit <span class="op">=</span> <span class="va">cyclopsFit</span>,</span>
 <span>  parameter <span class="op">=</span> <span class="st">"x"</span>,</span>
 <span>  approximation <span class="op">=</span> <span class="st">"normal"</span></span>
@@ -169,18 +177,20 @@
 <span><span class="va">normalApproximation</span></span></code></pre></div>
 <pre><code><span><span class="co">##         rr    ci95Lb   ci95Ub     logRr   seLogRr</span></span>
 <span><span class="co">## x 2.378318 0.6888127 14.93823 0.8663934 0.7848893</span></span></code></pre>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/plotLikelihoodFit.html">plotLikelihoodFit</a></span><span class="op">(</span>approximation <span class="op">=</span> <span class="va">normalApproximation</span>,</span>
-<span>                  cyclopsFit <span class="op">=</span> <span class="va">cyclopsFit</span>,</span>
-<span>                  parameter <span class="op">=</span> <span class="st">"x"</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plotLikelihoodFit.html">plotLikelihoodFit</a></span><span class="op">(</span></span>
+<span>  approximation <span class="op">=</span> <span class="va">normalApproximation</span>,</span>
+<span>  cyclopsFit <span class="op">=</span> <span class="va">cyclopsFit</span>,</span>
+<span>  parameter <span class="op">=</span> <span class="st">"x"</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## Detected data following normal distribution</span></span></code></pre>
 <p><img src="VideoVignette_files/figure-html/unnamed-chunk-3-1.png" width="700"></p>
 </div>
 <div class="section level3">
 <h3 id="adaptive-approximation">Adaptive approximation<a class="anchor" aria-label="anchor" href="#adaptive-approximation"></a>
 </h3>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">approximation</span> <span class="op">&lt;-</span>  <span class="fu"><a href="../reference/approximateLikelihood.html">approximateLikelihood</a></span><span class="op">(</span></span>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">approximation</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/approximateLikelihood.html">approximateLikelihood</a></span><span class="op">(</span></span>
 <span>  cyclopsFit <span class="op">=</span> <span class="va">cyclopsFit</span>,</span>
 <span>  parameter <span class="op">=</span> <span class="st">"x"</span>,</span>
 <span>  approximation <span class="op">=</span> <span class="st">"adaptive grid"</span>,</span>
@@ -196,10 +206,12 @@
 <span><span class="co">## <span style="color: #BCBCBC;">4</span> -<span style="color: #BB0000;">2.25</span> -<span style="color: #BB0000;">155.</span></span></span>
 <span><span class="co">## <span style="color: #BCBCBC;">5</span> -<span style="color: #BB0000;">2.24</span> -<span style="color: #BB0000;">155.</span></span></span>
 <span><span class="co">## <span style="color: #BCBCBC;">6</span> -<span style="color: #BB0000;">2.22</span> -<span style="color: #BB0000;">155.</span></span></span></code></pre>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/plotLikelihoodFit.html">plotLikelihoodFit</a></span><span class="op">(</span>approximation <span class="op">=</span> <span class="va">approximation</span>,</span>
-<span>                  cyclopsFit <span class="op">=</span> <span class="va">cyclopsFit</span>,</span>
-<span>                  parameter <span class="op">=</span> <span class="st">"x"</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/plotLikelihoodFit.html">plotLikelihoodFit</a></span><span class="op">(</span></span>
+<span>  approximation <span class="op">=</span> <span class="va">approximation</span>,</span>
+<span>  cyclopsFit <span class="op">=</span> <span class="va">cyclopsFit</span>,</span>
+<span>  parameter <span class="op">=</span> <span class="st">"x"</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## Detected data following adaptive grid distribution</span></span></code></pre>
 <p><img src="VideoVignette_files/figure-html/unnamed-chunk-4-1.png" width="700"></p>
 </div>
@@ -207,25 +219,29 @@
 <div class="section level2">
 <h2 id="approximate-at-all-sites">Approximate at all sites<a class="anchor" aria-label="anchor" href="#approximate-at-all-sites"></a>
 </h2>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fitModelInDatabase</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">population</span>, <span class="va">approximation</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">cyclopsData</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/Cyclops/man/createCyclopsData.html" class="external-link">createCyclopsData</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/survival/man/Surv.html" class="external-link">Surv</a></span><span class="op">(</span><span class="va">time</span>, <span class="va">y</span><span class="op">)</span> <span class="op">~</span> <span class="va">x</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/pkg/survival/man/strata.html" class="external-link">strata</a></span><span class="op">(</span><span class="va">stratumId</span><span class="op">)</span>,</span>
-<span>                                   data <span class="op">=</span> <span class="va">population</span>,</span>
-<span>                                   modelType <span class="op">=</span> <span class="st">"cox"</span><span class="op">)</span></span>
+<span>    data <span class="op">=</span> <span class="va">population</span>,</span>
+<span>    modelType <span class="op">=</span> <span class="st">"cox"</span></span>
+<span>  <span class="op">)</span></span>
 <span>  <span class="va">cyclopsFit</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/Cyclops/man/fitCyclopsModel.html" class="external-link">fitCyclopsModel</a></span><span class="op">(</span><span class="va">cyclopsData</span><span class="op">)</span></span>
-<span>  <span class="va">approximation</span> <span class="op">&lt;-</span>  <span class="fu"><a href="../reference/approximateLikelihood.html">approximateLikelihood</a></span><span class="op">(</span><span class="va">cyclopsFit</span>,</span>
-<span>                                          parameter <span class="op">=</span> <span class="st">"x"</span>,</span>
-<span>                                          approximation <span class="op">=</span> <span class="va">approximation</span><span class="op">)</span></span>
+<span>  <span class="va">approximation</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/approximateLikelihood.html">approximateLikelihood</a></span><span class="op">(</span><span class="va">cyclopsFit</span>,</span>
+<span>    parameter <span class="op">=</span> <span class="st">"x"</span>,</span>
+<span>    approximation <span class="op">=</span> <span class="va">approximation</span></span>
+<span>  <span class="op">)</span></span>
 <span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="va">approximation</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span><span class="va">adaptiveGridApproximations</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span></span>
-<span>  X <span class="op">=</span> <span class="va">populations</span>, </span>
-<span>  FUN <span class="op">=</span> <span class="va">fitModelInDatabase</span>, </span>
-<span>  approximation <span class="op">=</span> <span class="st">"adaptive grid"</span><span class="op">)</span></span>
+<span>  X <span class="op">=</span> <span class="va">populations</span>,</span>
+<span>  FUN <span class="op">=</span> <span class="va">fitModelInDatabase</span>,</span>
+<span>  approximation <span class="op">=</span> <span class="st">"adaptive grid"</span></span>
+<span><span class="op">)</span></span>
 <span><span class="va">normalApproximations</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span></span>
-<span>  X <span class="op">=</span> <span class="va">populations</span>, </span>
-<span>  FUN <span class="op">=</span> <span class="va">fitModelInDatabase</span>, </span>
-<span>  approximation <span class="op">=</span> <span class="st">"normal"</span><span class="op">)</span></span>
+<span>  X <span class="op">=</span> <span class="va">populations</span>,</span>
+<span>  FUN <span class="op">=</span> <span class="va">fitModelInDatabase</span>,</span>
+<span>  approximation <span class="op">=</span> <span class="st">"normal"</span></span>
+<span><span class="op">)</span></span>
 <span><span class="va">normalApproximations</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">rbind</span>, <span class="op">(</span><span class="va">normalApproximations</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
@@ -235,22 +251,22 @@
 <h3 id="fixed-effects">Fixed-effects<a class="anchor" aria-label="anchor" href="#fixed-effects"></a>
 </h3>
 <p>Gold standard (pooling data):</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fixedFxPooled</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/computeFixedEffectMetaAnalysis.html">computeFixedEffectMetaAnalysis</a></span><span class="op">(</span><span class="va">populations</span><span class="op">)</span></span>
 <span><span class="va">fixedFxPooled</span></span></code></pre></div>
 <pre><code><span><span class="co">##         rr       lb       ub     logRr  seLogRr</span></span>
 <span><span class="co">## x 2.432933 1.370034 4.800644 0.8890975 0.319882</span></span></code></pre>
 <p>Normal approximation:</p>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fixedFxNormal</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/computeFixedEffectMetaAnalysis.html">computeFixedEffectMetaAnalysis</a></span><span class="op">(</span><span class="va">normalApproximations</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## Warning: Estimate(s) with NA seLogRr detected. Removing before computing</span></span>
 <span><span class="co">## meta-analysis.</span></span></code></pre>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fixedFxNormal</span></span></code></pre></div>
 <pre><code><span><span class="co">##         rr        lb       ub     logRr   seLogRr</span></span>
 <span><span class="co">## 1 1.605267 0.8168054 3.154828 0.4732898 0.3447228</span></span></code></pre>
 <p>Adaptive grid approximation:</p>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fixedFxAdaptiveGrid</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/computeFixedEffectMetaAnalysis.html">computeFixedEffectMetaAnalysis</a></span><span class="op">(</span><span class="va">adaptiveGridApproximations</span><span class="op">)</span></span>
 <span><span class="va">fixedFxAdaptiveGrid</span></span></code></pre></div>
 <pre><code><span><span class="co">##         rr       lb       ub     logRr   seLogRr</span></span>
@@ -259,7 +275,7 @@
 <h4 id="visualization">Visualization<a class="anchor" aria-label="anchor" href="#visualization"></a>
 </h4>
 <p>Normal approximation:</p>
-<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotMetaAnalysisForest.html">plotMetaAnalysisForest</a></span><span class="op">(</span></span>
 <span>  data <span class="op">=</span> <span class="va">normalApproximations</span>,</span>
 <span>  labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"Site"</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">)</span>,</span>
@@ -268,7 +284,7 @@
 <span><span class="op">)</span></span></code></pre></div>
 <p><img src="VideoVignette_files/figure-html/unnamed-chunk-9-1.png" width="864"></p>
 <p>Adaptive grid approximation:</p>
-<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotMetaAnalysisForest.html">plotMetaAnalysisForest</a></span><span class="op">(</span></span>
 <span>  data <span class="op">=</span> <span class="va">adaptiveGridApproximations</span>,</span>
 <span>  labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"Site"</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">)</span>,</span>
@@ -282,22 +298,22 @@
 <h3 id="random-effects">Random-effects<a class="anchor" aria-label="anchor" href="#random-effects"></a>
 </h3>
 <p>Gold standard (pooling data):</p>
-<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">randomFxPooled</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/computeBayesianMetaAnalysis.html">computeBayesianMetaAnalysis</a></span><span class="op">(</span><span class="va">populations</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">randomFxPooled</span><span class="op">[</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##         mu   mu95Lb   mu95Ub</span></span>
 <span><span class="co">## 1 2.594023 1.326203 5.272257</span></span></code></pre>
 <p>Normal approximation:</p>
-<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">randomFxNormal</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/computeBayesianMetaAnalysis.html">computeBayesianMetaAnalysis</a></span><span class="op">(</span><span class="va">normalApproximations</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## Warning: Estimate(s) with NA seLogRr detected. Removing before computing</span></span>
 <span><span class="co">## meta-analysis.</span></span></code></pre>
-<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">randomFxNormal</span><span class="op">[</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##        mu    mu95Lb   mu95Ub</span></span>
 <span><span class="co">## 1 1.55483 0.7732428 3.254443</span></span></code></pre>
 <p>Adaptive grid approximation:</p>
-<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">randomFxAdaptiveGrid</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/computeBayesianMetaAnalysis.html">computeBayesianMetaAnalysis</a></span><span class="op">(</span><span class="va">adaptiveGridApproximations</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">randomFxAdaptiveGrid</span><span class="op">[</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##        mu   mu95Lb   mu95Ub</span></span>
@@ -306,7 +322,7 @@
 <h4 id="visualization-1">Visualization<a class="anchor" aria-label="anchor" href="#visualization-1"></a>
 </h4>
 <p>Normal approximation:</p>
-<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotMetaAnalysisForest.html">plotMetaAnalysisForest</a></span><span class="op">(</span></span>
 <span>  data <span class="op">=</span> <span class="va">normalApproximations</span>,</span>
 <span>  labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"Site"</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">)</span>,</span>
@@ -315,7 +331,7 @@
 <span><span class="op">)</span></span></code></pre></div>
 <p><img src="VideoVignette_files/figure-html/unnamed-chunk-14-1.png" width="768"></p>
 <p>Adaptive grid approximation:</p>
-<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotMetaAnalysisForest.html">plotMetaAnalysisForest</a></span><span class="op">(</span></span>
 <span>  data <span class="op">=</span> <span class="va">adaptiveGridApproximations</span>,</span>
 <span>  labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"Site"</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">)</span>,</span>
@@ -340,7 +356,7 @@
 
       <footer><div class="copyright">
   <p></p>
-<p>Developed by Martijn Schuemie, Marc A. Suchard.</p>
+<p>Developed by Martijn Schuemie, Marc A. Suchard, Fan Bu.</p>
 </div>
 
 <div class="pkgdown">

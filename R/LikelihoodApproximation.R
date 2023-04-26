@@ -39,8 +39,9 @@
 #' populations <- simulatePopulations()
 #'
 #' cyclopsData <- Cyclops::createCyclopsData(Surv(time, y) ~ x + strata(stratumId),
-#'                                           data = populations[[1]],
-#'                                           modelType = "cox")
+#'   data = populations[[1]],
+#'   modelType = "cox"
+#' )
 #' cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
 #' approximation <- approximateLikelihood(cyclopsFit, "x")
 #' approximation
@@ -52,10 +53,12 @@ approximateLikelihood <- function(cyclopsFit,
                                   parameter = 1,
                                   approximation = "custom",
                                   bounds = c(log(0.1), log(10))) {
-  if (!approximation %in% c("normal", "skew normal", "custom", "grid", "adaptive grid"))
+  if (!approximation %in% c("normal", "skew normal", "custom", "grid", "adaptive grid")) {
     stop("'approximation' argument should be 'normal', 'skew normal', 'custom', 'grid', or 'adaptive grid'.")
-  if (!is(cyclopsFit, "cyclopsFit"))
+  }
+  if (!is(cyclopsFit, "cyclopsFit")) {
     stop("'cyclopsFit' argument should be of type 'cyclopsFit'")
+  }
 
   if (approximation == "grid") {
     x <- seq(bounds[1], bounds[2], length.out = 1000)
@@ -71,11 +74,13 @@ approximateLikelihood <- function(cyclopsFit,
     } else {
       mode <- coef(cyclopsFit)
       ci95 <- confint(cyclopsFit, 1, level = 0.95)
-      return(data.frame(rr = exp(mode),
-                        ci95Lb = exp(ci95[2]),
-                        ci95Ub = exp(ci95[3]),
-                        logRr = mode,
-                        seLogRr = (ci95[3] - ci95[2])/(2 * qnorm(0.975))))
+      return(data.frame(
+        rr = exp(mode),
+        ci95Lb = exp(ci95[2]),
+        ci95Ub = exp(ci95[3]),
+        logRr = mode,
+        seLogRr = (ci95[3] - ci95[2]) / (2 * qnorm(0.975))
+      ))
     }
   } else {
     x <- seq(bounds[1], bounds[2], length.out = 100)
@@ -112,7 +117,7 @@ approximateLikelihood <- function(cyclopsFit,
 #'
 #' @export
 customFunction <- function(x, mu, sigma, gamma) {
-  return(((exp(gamma * (x - mu)))) * ((-(x - mu)^2)/(2 * sigma^2)))
+  return(((exp(gamma * (x - mu)))) * ((-(x - mu)^2) / (2 * sigma^2)))
 
   # Derivative: -(exp(gamma * (x - mu)) * (gamma * (x - mu) + 2) * (x - mu))/(2 * sigma^2)
 }
@@ -146,7 +151,6 @@ skewNormal <- function(x, mu, sigma, alpha) {
 }
 
 fitLogLikelihoodFunction <- function(beta, ll, weighByLikelihood = TRUE, fun = customFunction) {
-
   sumSquares <- function(p, maxAnchor = TRUE, idx = NULL) {
     approxLl <- fun(beta, p[1], p[2], p[3])
     if (maxAnchor) {
@@ -180,19 +184,25 @@ fitLogLikelihoodFunction <- function(beta, ll, weighByLikelihood = TRUE, fun = c
     return(data.frame(mu = 0, sigma = Inf, gamma = 0))
   }
 
-  fit <- tryCatch({
-    suppressWarnings(nlm(sumSquares, c(mode, 1, 0), maxAnchor = TRUE))
-  }, error = function(e) {
-    list(estimate = c(0, 0, 0), minimum = Inf)
-  })
+  fit <- tryCatch(
+    {
+      suppressWarnings(nlm(sumSquares, c(mode, 1, 0), maxAnchor = TRUE))
+    },
+    error = function(e) {
+      list(estimate = c(0, 0, 0), minimum = Inf)
+    }
+  )
   result <- data.frame(mu = fit$estimate[1], sigma = fit$estimate[2], gamma = fit$estimate[3])
   minimum <- fit$minimum
 
-  fit <- tryCatch({
-    suppressWarnings(optim(c(mode, 1, 0), sumSquares, maxAnchor = TRUE))
-  }, error = function(e) {
-    list(par = c(0, 0, 0), value = Inf)
-  })
+  fit <- tryCatch(
+    {
+      suppressWarnings(optim(c(mode, 1, 0), sumSquares, maxAnchor = TRUE))
+    },
+    error = function(e) {
+      list(par = c(0, 0, 0), value = Inf)
+    }
+  )
   if (fit$value < minimum) {
     result <- data.frame(mu = fit$par[1], sigma = fit$par[2], gamma = fit$par[3])
     minimum <- fit$value
@@ -201,26 +211,32 @@ fitLogLikelihoodFunction <- function(beta, ll, weighByLikelihood = TRUE, fun = c
   # Scale to standard (translate in log space so intersects at (0,0)):
   idx <- which(abs(beta) == min(abs(beta)))
   ll <- ll - ll[idx]
-  fit <- tryCatch({
-    suppressWarnings(nlm(sumSquares, c(mode, 1, 0), maxAnchor = FALSE, idx = idx))
-  }, error = function(e) {
-    list(estimate = c(0, 0, 0), minimum = Inf)
-  })
+  fit <- tryCatch(
+    {
+      suppressWarnings(nlm(sumSquares, c(mode, 1, 0), maxAnchor = FALSE, idx = idx))
+    },
+    error = function(e) {
+      list(estimate = c(0, 0, 0), minimum = Inf)
+    }
+  )
   if (fit$minimum < minimum) {
     result <- data.frame(mu = fit$estimate[1], sigma = fit$estimate[2], gamma = fit$estimate[3])
     minimum <- fit$minimum
   }
-  fit <- tryCatch({
-    suppressWarnings(optim(c(mode, 1, 0), sumSquares, maxAnchor = FALSE, idx = idx))
-  }, error = function(e) {
-    list(par = c(0, 0, 0), value = Inf)
-  })
+  fit <- tryCatch(
+    {
+      suppressWarnings(optim(c(mode, 1, 0), sumSquares, maxAnchor = FALSE, idx = idx))
+    },
+    error = function(e) {
+      list(par = c(0, 0, 0), value = Inf)
+    }
+  )
   if (fit$value < minimum) {
     result <- data.frame(mu = fit$par[1], sigma = fit$par[2], gamma = fit$par[3])
     minimum <- fit$value
   }
   threshold <- 0.05
-  if (minimum/length(beta) > threshold) {
+  if (minimum / length(beta) > threshold) {
     warn(paste("Mean squared error greater than ", threshold, ". Probably bad fit."))
   }
   result$sigma <- abs(result$sigma)
@@ -249,8 +265,9 @@ getLikelihoodProfile <- function(cyclopsFit, parameter, x) {
 #' populations <- simulatePopulations()
 #'
 #' cyclopsData <- Cyclops::createCyclopsData(Surv(time, y) ~ x + strata(stratumId),
-#'                                           data = populations[[1]],
-#'                                           modelType = "cox")
+#'   data = populations[[1]],
+#'   modelType = "cox"
+#' )
 #' cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
 #' approximation <- approximateLikelihood(cyclopsFit, "x")
 #' computeConfidenceInterval(approximation)
@@ -259,25 +276,31 @@ getLikelihoodProfile <- function(cyclopsFit, parameter, x) {
 computeConfidenceInterval <- function(approximation, alpha = 0.05) {
   type <- detectApproximationType(approximation)
   if (type == "normal") {
-    estimate <- data.frame(rr = exp(approximation$logRr),
-                           lb = exp(approximation$logRr + qnorm(alpha/2) * approximation$seLogRr),
-                           ub = exp(approximation$logRr + qnorm(1 - alpha/2) * approximation$seLogRr),
-                           logRr = approximation$logRr,
-                           seLogRr = approximation$seLogRr)
+    estimate <- data.frame(
+      rr = exp(approximation$logRr),
+      lb = exp(approximation$logRr + qnorm(alpha / 2) * approximation$seLogRr),
+      ub = exp(approximation$logRr + qnorm(1 - alpha / 2) * approximation$seLogRr),
+      logRr = approximation$logRr,
+      seLogRr = approximation$seLogRr
+    )
     return(estimate)
   } else if (type == "custom") {
-    estimate <- computeEstimateFromApproximation(approximationFuntion = customFunction,
-                                                 a = alpha,
-                                                 mu = approximation$mu,
-                                                 sigma = approximation$sigma,
-                                                 gamma = approximation$gamma)
+    estimate <- computeEstimateFromApproximation(
+      approximationFuntion = customFunction,
+      a = alpha,
+      mu = approximation$mu,
+      sigma = approximation$sigma,
+      gamma = approximation$gamma
+    )
     return(estimate)
-  } else if  (type == "skew normal") {
-    estimate <- computeEstimateFromApproximation(approximationFuntion = skewNormal,
-                                                 a = alpha,
-                                                 mu = approximation$mu,
-                                                 sigma = approximation$sigma,
-                                                 alpha = approximation$alpha)
+  } else if (type == "skew normal") {
+    estimate <- computeEstimateFromApproximation(
+      approximationFuntion = skewNormal,
+      a = alpha,
+      mu = approximation$mu,
+      sigma = approximation$sigma,
+      alpha = approximation$alpha
+    )
     return(estimate)
   } else if (type == "adaptive grid") {
     temp <- approximation$value
@@ -356,36 +379,40 @@ cleanApproximations <- function(data) {
     data <- cleanData(data, c("logRr", "seLogRr"), minValues = c(-100, 1e-05))
   } else if (type == "custom") {
     data <- cleanData(data, c("mu", "sigma", "gamma"), minValues = c(-100, 1e-05, -100))
-  } else if  (type == "skew normal") {
+  } else if (type == "skew normal") {
     data <- cleanData(data,
-                      c("mu", "sigma", "alpha"),
-                      minValues = c(-100, 1e-05, -10000),
-                      maxValues = c(100, 10000, 10000))
+      c("mu", "sigma", "alpha"),
+      minValues = c(-100, 1e-05, -10000),
+      maxValues = c(100, 10000, 10000)
+    )
   } else if (type == "adaptive grid") {
     for (i in 1:length(data)) {
       cleanedData <- as.data.frame(data[[i]])
       cleanedData$value <- cleanedData$value - max(cleanedData$value)
       cleanedData <- cleanData(cleanedData,
-                               c("point", "value"),
-                               minValues = c(-100, -1e6),
-                               maxValues = c(100, 0))
+        c("point", "value"),
+        minValues = c(-100, -1e6),
+        maxValues = c(100, 0)
+      )
       data[[i]] <- cleanedData
     }
   } else if (type == "grid") {
     if (is.list(data) && !is.data.frame(data)) {
       for (i in 1:length(data)) {
         data <- cleanData(data,
-                          colnames(data),
-                          minValues = rep(-1e6, ncol(data)),
-                          maxValues = rep(0, ncol(data)),
-                          grid = TRUE)
+          colnames(data),
+          minValues = rep(-1e6, ncol(data)),
+          maxValues = rep(0, ncol(data)),
+          grid = TRUE
+        )
       }
     } else {
       data <- cleanData(data,
-                        colnames(data),
-                        minValues = rep(-1e6, ncol(data)),
-                        maxValues = rep(0, ncol(data)),
-                        grid = TRUE)
+        colnames(data),
+        minValues = rep(-1e6, ncol(data)),
+        maxValues = rep(0, ncol(data)),
+        grid = TRUE
+      )
     }
   }
   return(data)
@@ -402,9 +429,11 @@ cleanData <- function(data,
       if (grid) {
         warn(paste("Estimate(s) with infinite log-likelihood detected. Removing before computing meta-analysis."))
       } else {
-        warn(paste("Estimate(s) with infinite",
-                   column,
-                   "detected. Removing before computing meta-analysis."))
+        warn(paste(
+          "Estimate(s) with infinite",
+          column,
+          "detected. Removing before computing meta-analysis."
+        ))
       }
       data <- data[!is.infinite(data[, column]), ]
     }
@@ -412,9 +441,11 @@ cleanData <- function(data,
       if (grid) {
         warn(paste("Estimate(s) with NA log-likelihood detected. Removing before computing meta-analysis."))
       } else {
-        warn(paste("Estimate(s) with NA",
-                   column,
-                   "detected. Removing before computing meta-analysis."))
+        warn(paste(
+          "Estimate(s) with NA",
+          column,
+          "detected. Removing before computing meta-analysis."
+        ))
       }
       data <- data[!is.na(data[, column]), ]
     }
@@ -422,9 +453,11 @@ cleanData <- function(data,
       if (grid) {
         warn(paste("Estimate(s) with positive log-likelihood detected. Removing before computing meta-analysis."))
       } else {
-        warn(sprintf("Estimate(s) with extremely high %s (>%s) detected. Removing before computing meta-analysis.",
-                     column,
-                     maxValues[i]))
+        warn(sprintf(
+          "Estimate(s) with extremely high %s (>%s) detected. Removing before computing meta-analysis.",
+          column,
+          maxValues[i]
+        ))
       }
       data <- data[data[, column] <= maxValues[i], ]
     }
@@ -432,9 +465,11 @@ cleanData <- function(data,
       if (grid) {
         warn(paste("Estimate(s) with extremely low log-likelihood detected. Removing before computing meta-analysis."))
       } else {
-        warn(sprintf("Estimate(s) with extremely low %s (<%s) detected. Removing before computing meta-analysis.",
-                     column,
-                     minValues[i]))
+        warn(sprintf(
+          "Estimate(s) with extremely low %s (<%s) detected. Removing before computing meta-analysis.",
+          column,
+          minValues[i]
+        ))
       }
       data <- data[data[, column] >= minValues[i], ]
     }
