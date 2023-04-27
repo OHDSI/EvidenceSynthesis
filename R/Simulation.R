@@ -46,8 +46,9 @@
 #'
 #' # Fit a Cox regression for the simulated data site:
 #' cyclopsData <- Cyclops::createCyclopsData(Surv(time, y) ~ x + strata(stratumId),
-#'                                           data = populations[[1]],
-#'                                           modelType = "cox")
+#'   data = populations[[1]],
+#'   modelType = "cox"
+#' )
 #' cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
 #' coef(cyclopsFit)
 #'
@@ -69,15 +70,17 @@ createSimulationSettings <- function(nSites = 5,
       return(x)
     }
   }
-  
-  settings <- list(nSites = nSites,
-                   n = expand(n),
-                   treatedFraction = expand(treatedFraction),
-                   nStrata = expand(nStrata),
-                   minBackgroundHazard = expand(minBackgroundHazard),
-                   maxBackgroundHazard = expand(maxBackgroundHazard),
-                   hazardRatio = hazardRatio,
-                   randomEffectSd = randomEffectSd)
+
+  settings <- list(
+    nSites = nSites,
+    n = expand(n),
+    treatedFraction = expand(treatedFraction),
+    nStrata = expand(nStrata),
+    minBackgroundHazard = expand(minBackgroundHazard),
+    maxBackgroundHazard = expand(maxBackgroundHazard),
+    hazardRatio = hazardRatio,
+    randomEffectSd = randomEffectSd
+  )
   class(settings) <- "simulationSettings"
   return(settings)
 }
@@ -97,8 +100,9 @@ createSimulationSettings <- function(nSites = 5,
 #'
 #' # Fit a Cox regression for the simulated data site:
 #' cyclopsData <- Cyclops::createCyclopsData(Surv(time, y) ~ x + strata(stratumId),
-#'                                           data = populations[[1]],
-#'                                           modelType = "cox")
+#'   data = populations[[1]],
+#'   modelType = "cox"
+#' )
 #' cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
 #' coef(cyclopsFit)
 #'
@@ -107,29 +111,35 @@ createSimulationSettings <- function(nSites = 5,
 #' @export
 simulatePopulations <- function(settings = createSimulationSettings()) {
   stopifnot(class(settings) == "simulationSettings")
-  thetas <- rnorm(n = settings$nSites,
-                  mean = log(settings$hazardRatio),
-                  sd = settings$randomEffectSd)
+  thetas <- rnorm(
+    n = settings$nSites,
+    mean = log(settings$hazardRatio),
+    sd = settings$randomEffectSd
+  )
   hazardRatios <- exp(thetas)
-  
+
   simulateSite <- function(i) {
-    population <- data.frame(rowId = 1:settings$n[i],
-                             stratumId = round(runif(settings$n[i],
-                                                     min = 1,
-                                                     max = settings$nStrata[i])),
-                             y = 0,
-                             x = as.numeric(runif(settings$n[i]) < settings$treatedFraction[i]))
+    population <- data.frame(
+      rowId = 1:settings$n[i],
+      stratumId = round(runif(settings$n[i],
+        min = 1,
+        max = settings$nStrata[i]
+      )),
+      y = 0,
+      x = as.numeric(runif(settings$n[i]) < settings$treatedFraction[i])
+    )
     strataBackgroundHazard <- runif(settings$nStrata[i],
-                                    min = settings$minBackgroundHazard[i],
-                                    max = settings$maxBackgroundHazard[i])
+      min = settings$minBackgroundHazard[i],
+      max = settings$maxBackgroundHazard[i]
+    )
     population$hazard <- strataBackgroundHazard[population$stratumId]
     oldTotalHazard <- sum(population$hazard)
     population$hazard[population$x == 1] <- population$hazard[population$x == 1] * hazardRatios[i]
-    
+
     # Normalize so higher hazard ratios don't come with more statistical power:
     newTotalHazard <- sum(population$hazard)
-    population$hazard <- population$hazard * oldTotalHazard/newTotalHazard
-    
+    population$hazard <- population$hazard * oldTotalHazard / newTotalHazard
+
     population$timeToOutcome <- 1 + round(rexp(n = settings$n[i], population$hazard))
     population$timeToCensor <- 1 + round(rexp(n = settings$n[i], 0.01))
     population$time <- population$timeToOutcome
@@ -155,10 +165,12 @@ print.simulation <- function(x, ...) {
 #' @export
 summary.simulation <- function(object, ...) {
   summarizeSite <- function(site) {
-    return(data.frame(subjects = nrow(site),
-                      treated = sum(site$x),
-                      outcomesTreated = sum(site$y[site$x ==
-                                                     1]), outcomesUntreated = sum(site$y[site$x == 0])))
+    return(data.frame(
+      subjects = nrow(site),
+      treated = sum(site$x),
+      outcomesTreated = sum(site$y[site$x ==
+        1]), outcomesUntreated = sum(site$y[site$x == 0])
+    ))
   }
   siteSummaries <- lapply(object, summarizeSite)
   siteSummaries <- do.call("rbind", siteSummaries)

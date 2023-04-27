@@ -17,7 +17,7 @@
 # limitations under the License.
 
 # Format and check code:
-OhdsiRTools::formatRFolder()
+styler::style_pkg()
 OhdsiRTools::checkUsagePackage("EvidenceSynthesis")
 OhdsiRTools::updateCopyrightYearFolder()
 devtools::spell_check()
@@ -32,6 +32,11 @@ rmarkdown::render("vignettes/NonNormalEffectSynthesis.Rmd",
                                           toc = TRUE,
                                           number_sections = TRUE))
 rmarkdown::render("vignettes/VideoVignette.Rmd",
+                  output_file = "../extras/VideoVignette.pdf",
+                  rmarkdown::pdf_document(latex_engine = "pdflatex",
+                                          toc = TRUE,
+                                          number_sections = TRUE))
+rmarkdown::render("vignettes/BayesianBiasCorrection.Rmd",
                   output_file = "../extras/VideoVignette.pdf",
                   rmarkdown::pdf_document(latex_engine = "pdflatex",
                                           toc = TRUE,

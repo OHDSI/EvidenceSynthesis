@@ -72,30 +72,33 @@ We have implemented a hierarchical normal model and a hierarchical $t$-model for
 
 For instance, to learn the bias distribution at the 1st period using the example dataset, we can call the `fitBiasDistribution`:
 ```{r, message=FALSE, results='hide'}
-singleBiasDist = fitBiasDistribution(ncLikelihoods[[1]],
-                                     seed = 42)
+singleBiasDist <- fitBiasDistribution(ncLikelihoods[[1]],
+  seed = 42
+)
 ```
 
 The default setting would fit a hierarchical normal model. To fit a more robust distribution that can better handle heavy tails and outliers, we can set `robust = TRUE`:
 
 ```{r, message=FALSE, results='hide'}
-singleBiasDistRobust = fitBiasDistribution(ncLikelihoods[[1]], 
-                                           robust = TRUE, 
-                                           seed = 42)
+singleBiasDistRobust <- fitBiasDistribution(ncLikelihoods[[1]],
+  robust = TRUE,
+  seed = 42
+)
 ```
 
 To learn the bias distribution over multiple analyses, in the setting of either sequential analysis or group analysis, we can call the `sequentialFitBiasDistribution` function. 
 For example, to adaptively learn all empirical bias distributions across all $12$ analysis periods in the example data, under the $t$ model:
 
 ```{r, message=FALSE, warning=FALSE, results='hide', cache=TRUE}
-BiasDistRobust = sequentialFitBiasDistribution(ncLikelihoods, 
-                                               robust = TRUE, 
-                                               seed = 1)
+BiasDistRobust <- sequentialFitBiasDistribution(ncLikelihoods,
+  robust = TRUE,
+  seed = 1
+)
 ```
 
 We can visualize the learned bias distributions over time using the `plotBiasDistribution` function:
 ```{r, message=FALSE, warning=FALSE}
-plotBiasDistribution(BiasDistRobust, limits = c(-3,3))
+plotBiasDistribution(BiasDistRobust, limits = c(-3, 3))
 ```
 
 
@@ -110,16 +113,17 @@ To perform bias correction for the $5$th analysis, for example:
 
 ```{r, message=FALSE, warning=FALSE, results='hide', cache=TRUE}
 # select profile likelihoods for the 5th analysis period
-ooiLik5 = list(ooiLikelihoods[["5"]])
-ncLik5 = list(ncLikelihoods[["5"]])
+ooiLik5 <- list(ooiLikelihoods[["5"]])
+ncLik5 <- list(ncLikelihoods[["5"]])
 
 # specify prior mean and prior standard deviation for the effect size (log RR)
-bbcResult5 = biasCorrectionInference(ooiLik5, 
-                                     ncLikelihoodProfiles = ncLik5, 
-                                     priorMean = 0,
-                                     priorSd = 4,
-                                     doCorrection = TRUE,
-                                     seed = 42)
+bbcResult5 <- biasCorrectionInference(ooiLik5,
+  ncLikelihoodProfiles = ncLik5,
+  priorMean = 0,
+  priorSd = 4,
+  doCorrection = TRUE,
+  seed = 42
+)
 ```
 
 We note that the input should include (1) profile likelihoods on the outcome of interest on the negative controls (e.g., `ooiLik5`), and (2) profile likelihoods (e.g., `ncLik5`) or the learned bias distributions. 
@@ -132,15 +136,16 @@ For example:
 
 ```{r, message=FALSE, warning=FALSE, results='hide', cache=TRUE}
 # learn bias distribution for the 5th analysis period first
-biasDist5 = fitBiasDistribution(ncLikelihoods[["5"]])
+biasDist5 <- fitBiasDistribution(ncLikelihoods[["5"]])
 
 # then recycle the bias distribution
-bbcResult5 = biasCorrectionInference(ooiLik5, 
-                                     biasDistributions = biasDist5,
-                                     priorMean = 0,
-                                     priorSd = 4,
-                                     doCorrection = TRUE,
-                                     seed = 42)
+bbcResult5 <- biasCorrectionInference(ooiLik5,
+  biasDistributions = biasDist5,
+  priorMean = 0,
+  priorSd = 4,
+  doCorrection = TRUE,
+  seed = 42
+)
 ```
 
 The main output is a summary table of the analysis results, including posterior median and mean (columns `median` and `mean`), the 95% credible interval (columns `ci95Lb` and `ci95Ub`), and the posterior probability that there is a positive effect (in column `p1`). 
@@ -149,22 +154,25 @@ Estimates without bias correction can be accessed in the `summaryRaw` attribute,
 ```{r, message=FALSE, warning=FALSE}
 library(dplyr)
 
-knitr::kable(bind_rows(bbcResult5 %>% mutate(biasCorrection = "yes"),
-                       attr(bbcResult5, 'summaryRaw') %>% 
-                         mutate(biasCorrection = "no")) %>%
-               select(-Id), digits = 4)
+knitr::kable(bind_rows(
+  bbcResult5 %>% mutate(biasCorrection = "yes"),
+  attr(bbcResult5, "summaryRaw") %>%
+    mutate(biasCorrection = "no")
+) %>%
+  select(-Id), digits = 4)
 ```
 
 To perform sequential analysis with adaptive bias correction over time, we should supply profile likelihoods across all analysis periods/groups in the input.
 For example, if we use the already learned bias distributions `BiasDistRobust`:
 
 ```{r, message=FALSE, warning=FALSE, results='hide', cache=TRUE}
-bbcSequential = biasCorrectionInference(ooiLikelihoods,
-                                        biasDistributions = BiasDistRobust,
-                                        priorMean = 0,
-                                        priorSd = 4,
-                                        doCorrection = TRUE,
-                                        seed = 42)
+bbcSequential <- biasCorrectionInference(ooiLikelihoods,
+  biasDistributions = BiasDistRobust,
+  priorMean = 0,
+  priorSd = 4,
+  doCorrection = TRUE,
+  seed = 42
+)
 ```
 
 We can then check out the sequential analysis results:
@@ -175,18 +183,20 @@ knitr::kable(bbcSequential %>% select(period = Id, median:p1), digits = 4)
 The `plotBiasCorrectionInference` function provides some simple plotting functionality to visualize the analysis results.
 For example, we can visualize the posterior distributions of the bias corrected log RR across analysis periods, along with posterior probabilities for a positive effect size (`P(H1)`) or a non-positive effect size (`P(H0)`):
 ```{r, message=FALSE, warning=FALSE, results='hide', fig.height=7}
-plotBiasCorrectionInference(bbcSequential, 
-                            type = "corrected", 
-                            limits = c(-4, 4))
+plotBiasCorrectionInference(bbcSequential,
+  type = "corrected",
+  limits = c(-4, 4)
+)
 ```
 
 Meanwhile, we can also compare the estimates with and without bias correction. 
 It is also possible to only examine certain analysis periods/groups by specifying the `ids` argument. 
 
 ```{r, message=FALSE, warning=FALSE, fig.height=4}
-plotBiasCorrectionInference(bbcSequential, 
-                            type = "compare", 
-                            limits = c(-4, 4), 
-                            ids = as.character(3:12))
+plotBiasCorrectionInference(bbcSequential,
+  type = "compare",
+  limits = c(-4, 4),
+  ids = as.character(3:12)
+)
 ```
 

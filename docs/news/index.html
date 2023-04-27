@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">EvidenceSynthesis</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.4.1</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.5.0</span>
       </span>
     </div>
 
@@ -32,6 +32,9 @@
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu"><li>
+      <a href="../articles/BayesianBiasCorrection.html">Bayesian adaptive bias correction using profile likelihoods</a>
+    </li>
+    <li>
       <a href="../articles/NonNormalEffectSynthesis.html">Effect estimate synthesis using non-normal likelihood approximations</a>
     </li>
     <li>
@@ -67,9 +70,17 @@
     </div>
 
     <div class="section level2">
-<h2 class="page-header" data-toc-text="0.4.1" id="evidencesynthesis-041">EvidenceSynthesis 0.4.1<a class="anchor" aria-label="anchor" href="#evidencesynthesis-041"></a></h2>
+<h2 class="page-header" data-toc-text="0.5.0" id="evidencesynthesis-050">EvidenceSynthesis 0.5.0<a class="anchor" aria-label="anchor" href="#evidencesynthesis-050"></a></h2>
 <p>Changes</p>
-<ol style="list-style-type: decimal"><li>Added a video vignette.</li></ol></div>
+<ol style="list-style-type: decimal"><li><p>Supporting Bayesian adaptive bias correction in sequential analysis by adding <code><a href="../reference/fitBiasDistribution.html">fitBiasDistribution()</a></code>, <code><a href="../reference/sequentialFitBiasDistribution.html">sequentialFitBiasDistribution()</a></code> and <code><a href="../reference/biasCorrectionInference.html">biasCorrectionInference()</a></code> functions</p></li>
+<li><p>Added relevant plotting functions, <code><a href="../reference/plotBiasDistribution.html">plotBiasDistribution()</a></code> and <code><a href="../reference/plotBiasCorrectionInference.html">plotBiasCorrectionInference()</a></code>.</p></li>
+<li><p>Added a vignette on Bayesian adaptive bias correction.</p></li>
+</ol></div>
+    <div class="section level2">
+<h2 class="page-header" data-toc-text="0.4.1" id="evidencesynthesis-041">EvidenceSynthesis 0.4.1<small>2023-04-05</small><a class="anchor" aria-label="anchor" href="#evidencesynthesis-041"></a></h2>
+<p>Changes</p>
+<ol style="list-style-type: decimal"><li>Added a video vignette.</li>
+</ol></div>
     <div class="section level2">
 <h2 class="page-header" data-toc-text="0.4.0" id="evidencesynthesis-040">EvidenceSynthesis 0.4.0<small>2023-01-11</small><a class="anchor" aria-label="anchor" href="#evidencesynthesis-040"></a></h2>
 <p>Changes</p>
@@ -79,7 +90,8 @@
     <div class="section level2">
 <h2 class="page-header" data-toc-text="0.3.0" id="evidencesynthesis-030">EvidenceSynthesis 0.3.0<small>2022-09-09</small><a class="anchor" aria-label="anchor" href="#evidencesynthesis-030"></a></h2>
 <p>Changes</p>
-<ol style="list-style-type: decimal"><li>Supporting adaptive grid in <code><a href="../reference/computeBayesianMetaAnalysis.html">computeBayesianMetaAnalysis()</a></code> and <code><a href="../reference/approximateLikelihood.html">approximateLikelihood()</a></code> functions.</li></ol><p>Bugfixes</p>
+<ol style="list-style-type: decimal"><li>Supporting adaptive grid in <code><a href="../reference/computeBayesianMetaAnalysis.html">computeBayesianMetaAnalysis()</a></code> and <code><a href="../reference/approximateLikelihood.html">approximateLikelihood()</a></code> functions.</li>
+</ol><p>Bugfixes</p>
 <p>1 Fixed error when approximating likelihood using grid (parameter to approximate could only be “x”).</p>
 </div>
     <div class="section level2">
@@ -94,7 +106,8 @@
 <ol style="list-style-type: decimal"><li><p>Documenting dependency on Java in the <code>SystemRequirements</code> field of the package DESCRIPTION.</p></li>
 <li><p>Adding <code>seed</code> argument to <code><a href="../reference/computeBayesianMetaAnalysis.html">computeBayesianMetaAnalysis()</a></code>. Defaults to a constant value for reproducability.</p></li>
 </ol><p>Bugfixes</p>
-<ol style="list-style-type: decimal"><li>Fixed <code><a href="../reference/plotMetaAnalysisForest.html">plotMetaAnalysisForest()</a></code> when using grid approximations, including when providing approximations as tibble.</li></ol></div>
+<ol style="list-style-type: decimal"><li>Fixed <code><a href="../reference/plotMetaAnalysisForest.html">plotMetaAnalysisForest()</a></code> when using grid approximations, including when providing approximations as tibble.</li>
+</ol></div>
     <div class="section level2">
 <h2 class="page-header" data-toc-text="0.2.1" id="evidencesynthesis-021">EvidenceSynthesis 0.2.1<small>2020-11-20</small><a class="anchor" aria-label="anchor" href="#evidencesynthesis-021"></a></h2>
 <p>Changes</p>
@@ -112,11 +125,13 @@
     <div class="section level2">
 <h2 class="page-header" data-toc-text="0.1.0" id="evidencesynthesis-010">EvidenceSynthesis 0.1.0<a class="anchor" aria-label="anchor" href="#evidencesynthesis-010"></a></h2>
 <p>Changes</p>
-<ol style="list-style-type: decimal"><li>Adding meta-analysis using local non-normal Cox likelihood approximations to avoid bias when sample size is small.</li></ol></div>
+<ol style="list-style-type: decimal"><li>Adding meta-analysis using local non-normal Cox likelihood approximations to avoid bias when sample size is small.</li>
+</ol></div>
     <div class="section level2">
 <h2 class="page-header" data-toc-text="0.0.5" id="evidencesynthesis-005">EvidenceSynthesis 0.0.5<a class="anchor" aria-label="anchor" href="#evidencesynthesis-005"></a></h2>
 <p>Bug fixes</p>
-<ol style="list-style-type: decimal"><li>Fixing build error in R 4.0.0.</li></ol></div>
+<ol style="list-style-type: decimal"><li>Fixing build error in R 4.0.0.</li>
+</ol></div>
   </div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
@@ -127,7 +142,7 @@
 
 
       <footer><div class="copyright">
-  <p></p><p>Developed by Martijn Schuemie, Marc A. Suchard.</p>
+  <p></p><p>Developed by Martijn Schuemie, Marc A. Suchard, Fan Bu.</p>
 </div>
 
 <div class="pkgdown">

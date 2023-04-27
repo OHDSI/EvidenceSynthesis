@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">EvidenceSynthesis</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.4.1</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.5.0</span>
       </span>
     </div>
 
@@ -32,6 +32,9 @@
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu"><li>
+      <a href="../articles/BayesianBiasCorrection.html">Bayesian adaptive bias correction using profile likelihoods</a>
+    </li>
+    <li>
       <a href="../articles/NonNormalEffectSynthesis.html">Effect estimate synthesis using non-normal likelihood approximations</a>
     </li>
     <li>
@@ -82,6 +85,10 @@
         </td>
         <td><p>Approximate simple Bayesian posterior</p></td>
       </tr><tr><td>
+          <p><code><a href="biasCorrectionInference.html">biasCorrectionInference()</a></code> </p>
+        </td>
+        <td><p>Bias Correction with Inference</p></td>
+      </tr><tr><td>
           <p><code><a href="computeBayesianMetaAnalysis.html">computeBayesianMetaAnalysis()</a></code> </p>
         </td>
         <td><p>Compute a Bayesian random-effects meta-analysis</p></td>
@@ -105,6 +112,26 @@
           <p><code><a href="detectApproximationType.html">detectApproximationType()</a></code> </p>
         </td>
         <td><p>Detect the type of likelihood approximation based on the data format</p></td>
+      </tr><tr><td>
+          <p><code><a href="fitBiasDistribution.html">fitBiasDistribution()</a></code> </p>
+        </td>
+        <td><p>Fit Bias Distribution</p></td>
+      </tr><tr><td>
+          <p><code><a href="ncLikelihoods.html">ncLikelihoods</a></code> </p>
+        </td>
+        <td><p>Example profile likelihoods for negative control outcomes</p></td>
+      </tr><tr><td>
+          <p><code><a href="ooiLikelihoods.html">ooiLikelihoods</a></code> </p>
+        </td>
+        <td><p>Example profile likelihoods for a synthetic outcome of interest</p></td>
+      </tr><tr><td>
+          <p><code><a href="plotBiasCorrectionInference.html">plotBiasCorrectionInference()</a></code> </p>
+        </td>
+        <td><p>Plot bias correction inference</p></td>
+      </tr><tr><td>
+          <p><code><a href="plotBiasDistribution.html">plotBiasDistribution()</a></code> </p>
+        </td>
+        <td><p>Plot bias distributions</p></td>
       </tr><tr><td>
           <p><code><a href="plotCovariateBalances.html">plotCovariateBalances()</a></code> </p>
         </td>
@@ -146,6 +173,10 @@
         </td>
         <td><p>Prepare to plot the propensity score distribution</p></td>
       </tr><tr><td>
+          <p><code><a href="sequentialFitBiasDistribution.html">sequentialFitBiasDistribution()</a></code> </p>
+        </td>
+        <td><p>Fit Bias Distribution Sequentially or in Groups</p></td>
+      </tr><tr><td>
           <p><code><a href="simulatePopulations.html">simulatePopulations()</a></code> </p>
         </td>
         <td><p>Simulate survival data for multiple databases</p></td>
@@ -166,7 +197,7 @@
 
 
       <footer><div class="copyright">
-  <p></p><p>Developed by Martijn Schuemie, Marc A. Suchard.</p>
+  <p></p><p>Developed by Martijn Schuemie, Marc A. Suchard, Fan Bu.</p>
 </div>
 
 <div class="pkgdown">

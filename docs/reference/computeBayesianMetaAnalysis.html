@@ -19,7 +19,7 @@ deviations as defined by the priorSd argument."><!-- mathjax --><script src="htt
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">EvidenceSynthesis</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.4.1</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.5.0</span>
       </span>
     </div>
 
@@ -34,6 +34,9 @@ deviations as defined by the priorSd argument."><!-- mathjax --><script src="htt
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu"><li>
+      <a href="../articles/BayesianBiasCorrection.html">Bayesian adaptive bias correction using profile likelihoods</a>
+    </li>
+    <li>
       <a href="../articles/NonNormalEffectSynthesis.html">Effect estimate synthesis using non-normal likelihood approximations</a>
     </li>
     <li>
@@ -83,8 +86,8 @@ deviations as defined by the <code>priorSd</code> argument.</p>
 <span>  subSampleFrequency <span class="op">=</span> <span class="fl">100</span>,</span>
 <span>  priorSd <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">0.5</span><span class="op">)</span>,</span>
 <span>  alpha <span class="op">=</span> <span class="fl">0.05</span>,</span>
-<span>  seed <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  robust <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  robust <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  seed <span class="op">=</span> <span class="fl">1</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -116,12 +119,12 @@ and tau, respectively.</p></dd>
 <dd><p>The alpha (expected type I error) used for the credible intervals.</p></dd>
 
 
+<dt>robust</dt>
+<dd><p>Whether or not to use a t-distribution model; default: FALSE.</p></dd>
+
+
 <dt>seed</dt>
 <dd><p>The seed for the random number generator.</p></dd>
-
-
-<dt>robust</dt>
-<dd><p>Whether or not to use a t-distribution model (default: FALSE)</p></dd>
 
 </dl></div>
     <div id="value">
@@ -152,7 +155,6 @@ Attributes of the data frame contain the MCMC trace and the detected approximati
 <span class="r-in"><span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="va">approximation</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 <span class="r-in"><span><span class="va">approximations</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">populations</span>, <span class="va">fitModelInDatabase</span><span class="op">)</span></span></span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>BLR convergence criterion failed; coefficient may be infinite</span>
 <span class="r-in"><span><span class="va">approximations</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="st">"rbind"</span>, <span class="va">approximations</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># At study coordinating center, perform meta-analysis using per-site approximations:</span></span></span>
@@ -160,10 +162,10 @@ Attributes of the data frame contain the MCMC trace and the detected approximati
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Detected data following custom parameric distribution</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Performing MCMC. This may take a while</span>
 <span class="r-in"><span><span class="va">estimate</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>          mu     mu95Lb   mu95Ub      muSe       tau     tau95Lb  tau95Ub</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 0.4501666 -0.3828094 1.265705 0.4225731 0.5785275 0.008450675 1.150865</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       logRr   seLogRr</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 0.4501666 0.4225731</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         mu    mu95Lb  mu95Ub      muSe       tau      tau95Lb   tau95Ub</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 0.806114 0.1399449 1.47417 0.3456583 0.2741752 0.0008638833 0.8098934</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      logRr   seLogRr</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 0.806114 0.3456583</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># (Estimates in this example will vary due to the random simulation)</span></span></span>
 <span class="r-in"><span></span></span>
@@ -177,7 +179,7 @@ Attributes of the data frame contain the MCMC trace and the detected approximati
 
 
       <footer><div class="copyright">
-  <p></p><p>Developed by Martijn Schuemie, Marc A. Suchard.</p>
+  <p></p><p>Developed by Martijn Schuemie, Marc A. Suchard, Fan Bu.</p>
 </div>
 
 <div class="pkgdown">

@@ -4,6 +4,9 @@
     <loc>/404.html</loc>
   </url>
   <url>
+    <loc>/articles/BayesianBiasCorrection.html</loc>
+  </url>
+  <url>
     <loc>/articles/index.html</loc>
   </url>
   <url>
@@ -34,6 +37,9 @@
     <loc>/reference/approximateSimplePosterior.html</loc>
   </url>
   <url>
+    <loc>/reference/biasCorrectionInference.html</loc>
+  </url>
+  <url>
     <loc>/reference/computeBayesianMetaAnalysis.html</loc>
   </url>
   <url>
@@ -55,7 +61,22 @@
     <loc>/reference/EvidenceSynthesis-package.html</loc>
   </url>
   <url>
+    <loc>/reference/fitBiasDistribution.html</loc>
+  </url>
+  <url>
     <loc>/reference/index.html</loc>
+  </url>
+  <url>
+    <loc>/reference/ncLikelihoods.html</loc>
+  </url>
+  <url>
+    <loc>/reference/ooiLikelihoods.html</loc>
+  </url>
+  <url>
+    <loc>/reference/plotBiasCorrectionInference.html</loc>
+  </url>
+  <url>
+    <loc>/reference/plotBiasDistribution.html</loc>
   </url>
   <url>
     <loc>/reference/plotCovariateBalances.html</loc>
@@ -86,6 +107,9 @@
   </url>
   <url>
     <loc>/reference/preparePsPlot.html</loc>
+  </url>
+  <url>
+    <loc>/reference/sequentialFitBiasDistribution.html</loc>
   </url>
   <url>
     <loc>/reference/simulatePopulations.html</loc>

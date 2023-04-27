@@ -8,8 +8,9 @@ labels <- paste("Data site", LETTERS[1:length(populations)])
 # Fit a Cox regression at each data site, and approximate likelihood function:
 fitModelInDatabase <- function(population) {
   cyclopsData <- Cyclops::createCyclopsData(Surv(time, y) ~ x + strata(stratumId),
-                                            data = population,
-                                            modelType = "cox")
+    data = population,
+    modelType = "cox"
+  )
   cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData, control = Cyclops::createControl(convergenceType = "lange"))
   approximation <- approximateLikelihood(cyclopsFit, parameter = "x", approximation = "grid")
   attr(approximation, "cyclopsFit") <- cyclopsFit
@@ -57,7 +58,6 @@ test_that("Plot likelihood fit", {
 })
 
 test_that("Plot empirical nulls", {
-
   site1 <- EmpiricalCalibration::simulateControls(n = 50, mean = 0, sd = 0.1, trueLogRr = 0)
   site1$label <- "Site 1"
   site2 <- EmpiricalCalibration::simulateControls(n = 50, mean = 0.1, sd = 0.2, trueLogRr = 0)

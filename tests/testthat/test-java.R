@@ -4,16 +4,20 @@ test_that("AML example", {
   skip_if_not(supportsJava8())
   gold <- coxph(Surv(time, status) ~ x, data = aml, ties = "breslow")
 
-  data <- rJava::.jnew("org.ohdsi.data.CoxData",
-                       as.integer(aml$status),
-                       as.double(aml$time),
-                       as.double(aml$x) - 1)
+  data <- rJava::.jnew(
+    "org.ohdsi.data.CoxData",
+    as.integer(aml$status),
+    as.double(aml$time),
+    as.double(aml$x) - 1
+  )
 
   parameter <- rJava::.jnew("dr.inference.model.Parameter$Default", coef(gold))
 
-  likelihood <- rJava::.jnew("org.ohdsi.likelihood.CoxPartialLikelihood",
-                             rJava::.jcast(parameter, "dr.inference.model.Parameter"),
-                             data$getSortedData())
+  likelihood <- rJava::.jnew(
+    "org.ohdsi.likelihood.CoxPartialLikelihood",
+    rJava::.jcast(parameter, "dr.inference.model.Parameter"),
+    data$getSortedData()
+  )
 
   tolerance <- 1e-10
 
@@ -35,17 +39,21 @@ start, length, event, x1, x2
 
   gold <- coxph(Surv(length, event) ~ x1 + strata(x2), test, ties = "breslow")
 
-  data <- rJava::.jnew("org.ohdsi.data.CoxData",
-                       as.integer(test$x2),
-                       as.integer(test$event),
-                       as.double(test$length),
-                       as.double(test$x1))
+  data <- rJava::.jnew(
+    "org.ohdsi.data.CoxData",
+    as.integer(test$x2),
+    as.integer(test$event),
+    as.double(test$length),
+    as.double(test$x1)
+  )
 
   parameter <- rJava::.jnew("dr.inference.model.Parameter$Default", coef(gold))
 
-  likelihood <- rJava::.jnew("org.ohdsi.likelihood.CoxPartialLikelihood",
-                             rJava::.jcast(parameter, "dr.inference.model.Parameter"),
-                             data$getSortedData())
+  likelihood <- rJava::.jnew(
+    "org.ohdsi.likelihood.CoxPartialLikelihood",
+    rJava::.jcast(parameter, "dr.inference.model.Parameter"),
+    data$getSortedData()
+  )
 
   tolerance <- 1e-10
 
@@ -80,7 +88,7 @@ test_that("skew-normal logPdf and gradLogPdf", {
   analytic <- likelihood$getGradientLogDensity(rJava::.jarray(as.numeric(0.5)))
 
   dx <- function(x, f, eps = 1e-07, ...) {
-    (f(x + eps, ...) - f(x - eps, ...))/(2 * eps)
+    (f(x + eps, ...) - f(x - eps, ...)) / (2 * eps)
   }
   numeric <- dx(x = 0.5, sn::dsn, xi = 2, omega = 3, alpha = 4, log = TRUE)
 
