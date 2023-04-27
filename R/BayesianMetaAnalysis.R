@@ -81,6 +81,7 @@ computeBayesianMetaAnalysis <- function(data,
                                         priorSd = c(2, 0.5),
                                         alpha = 0.05,
                                         robust = FALSE,
+                                        df = 4,
                                         seed = 1) {
   if (!supportsJava8()) {
     inform("Java 8 or higher is required, but older version was found. Cannot compute estimate.")
@@ -180,7 +181,8 @@ computeBayesianMetaAnalysis <- function(data,
                                  rJava::.jcast(rJava::.jnew("org.ohdsi.metaAnalysis.RobustMetaAnalysis",
                                                             rJava::.jcast(dataModel, "org.ohdsi.metaAnalysis.DataModel"),
                                                             rJava::.jcast(prior, "org.ohdsi.metaAnalysis.ScalePrior"),
-                                                            as.numeric(priorSd[1])),
+                                                            as.numeric(priorSd[1]),
+                                                            as.numeric(df)),
                                                "org.ohdsi.mcmc.Analysis"),
                                  as.integer(chainLength),
                                  as.integer(burnIn),
