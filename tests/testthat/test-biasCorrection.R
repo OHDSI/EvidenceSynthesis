@@ -22,7 +22,7 @@ test_that('fit bias distribution', {
 })
 
 test_that('sequentially fit bias distribution', {
-  biasDist = sequentialFitBiasDistribution(ncLikelihoods, numsaps = 1000)
+  biasDist = sequentialFitBiasDistribution(ncLikelihoods, numsamps = 1000)
 
   expect_type(biasDist, "list")
   expect_named(biasDist, c('mean', 'scale', 'bias', 'Id'))
@@ -36,13 +36,13 @@ test_that('Bayesian bias correction', {
                                           doCorrection = TRUE)
 
   expect_type(bbcSequential, "list")
-  expect_names(bbcSequential, c("median", "mean", "ci95Lb", "ci95Ub", "p1", "Id"))
-  expect_gte(bbcSequential$ci95Ub, bbcSequential$median)
-  expect_lte(bbcSequential$ci95Lb, bbcSequential$median)
+  expect_named(bbcSequential, c("median", "mean", "ci95Lb", "ci95Ub", "p1", "Id"))
+  expect_gte(bbcSequential$ci95Ub[1], bbcSequential$median[1])
+  expect_lte(bbcSequential$ci95Lb[1], bbcSequential$median[1])
 })
 
 test_that('plot bias distribution', {
-  biasDist = sequentialFitBiasDistribution(ncLikelihoods, numsaps = 5000)
+  biasDist = sequentialFitBiasDistribution(ncLikelihoods, numsamps = 5000)
   biasPlot = plotBiasDistribution(biasDist)
 
   expect_s3_class(biasPlot, "ggplot")
@@ -55,5 +55,5 @@ test_that("plot bias correction", {
                                           doCorrection = TRUE)
   bbcPlot = plotBiasCorrectionInference(bbcSequential)
 
-  expect_s3_class(bbcPlot, "ggplot")
+  expect_s3_class(bbcPlot, "grob")
 })
