@@ -46,14 +46,17 @@ population <- simulatePopulations(createSimulationSettings(nSites = 1))[[1]]
 
 # Fit a Cox regression at each data site, and approximate likelihood function:
 cyclopsData <- Cyclops::createCyclopsData(Surv(time, y) ~ x + strata(stratumId),
-                                          data = population,
-                                          modelType = "cox")
+  data = population,
+  modelType = "cox"
+)
 cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
 likelihoodProfile <- approximateLikelihood(cyclopsFit, parameter = "x", approximation = "grid")
 
 # Run MCMC
-mcmcTraces <- approximateSimplePosterior(likelihoodProfile = likelihoodProfile,
-                                         priorMean = 0, priorSd = 100)
+mcmcTraces <- approximateSimplePosterior(
+  likelihoodProfile = likelihoodProfile,
+  priorMean = 0, priorSd = 100
+)
 
 # Report posterior expectation
 mean(mcmcTraces$theta)

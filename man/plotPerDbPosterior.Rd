@@ -39,8 +39,9 @@ populations <- simulatePopulations()
 # Fit a Cox regression at each data site, and approximate likelihood function:
 fitModelInDatabase <- function(population) {
   cyclopsData <- Cyclops::createCyclopsData(Surv(time, y) ~ x + strata(stratumId),
-                                            data = population,
-                                            modelType = "cox")
+    data = population,
+    modelType = "cox"
+  )
   cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
   approximation <- approximateLikelihood(cyclopsFit, parameter = "x", approximation = "custom")
   return(approximation)

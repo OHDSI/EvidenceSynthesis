@@ -19,8 +19,10 @@ likelihoods profiled using adaptive grids using the \code{Cyclops} package.
 }
 \examples{
 data("ooiLikelihoods")
-ooiLikEx = ooiLikelihoods[["5"]][[1]]
-\donttest{plot(value ~ point, data = ooiLikEx)}
+ooiLikEx <- ooiLikelihoods[["5"]][[1]]
+\donttest{
+plot(value ~ point, data = ooiLikEx)
+}
 }
 \references{
 Schuemie et al. (2022). Vaccine safety surveillance using routinely collected

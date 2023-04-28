@@ -54,6 +54,6 @@ under a hierarchical normal model
 using the Markov chain Monte Carlo engine BEAST.
 }
 \examples{
-#TBD
+# TBD
 
 }

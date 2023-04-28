@@ -35,8 +35,9 @@ appropriate.
 populations <- simulatePopulations()
 
 cyclopsData <- Cyclops::createCyclopsData(Surv(time, y) ~ x + strata(stratumId),
-                                          data = populations[[1]],
-                                          modelType = "cox")
+  data = populations[[1]],
+  modelType = "cox"
+)
 cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
 approximation <- approximateLikelihood(cyclopsFit, "x")
 approximation

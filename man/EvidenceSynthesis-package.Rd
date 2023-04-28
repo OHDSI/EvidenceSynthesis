@@ -23,6 +23,7 @@ Useful links:
 Authors:
 \itemize{
   \item Marc A. Suchard \email{msuchard@ucla.edu}
+  \item Fan Bu \email{fanbu@ucla.edu}
 }
 
 Other contributors:

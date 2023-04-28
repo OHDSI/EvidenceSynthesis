@@ -42,13 +42,21 @@ displayed as box plots combined with scatterplots.
 }
 \examples{
 # Some example data:
-balance1 <- data.frame(beforeMatchingStdDiff = rnorm(1000, 0.1, 0.1),
-                       afterMatchingStdDiff = rnorm(1000, 0, 0.01))
-balance2 <- data.frame(beforeMatchingStdDiff = rnorm(1000, 0.2, 0.1),
-                       afterMatchingStdDiff = rnorm(1000, 0, 0.05))
-balance3 <- data.frame(beforeMatchingStdDiff = rnorm(1000, 0, 0.1),
-                       afterMatchingStdDiff = rnorm(1000, 0, 0.03))
-plotCovariateBalances(balances = list(balance1, balance2, balance3),
-                      labels = c("Site A", "Site B", "Site C"))
+balance1 <- data.frame(
+  beforeMatchingStdDiff = rnorm(1000, 0.1, 0.1),
+  afterMatchingStdDiff = rnorm(1000, 0, 0.01)
+)
+balance2 <- data.frame(
+  beforeMatchingStdDiff = rnorm(1000, 0.2, 0.1),
+  afterMatchingStdDiff = rnorm(1000, 0, 0.05)
+)
+balance3 <- data.frame(
+  beforeMatchingStdDiff = rnorm(1000, 0, 0.1),
+  afterMatchingStdDiff = rnorm(1000, 0, 0.03)
+)
+plotCovariateBalances(
+  balances = list(balance1, balance2, balance3),
+  labels = c("Site A", "Site B", "Site C")
+)
 
 }
