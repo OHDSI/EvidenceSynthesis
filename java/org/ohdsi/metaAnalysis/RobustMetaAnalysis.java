@@ -48,7 +48,7 @@ public class RobustMetaAnalysis extends MetaAnalysis {
 
 	protected ParametricDistributionModel getMuDistribution(Parameter mu, Parameter tau, boolean isPrecision) {
 		return new TDistributionModel(mu, tau,
-		new Parameter.Default("df", 4.0, 0.0, Double.POSITIVE_INFINITY));
+		new Parameter.Default("df", df, 0.0, Double.POSITIVE_INFINITY));
 	}
 
 	public static void main(String[] args) {
