@@ -45,6 +45,10 @@ public class MetaAnalysis implements Analysis {
 	private final OperatorSchedule schedule;
 
 	public MetaAnalysis(DataModel dataModel, ScalePrior scalePrior, double muPriorSd) {
+		this(dataModel, scalePrior, new LocationHyperPrior(muPriorSd));
+	}
+
+	public MetaAnalysis(DataModel dataModel, ScalePrior scalePrior, LocationHyperPrior muHyperPrior) {
 
 		// Build likelihood
 		Likelihood dataLikelihood = dataModel.getLikelihood();
@@ -55,14 +59,14 @@ public class MetaAnalysis implements Analysis {
 		boolean isPrecision = scalePrior.isPrecision();
 
 		DistributionLikelihood hierarchicalLikelihood = new DistributionLikelihood(
-				getMuDistribution(mu, tau, isPrecision));
+				getMuDistribution(mu, tau, isPrecision, muHyperPrior));
 		hierarchicalLikelihood.addData(theta);
 
 		int defaultThreads = 0; // No thread pools
 		likelihood = new CompoundLikelihood(defaultThreads, Arrays.asList(dataLikelihood, hierarchicalLikelihood));
 
 		// Build prior
-		DistributionLikelihood muPrior = new DistributionLikelihood(new NormalDistribution(0, muPriorSd));
+		DistributionLikelihood muPrior = new DistributionLikelihood(new NormalDistribution(0, muHyperPrior.getSd()));
 		muPrior.addData(mu);
 
 		Likelihood tauPrior = scalePrior.getPrior();
@@ -94,7 +98,8 @@ public class MetaAnalysis implements Analysis {
 		return new NormalNormalMeanGibbsOperator(likelihood, prior, weight);
 	}
 
-	protected ParametricDistributionModel getMuDistribution(Parameter mu, Parameter tau, boolean isPrecision) {
+	protected ParametricDistributionModel getMuDistribution(Parameter mu, Parameter tau, boolean isPrecision,
+															LocationHyperPrior hyperPrior) {
 		return new NormalDistributionModel(mu, tau, isPrecision);
 	}
 
