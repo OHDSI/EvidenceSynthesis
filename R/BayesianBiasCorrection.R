@@ -29,6 +29,7 @@
 #' @param minNCs               Minimum number of negative controls needed to fit a bias distribution;
 #'                             default (also recommended): 5.
 #' @param robust               Whether or not to use a t-distribution model; default: FALSE.
+#' @param df                   Degrees of freedom for the t-model, only used if robust is TRUE.
 #' @param seed                 Seed for the random number generator.
 #'
 #' @seealso
@@ -56,6 +57,7 @@ fitBiasDistribution <- function(likelihoodProfiles,
                                 thin = 10,
                                 minNCs = 5,
                                 robust = FALSE,
+                                df = 4,
                                 seed = 1) {
   # check if there are at least `minNC` likelihoods available
   if (length(likelihoodProfiles) < minNCs) {
@@ -74,6 +76,7 @@ fitBiasDistribution <- function(likelihoodProfiles,
     subSampleFrequency = thin,
     priorSd = priorSds,
     robust = robust,
+    df = df,
     seed = seed
   )
   traces <- attr(null, "traces")
@@ -84,7 +87,7 @@ fitBiasDistribution <- function(likelihoodProfiles,
   # robust --> t distribution
   # not robust ---> normal
   if (robust) {
-    biases <- ggdist::rstudent_t(numsamps, df = 4, mu = means, sigma = scales)
+    biases <- ggdist::rstudent_t(numsamps, df = df, mu = means, sigma = scales)
   } else {
     biases <- rnorm(numsamps, means, scales)
   }

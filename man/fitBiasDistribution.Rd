@@ -11,6 +11,7 @@ fitBiasDistribution(
   thin = 10,
   minNCs = 5,
   robust = FALSE,
+  df = 4,
   seed = 1
 )
 }
@@ -28,6 +29,8 @@ the average bias and the sd/scale parameter, respectively.}
 default (also recommended): 5.}
 
 \item{robust}{Whether or not to use a t-distribution model; default: FALSE.}
+
+\item{df}{Degrees of freedom for the t-model, only used if robust is TRUE.}
 
 \item{seed}{Seed for the random number generator.}
 }
