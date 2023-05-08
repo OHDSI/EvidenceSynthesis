@@ -86,6 +86,7 @@ Analysis is based on a list of extracted likelihood profiles.</p>
 <span>  thin <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>  minNCs <span class="op">=</span> <span class="fl">5</span>,</span>
 <span>  robust <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  df <span class="op">=</span> <span class="fl">4</span>,</span>
 <span>  seed <span class="op">=</span> <span class="fl">1</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -116,6 +117,10 @@ default (also recommended): 5.</p></dd>
 
 <dt>robust</dt>
 <dd><p>Whether or not to use a t-distribution model; default: FALSE.</p></dd>
+
+
+<dt>df</dt>
+<dd><p>Degrees of freedom for the t-model, only used if robust is TRUE.</p></dd>
 
 
 <dt>seed</dt>
