@@ -32,17 +32,25 @@ public interface DataModel {
 
     List<Parameter> getIndividualParameters();
 
+    List<Integer> getIdentifiers();
+
     abstract class Base implements DataModel {
 
-        private final List<Parameter> thetaList = new ArrayList<Parameter>();
+        private final List<Parameter> thetaList = new ArrayList<>();
         private EmpiricalDistributionLikelihood likelihood = null;
         private Parameter theta = null;
-        private List<EmpiricalDistributionData> dataList = new ArrayList<EmpiricalDistributionData>();
+        private final List<EmpiricalDistributionData> dataList = new ArrayList<>();
+        private final List<Integer> identifierList = new ArrayList<>();
 
         public void addLikelihoodParameters(double[] x, double[] ll) {
+            addLikelihoodParameters(x, ll, identifierList.size() + 1);
+        }
+
+        public void addLikelihoodParameters(double[] x, double[] ll, int identifier) {
             dataList.add(new EmpiricalDistributionData(x, ll, true));
             thetaList.add(new Parameter.Default("theta" + (thetaList.size() + 1), 0.1,
                     Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY));
+            identifierList.add(identifier);
         }
 
         public void finish() {
@@ -61,5 +69,8 @@ public interface DataModel {
 
         @Override
         public List<Parameter> getIndividualParameters() { return thetaList; }
+
+        @Override
+        public List<Integer> getIdentifiers() {  return identifierList; }
     }
 }

@@ -32,6 +32,7 @@ public class CoxDataModel implements DataModel {
 
     private final List<Parameter> thetaList;
     private final List<Likelihood> likelihoodList;
+    private final List<Integer> identifierList;
 
     private CompoundLikelihood likelihood = null;
     private Parameter theta = null;
@@ -39,6 +40,7 @@ public class CoxDataModel implements DataModel {
     public CoxDataModel() {
         thetaList = new ArrayList<>();
         likelihoodList = new ArrayList<>();
+        identifierList = new ArrayList<>();
    	}
 
     public void addLikelihoodData(int[] id,
@@ -53,6 +55,7 @@ public class CoxDataModel implements DataModel {
 
         thetaList.add(theta);
         likelihoodList.add(thisLikelihood);
+        identifierList.add(identifierList.size() + 1);
     }
 
     public void finish() {
@@ -68,4 +71,7 @@ public class CoxDataModel implements DataModel {
 
     @Override
     public List<Parameter> getIndividualParameters() { return thetaList; }
+
+    @Override
+    public List<Integer> getIdentifiers() { return identifierList; }
 }

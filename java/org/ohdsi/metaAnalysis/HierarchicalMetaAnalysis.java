@@ -248,7 +248,7 @@ public class HierarchicalMetaAnalysis implements Analysis {
 
 		Parameter mean = randomize(name + ".mean", 1, 0, 1);
 		Parameter scale = scalePrior.getParameter();
-		scale.setId(name + ".precision");
+		scale.setId(name + ".scale");
 
 		DistributionLikelihood distribution = new DistributionLikelihood(
 				new NormalDistributionModel(mean, scale, scalePrior.isPrecision()));
