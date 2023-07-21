@@ -1,14 +1,14 @@
 package org.ohdsi.likelihood;
 
 import dr.inference.model.*;
-import org.ohdsi.metaAnalysis.EmpiricalDataModel;
+import org.ohdsi.metaAnalysis.DataModel;
 
-public class EmpiricalModelLikelihood extends AbstractModelLikelihood {
+public class CachedModelLikelihood extends AbstractModelLikelihood {
 
     private final Likelihood likelihood;
     private final Parameter parameter;
 
-    public EmpiricalModelLikelihood(String name, EmpiricalDataModel empiricalDataModel) {
+    public CachedModelLikelihood(String name, DataModel empiricalDataModel) {
         super(name);
         setId(name);
 

@@ -13,7 +13,7 @@ import dr.inference.operators.RandomWalkOperator;
 import dr.inference.operators.SimpleOperatorSchedule;
 import dr.math.distributions.GammaDistribution;
 import dr.math.distributions.NormalDistribution;
-import org.ohdsi.likelihood.EmpiricalModelLikelihood;
+import org.ohdsi.likelihood.CachedModelLikelihood;
 import org.ohdsi.mcmc.Analysis;
 import org.ohdsi.mcmc.Runner;
 import org.ohdsi.metaAnalysis.EmpiricalDataModel;
@@ -67,7 +67,7 @@ public class ProfileHierarchicalNormalAnalysis implements Analysis {
         this.beta = new CompoundParameter("beta");
 
         for (EmpiricalDataModel dataModel : profileLikelihoods) {
-            empiricalModels.add(new EmpiricalModelLikelihood("likelihood", dataModel));
+            empiricalModels.add(new CachedModelLikelihood("likelihood", dataModel));
             Parameter individualBeta = dataModel.getCompoundParameter();
 
             if (individualBeta.getDimension() != 1) {

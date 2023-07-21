@@ -9,7 +9,7 @@ import dr.inference.loggers.Loggable;
 import dr.inference.model.*;
 import dr.inference.operators.*;
 import dr.math.distributions.NormalDistribution;
-import org.ohdsi.likelihood.EmpiricalModelLikelihood;
+import org.ohdsi.likelihood.CachedModelLikelihood;
 import org.ohdsi.mcmc.Analysis;
 import org.ohdsi.mcmc.Runner;
 import org.ohdsi.metaAnalysis.EmpiricalDataModel;
@@ -31,7 +31,7 @@ public class ProfileNormalAnalysis implements Analysis {
                                  double startingValue) {
 
         // Build likelihood
-        likelihood = new EmpiricalModelLikelihood("likelihood", profileLikelihood);
+        likelihood = new CachedModelLikelihood("likelihood", profileLikelihood);
         beta = profileLikelihood.getCompoundParameter();
         for (int i = 0; i < beta.getDimension(); ++i) {
             beta.setParameterValue(i, startingValue);
