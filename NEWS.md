@@ -9,6 +9,7 @@ Changes
 
 3. Added a vignette on Bayesian adaptive bias correction.
 
+
 EvidenceSynthesis 0.4.1
 =======================
 

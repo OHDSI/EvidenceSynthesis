@@ -87,6 +87,7 @@ deviations as defined by the <code>priorSd</code> argument.</p>
 <span>  priorSd <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">0.5</span><span class="op">)</span>,</span>
 <span>  alpha <span class="op">=</span> <span class="fl">0.05</span>,</span>
 <span>  robust <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  df <span class="op">=</span> <span class="fl">4</span>,</span>
 <span>  seed <span class="op">=</span> <span class="fl">1</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -123,6 +124,10 @@ and tau, respectively.</p></dd>
 <dd><p>Whether or not to use a t-distribution model; default: FALSE.</p></dd>
 
 
+<dt>df</dt>
+<dd><p>Degrees of freedom for the t-model, only used if robust is TRUE.</p></dd>
+
+
 <dt>seed</dt>
 <dd><p>The seed for the random number generator.</p></dd>
 
@@ -148,8 +153,9 @@ Attributes of the data frame contain the MCMC trace and the detected approximati
 <span class="r-in"><span><span class="co"># Fit a Cox regression at each data site, and approximate likelihood function:</span></span></span>
 <span class="r-in"><span><span class="va">fitModelInDatabase</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">population</span><span class="op">)</span> <span class="op">{</span></span></span>
 <span class="r-in"><span>  <span class="va">cyclopsData</span> <span class="op">&lt;-</span> <span class="fu">Cyclops</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/Cyclops/man/createCyclopsData.html" class="external-link">createCyclopsData</a></span><span class="op">(</span><span class="fu">Surv</span><span class="op">(</span><span class="va">time</span>, <span class="va">y</span><span class="op">)</span> <span class="op">~</span> <span class="va">x</span> <span class="op">+</span> <span class="fu">strata</span><span class="op">(</span><span class="va">stratumId</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>                                            data <span class="op">=</span> <span class="va">population</span>,</span></span>
-<span class="r-in"><span>                                            modelType <span class="op">=</span> <span class="st">"cox"</span><span class="op">)</span></span></span>
+<span class="r-in"><span>    data <span class="op">=</span> <span class="va">population</span>,</span></span>
+<span class="r-in"><span>    modelType <span class="op">=</span> <span class="st">"cox"</span></span></span>
+<span class="r-in"><span>  <span class="op">)</span></span></span>
 <span class="r-in"><span>  <span class="va">cyclopsFit</span> <span class="op">&lt;-</span> <span class="fu">Cyclops</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/Cyclops/man/fitCyclopsModel.html" class="external-link">fitCyclopsModel</a></span><span class="op">(</span><span class="va">cyclopsData</span><span class="op">)</span></span></span>
 <span class="r-in"><span>  <span class="va">approximation</span> <span class="op">&lt;-</span> <span class="fu"><a href="approximateLikelihood.html">approximateLikelihood</a></span><span class="op">(</span><span class="va">cyclopsFit</span>, parameter <span class="op">=</span> <span class="st">"x"</span>, approximation <span class="op">=</span> <span class="st">"custom"</span><span class="op">)</span></span></span>
 <span class="r-in"><span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="va">approximation</span><span class="op">)</span></span></span>
@@ -162,10 +168,10 @@ Attributes of the data frame contain the MCMC trace and the detected approximati
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Detected data following custom parameric distribution</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Performing MCMC. This may take a while</span>
 <span class="r-in"><span><span class="va">estimate</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         mu    mu95Lb  mu95Ub      muSe       tau      tau95Lb   tau95Ub</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 0.806114 0.1399449 1.47417 0.3456583 0.2741752 0.0008638833 0.8098934</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>      logRr   seLogRr</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 0.806114 0.3456583</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          mu    mu95Lb   mu95Ub      muSe     tau     tau95Lb  tau95Ub     logRr</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 0.6080768 -0.287342 1.444109 0.4401307 0.54771 0.001126101 1.121517 0.6080768</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     seLogRr</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 0.4401307</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># (Estimates in this example will vary due to the random simulation)</span></span></span>
 <span class="r-in"><span></span></span>
