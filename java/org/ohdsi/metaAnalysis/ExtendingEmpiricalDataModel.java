@@ -85,7 +85,7 @@ public class ExtendingEmpiricalDataModel extends EmpiricalDataModel {
 			public double gradientLogPdf(double x, EmpiricalDistributionData data) {
 				final int end = data.values.length;
 
-				if (x <= data.values[0] || x >= data.values[end]) {
+				if (x <= data.values[0] || x >= data.values[end - 1]) {
 					return 0.0;
 				} else {
 					return super.gradientLogPdf(x, data);

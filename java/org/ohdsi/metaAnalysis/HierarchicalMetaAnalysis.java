@@ -17,6 +17,9 @@ package org.ohdsi.metaAnalysis;
 
 import dr.inference.distribution.DistributionLikelihood;
 import dr.inference.distribution.NormalDistributionModel;
+import dr.inference.hmc.CompoundDerivative;
+import dr.inference.hmc.CompoundGradient;
+import dr.inference.hmc.GradientWrtParameterProvider;
 import dr.inference.loggers.Loggable;
 import dr.inference.model.*;
 import dr.inference.operators.*;
@@ -27,6 +30,8 @@ import org.ohdsi.likelihood.CachedModelLikelihood;
 import org.ohdsi.mcmc.Analysis;
 import org.ohdsi.mcmc.Runner;
 import org.ohdsi.simpleDesign.SimpleLinearModel;
+import org.ohdsi.simpleDesign.SimpleLinearModelGradientWrtArgument;
+import org.ohdsi.simpleDesign.SimpleLinearModelGradientWrtEffects;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -153,6 +158,15 @@ public class HierarchicalMetaAnalysis implements Analysis {
 
 		this.schedule = new SimpleOperatorSchedule(1000, 0.0);
 		this.schedule.addOperators(allOperators);
+
+//		SimpleLinearModelGradientWrtArgument gradient1 = new SimpleLinearModelGradientWrtArgument(allEffectDistribution);
+//		System.err.println(gradient1.getReport());
+//
+//		SimpleLinearModelGradientWrtEffects gradient2 = new SimpleLinearModelGradientWrtEffects(allEffectDistribution);
+//		System.err.println(gradient2.getReport());
+//
+//		CompoundGradient gradient3 = makeCompoundGradient(allMetaAnalysisDataModels);
+//		System.err.println(gradient3.getReport());
 	}
 
 	@Override
@@ -354,6 +368,16 @@ public class HierarchicalMetaAnalysis implements Analysis {
 	private int findIdentifier(DataModel dataModel, int id) {
 		List<Integer> identifiers = dataModel.getIdentifiers();
 		return identifiers.indexOf(id);
+	}
+
+	public static CompoundGradient makeCompoundGradient(List<DataModel> dataModels) {
+		List<GradientWrtParameterProvider> gpp = new ArrayList<>();
+		for (DataModel dm : dataModels) {
+			GradientProvider gp = (GradientProvider) dm.getLikelihood();
+			gpp.add(new GradientWrtParameterProvider.ParameterWrapper(
+					gp, dm.getCompoundParameter(), dm.getLikelihood()));
+		}
+		return new CompoundDerivative(gpp);
 	}
 
 	public static void main(String[] args) {

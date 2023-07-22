@@ -163,4 +163,20 @@ public class SimpleLinearModel extends AbstractModelLikelihood {
         likelihoodKnown = false;
         innerProductKnown = false;
     }
+
+    public final Parameter getArgument() { return argument; }
+
+    public final DesignMatrix getDesignMatrix() { return designMatrix; }
+
+    public final Parameter getEffects() { return effects; }
+
+    public final Parameter getPrecision() { return precision; }
+
+    public final double[] getInnerProduct() {
+        if (!innerProductKnown) {
+            computeInnerProduct(innerProduct);
+            innerProductKnown = true;
+        }
+        return innerProduct;
+    }
 }
