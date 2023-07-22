@@ -48,7 +48,7 @@ public interface DataModel {
 
         public void addLikelihoodParameters(double[] x, double[] ll, int identifier) {
             dataList.add(new EmpiricalDistributionData(x, ll, true));
-            thetaList.add(new Parameter.Default("theta" + (thetaList.size() + 1), 0.1,
+            thetaList.add(new Parameter.Default("theta" + identifier, 0.1,
                     Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY));
             identifierList.add(identifier);
         }

@@ -6,7 +6,7 @@
  * You may obtain a copy of the License at
  * 
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -37,15 +37,159 @@ public class HierarchicalMetaAnalysis implements Analysis {
 	private final Likelihood likelihood;
 	private final Likelihood prior;
 	private final Likelihood joint;
-	private final List<Parameter> allParameters = new ArrayList<>();
+	private final List<Parameter> parameters;
 	private final OperatorSchedule schedule;
 
-	public HierarchicalMetaAnalysis(List<DataModel> allMetaAnalysisDataModels) {
+	private ScalePrior makeHierarchicalScalePrior(double hyper1, double hyper2) {
+		return new GammaOnPrecisionPrior(hyper1, hyper2);
+	}
 
-		// TODO Pass as configuration
+	public HierarchicalMetaAnalysis(List<DataModel> allMetaAnalysisDataModels,
+									HierarchicalMetaAnalysisConfiguration cg) {
+
+		MathUtils.setSeed(cg.seed);
+
+		// Build data likelihood, main-effect parameters and their operators
+		List<Likelihood> allDataLikelihoods = new ArrayList<>();
+		List<MCMCOperator> allOperators = new ArrayList<>();
+		List<Parameter> allParameters = new ArrayList<>();
+
+		// Build data likelihood
+		int metaAnalysisCount = 0;
+		for (DataModel metaAnalysis : allMetaAnalysisDataModels) {
+
+			int maLabel = (metaAnalysisCount + 1);
+			allDataLikelihoods.add(
+					new CachedModelLikelihood("likelihood" + maLabel,
+							metaAnalysis));  // TODO Do we need to cache? or just allLikelihoods.add(group.getLikelihood());
+
+			Parameter beta = metaAnalysis.getCompoundParameter();
+			allParameters.add(beta);
+
+			allOperators.add(new RandomWalkOperator(beta, null, 0.75,
+					RandomWalkOperator.BoundaryCondition.reflecting, cg.operatorWeight * beta.getDimension(), cg.mode)); // TODO Use HMC
+
+			++metaAnalysisCount;
+		}
+
+		CompoundParameter allBetas = new CompoundParameter("all.beta");
+		for (Parameter beta : allParameters) {
+			allBetas.addParameter(beta);
+		}
+		// End of data likelihood
+
+		// Build hierarchical priors and operators
+		DesignMatrix designMatrix = new DesignMatrix("designMatrix", false);
+		CompoundParameter allEffects = new CompoundParameter("allEffects");
+		List<Likelihood> allPriors = new ArrayList<>();
+
+		Parameter tau = new Parameter.Default("tau", cg.startingTau, 0.0, Double.POSITIVE_INFINITY);
+		DistributionLikelihood tauPrior = new DistributionLikelihood(
+				new GammaDistribution(cg.tauScale, cg.tauRate));
+		tauPrior.addData(tau);
+		MCMCOperator tauOperator = new ScaleOperator(tau, 0.75, cg.mode, cg.operatorWeight);
+		allPriors.add(tauPrior);
+		allParameters.add(tau);
+		allOperators.add(tauOperator);
+
+		int primaryCount = addPrimaryDesign(designMatrix, allMetaAnalysisDataModels, cg.primaryEffectName);
+		Parameter primaryEffect = randomize(cg.primaryEffectName, primaryCount, 0, 1); // TODO Scale for over-dispersed noise
+		allEffects.addParameter(primaryEffect);
+
+		HierarchicalNormalComponents primaryComponents = makeHierarchicalNormalComponents(
+				cg.primaryEffectName, primaryEffect, cg.hierarchicalLocationHyperStdDev,
+				makeHierarchicalScalePrior(cg.gammaHyperShape, cg.gammaHyperRate), cg.operatorWeight, cg.mode);
+
+		allParameters.add(primaryEffect);
+		allParameters.addAll(primaryComponents.parameters);
+		allOperators.addAll(primaryComponents.operators);
+		allPriors.addAll(primaryComponents.likelihoods);
+
+		if (cg.includeSecondary) {
+
+			int secondaryCount = addSecondaryDesign(designMatrix, allMetaAnalysisDataModels, cg.secondaryEffectName);
+			Parameter secondaryEffect = randomize(cg.secondaryEffectName, secondaryCount, 0, 1);
+			allEffects.addParameter(secondaryEffect);
+
+			HierarchicalNormalComponents secondaryComponents = makeHierarchicalNormalComponents(
+					cg.secondaryEffectName, secondaryEffect, cg.hierarchicalLocationHyperStdDev,
+					makeHierarchicalScalePrior(cg.gammaHyperShape, cg.gammaHyperRate), cg.operatorWeight, cg.mode);
+
+			allParameters.add(secondaryEffect);
+			allParameters.addAll(secondaryComponents.parameters);
+			allOperators.addAll(secondaryComponents.operators);
+			allPriors.addAll(secondaryComponents.likelihoods);
+		}
+
+		int effectCount = addEffectDesign(designMatrix, allMetaAnalysisDataModels, cg.exposureEffectName);
+		Parameter exposureEffect = randomize(cg.exposureEffectName, effectCount, 0, 1);
+		allEffects.addParameter(exposureEffect);
+
+		DistributionLikelihood exposureDistribution = new DistributionLikelihood(
+				new NormalDistribution(cg.exposureHyperLocation, cg.exposureHyperStdDev));
+
+		MCMCOperator exposureOperator = new RandomWalkOperator(exposureEffect, null, 0.75,
+				RandomWalkOperator.BoundaryCondition.reflecting, cg.operatorWeight, cg.mode); // TODO Gibbs sample
+
+		allParameters.add(exposureEffect);
+		allOperators.add(exposureOperator);
+		allPriors.add(exposureDistribution);
+
+		if (designMatrix.getColumnDimension() != allEffects.getDimension()) {
+			throw new RuntimeException("Invalid parameter dimensions");
+		}
+
+		SimpleLinearModel allEffectDistribution = new SimpleLinearModel("linearModel",
+				allBetas, designMatrix, allEffects, tau);
+		allPriors.add(allEffectDistribution);
+
+		// Finalize
+		this.prior = new CompoundLikelihood(allPriors); // TODO Use multiple threads?
+		this.likelihood = new CompoundLikelihood(allDataLikelihoods); // TODO Use multiple threads?
+		this.joint = new CompoundLikelihood(Arrays.asList(likelihood, prior));
+		this.joint.setId("joint");
+
+		this.parameters = allParameters;
+
+		this.schedule = new SimpleOperatorSchedule(1000, 0.0);
+		this.schedule.addOperators(allOperators);
+	}
+
+	@Override
+	 public List<Loggable> getLoggerColumns() {
+
+		List<Loggable> columns = new ArrayList<>();
+		columns.add(likelihood);
+		columns.add(prior);
+		columns.addAll(parameters);
+
+		return columns;
+	}
+
+	@Override
+	public Likelihood getJoint() {
+		return joint;
+	}
+
+	@Override
+	public OperatorSchedule getSchedule() {
+		return schedule;
+	}
+
+	public static Parameter randomize(String name, int dim, double center, double scale) {
+		double[] effect = new double[dim];
+		for (int i = 0; i < dim; ++i) {
+			effect[i] = center + scale * MathUtils.nextGaussian();
+		}
+		Parameter parameter = new Parameter.Default(name, effect);
+		parameter.addBounds(new Parameter.DefaultBounds(Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY, dim));
+		return parameter;
+	}
+
+	static class HierarchicalMetaAnalysisConfiguration {
 		double hierarchicalLocationHyperStdDev = 1.0;
 
-		double gammaHyperScale = 1.0;
+		double gammaHyperShape = 1.0;
 		double gammaHyperRate = 1.0;
 
 		double exposureHyperLocation = 0.0;
@@ -61,168 +205,11 @@ public class HierarchicalMetaAnalysis implements Analysis {
 
 		long seed = 666;
 
-		MathUtils.setSeed(seed);
+		String primaryEffectName = "outcome";
+		String secondaryEffectName = "source";
+		String exposureEffectName = "exposure";
 
-		// Build data likelihood, main-effect parameters and their operators
-		List<Likelihood> allDataLikelihoods = new ArrayList<>();
-		List<MCMCOperator> allOperators = new ArrayList<>();
-
-		// Build data likelihood
-		int metaAnalysisCount = 0;
-		for (DataModel metaAnalysis : allMetaAnalysisDataModels) {
-
-			allDataLikelihoods.add(
-					new CachedModelLikelihood("likelihood" + (metaAnalysisCount + 1),
-							metaAnalysis));  // TODO Do we need to cache? or just allLikelihoods.add(group.getLikelihood());
-
-			Parameter beta = metaAnalysis.getCompoundParameter();
-			allParameters.add(beta);
-
-			allOperators.add(new RandomWalkOperator(beta, null, 0.75,
-					RandomWalkOperator.BoundaryCondition.reflecting, operatorWeight * beta.getDimension(), mode)); // TODO Use HMC
-
-			++metaAnalysisCount;
-		}
-
-		CompoundParameter allBetas = new CompoundParameter("all.beta");
-		for (Parameter beta : allParameters) {
-			allBetas.addParameter(beta);
-		}
-
-		this.likelihood = new CompoundLikelihood(allDataLikelihoods); // TODO Use multiple threads
-
-		// Build meta-analysis model effects
-		DesignMatrix designMatrix = new DesignMatrix("designMatrix",
-				new Parameter[] { // TODO Rewrite for unbalanced dataModels
-						// within-outcome bias
-						makeIEffect("dm.outcome1",0, 3, 4),
-						makeIEffect("dm.outcome2",1, 3, 4),
-						makeIEffect("dm.outcome3",2, 3, 4),
-						// within-data-source bias
-						makeJEffect("dm.source1", 0, 3, 4),
-						makeJEffect("dm.source2", 1, 3, 4),
-						makeJEffect("dm.source3", 2, 3, 4),
-						makeJEffect("dm.source4", 3, 3, 4),
-						// de-biased exposure effect
-						makeIEffect("dm.exposure", 2, 3, 4),
-				}, false);
-
-		Parameter outcomeEffect = randomize("outcome", 3, 0, 1); // TODO Scale for over-dispersed noise
-		Parameter sourceEffect = randomize("source", 4, 0, 1);
-		Parameter exposureEffect = randomize("exposure", 1, 0, 1);
-
-		CompoundParameter allEffects = new CompoundParameter("allEffects",
-				new Parameter[] {
-						outcomeEffect,
-						sourceEffect,
-						exposureEffect,
-				});
-
-		if (designMatrix.getColumnDimension() != allEffects.getDimension()) {
-			throw new RuntimeException("Invalid parameter dimensions");
-		}
-
-		// Build hierarchical priors and operators
-		Parameter tau = new Parameter.Default("tau", startingTau, 0.0, Double.POSITIVE_INFINITY);
-
-		SimpleLinearModel allEffectDistribution = new SimpleLinearModel("linearModel",
-				allBetas, designMatrix, allEffects, tau);
-
-		DistributionLikelihood tauPrior = new DistributionLikelihood(
-				new GammaDistribution(tauScale, tauRate));
-		tauPrior.addData(tau);
-
-		MCMCOperator tauOperator = new ScaleOperator(tau, 0.75, mode, operatorWeight);
-
-		List<Likelihood> allPriors = new ArrayList<>();
-
-		allPriors.add(allEffectDistribution);
-		allPriors.add(tauPrior);
-		allParameters.add(tau);
-		allOperators.add(tauOperator);
-
-		HierarchicalNormalComponents outcomeComponents = makeHierarchicalNormalComponents(
-				"outcome", outcomeEffect, new LocationHyperPrior(hierarchicalLocationHyperStdDev),
-				new GammaOnPrecisionPrior(gammaHyperScale, gammaHyperRate), operatorWeight, mode);
-
-		allParameters.add(outcomeEffect);
-		allParameters.addAll(outcomeComponents.parameters);
-		allOperators.addAll(outcomeComponents.operators);
-		allPriors.addAll(outcomeComponents.likelihoods);
-
-		HierarchicalNormalComponents sourceComponents = makeHierarchicalNormalComponents(
-				"source", sourceEffect, new LocationHyperPrior(hierarchicalLocationHyperStdDev),
-				new GammaOnPrecisionPrior(gammaHyperScale, gammaHyperScale), operatorWeight, mode);
-
-		allParameters.add(sourceEffect);
-		allParameters.addAll(sourceComponents.parameters);
-		allOperators.addAll(sourceComponents.operators);
-		allPriors.addAll(sourceComponents.likelihoods);
-
-		// Build exposure prior and operator
-		DistributionLikelihood exposureDistribution = new DistributionLikelihood(
-				new NormalDistribution(exposureHyperLocation, exposureHyperStdDev));
-
-		MCMCOperator exposureOperator = new RandomWalkOperator(exposureEffect, null, 0.75,
-				RandomWalkOperator.BoundaryCondition.reflecting, operatorWeight, mode); // TODO Gibbs sample
-
-		allParameters.add(exposureEffect);
-		allOperators.add(exposureOperator);
-		allPriors.add(exposureDistribution);
-
-		this.prior = new CompoundLikelihood(allPriors); // TODO Use multiple threads
-		this.joint = new CompoundLikelihood(Arrays.asList(likelihood, prior)); // TODO Use multiple threads
-		this.joint.setId("joint");
-
-		this.schedule = new SimpleOperatorSchedule(1000, 0.0);
-		this.schedule.addOperators(allOperators);
-	}
-
-	@Override
-	 public List<Loggable> getLoggerColumns() {
-
-		List<Loggable> columns = new ArrayList<>();
-		columns.add(likelihood);
-		columns.add(prior);
-		columns.addAll(allParameters);
-
-		return columns;
-	}
-
-	@Override
-	public Likelihood getJoint() {
-		return joint;
-	}
-
-	@Override
-	public OperatorSchedule getSchedule() {
-		return schedule;
-	}
-
-	public static Parameter makeIEffect(String name, int index, int I, int J) {
-		double[] effect = new double[I * J];
-		for (int j = 0; j < J; ++j) {
-			effect[index * J + j] = 1.0;
-		}
-		return new Parameter.Default(name, effect);
-	}
-
-	public static Parameter makeJEffect(String name, int index, int I, int J) {
-		double[] effect = new double[I * J];
-		for (int i = 0; i < I; ++i) {
-			effect[i * J + index] = 1.0;
-		}
-		return new Parameter.Default(name, effect);
-	}
-
-	public static Parameter randomize(String name, int dim, double center, double scale) {
-		double[] effect = new double[dim];
-		for (int i = 0; i < dim; ++i) {
-			effect[i] = center + scale * MathUtils.nextGaussian();
-		}
-		Parameter parameter = new Parameter.Default(name, effect);
-		parameter.addBounds(new Parameter.DefaultBounds(Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY, dim));
-		return parameter;
+		boolean includeSecondary = true;
 	}
 
 	static class HierarchicalNormalComponents {
@@ -242,7 +229,7 @@ public class HierarchicalMetaAnalysis implements Analysis {
 
 	public static HierarchicalNormalComponents makeHierarchicalNormalComponents(String name,
 																				Parameter effects,
-																				LocationHyperPrior locationHyperPrior,
+																				double locationHyperStdDev,
 																				ScalePrior scalePrior, double weight,
 																				AdaptationMode mode) {
 
@@ -255,7 +242,7 @@ public class HierarchicalMetaAnalysis implements Analysis {
 		distribution.addData(effects);
 
 		DistributionLikelihood meanHyperDistribution = new DistributionLikelihood(
-				new NormalDistribution(0.0, locationHyperPrior.getSd()));
+				new NormalDistribution(0.0, locationHyperStdDev));
 		meanHyperDistribution.addData(mean);
 
 		List<Parameter> parameters = new ArrayList<>();
@@ -277,6 +264,98 @@ public class HierarchicalMetaAnalysis implements Analysis {
 		return new HierarchicalNormalComponents(parameters, operators, likelihood);
 	}
 
+	private int addPrimaryDesign(DesignMatrix designMatrix,
+								 List<DataModel> dataModels,
+								 String effectName) {
+		int totalLength = getTotalNumberOfProfiles(dataModels);
+
+		int offset = 0;
+		int label = 0;
+		for (DataModel dataModel : dataModels) {
+			int length = dataModel.getCompoundParameter().getDimension();
+			double[] effect = new double[totalLength];
+			for (int i = 0; i < length; ++i) {
+				effect[offset + i] = 1.0;
+			}
+			designMatrix.addParameter(
+					new Parameter.Default("dm." + effectName + (label + 1), effect));
+
+			++label;
+			offset += length;
+		}
+		return label;
+	}
+
+	private int addSecondaryDesign(DesignMatrix designMatrix,
+								   List<DataModel> dataModels,
+								   String effectName) {
+		int totalLength = getTotalNumberOfProfiles(dataModels);
+		int maxIdentifier = getMaxIdentifier(dataModels);
+
+		for (int id = 0; id < maxIdentifier; ++id) {
+			double[] effect = new double[totalLength];
+
+			int offset = 0;
+			for (DataModel dataModel : dataModels) {
+				int length = dataModel.getCompoundParameter().getDimension();
+				int whichIndex = findIdentifier(dataModel, id + 1);
+				if (whichIndex >= 0) {
+					effect[offset + whichIndex] = 1.0;
+				}
+				offset += length;
+			}
+
+			designMatrix.addParameter(
+					new Parameter.Default("dm." + effectName + (id + 1), effect));
+		}
+		return maxIdentifier;
+	}
+
+	public int addEffectDesign(DesignMatrix designMatrix,
+								List<DataModel> dataModels,
+								String effectName) {
+		int totalLength = getTotalNumberOfProfiles(dataModels);
+		int offset = totalLength - dataModels.get(dataModels.size() - 1).getCompoundParameter().getDimension();
+
+		double[] effect = new double[totalLength];
+		for (int i = offset; i < totalLength; ++i) {
+			effect[i] = 1.0;
+		}
+
+		designMatrix.addParameter(
+				new Parameter.Default("dm." + effectName, effect));
+		return 1;
+	}
+
+	private int getTotalNumberOfProfiles(List<DataModel> dataModels) {
+		int length = 0;
+		for (DataModel dataModel : dataModels) {
+			length += dataModel.getCompoundParameter().getDimension();
+		}
+		return length;
+	}
+
+	private int getMaxIdentifier(List<DataModel> dataModels) {
+		int max = maxOfList(dataModels.get(0).getIdentifiers());
+		for (int i = 1; i < dataModels.size(); ++i) {
+			max = Math.max(max, maxOfList(dataModels.get(i).getIdentifiers()));
+		}
+		return max;
+	}
+
+	private int maxOfList(List<Integer> integers) {
+		int max = integers.get(0);
+		for (int i = 1; i < integers.size(); ++i) {
+			max = Math.max(max, integers.get(i));
+		}
+		return max;
+	}
+
+	private int findIdentifier(DataModel dataModel, int id) {
+		List<Integer> identifiers = dataModel.getIdentifiers();
+		return identifiers.indexOf(id);
+	}
+
 	public static void main(String[] args) {
 
 		int chainLength = 1100000;
@@ -289,7 +368,8 @@ public class HierarchicalMetaAnalysis implements Analysis {
 		allDataModels.add(new ExtendingEmpiricalDataModel("ForDavid/grids_example_2.csv"));
 		allDataModels.add(new ExtendingEmpiricalDataModel("ForDavid/grids_example_3.csv"));
 
-		HierarchicalMetaAnalysis analysis = new HierarchicalMetaAnalysis(allDataModels);
+		HierarchicalMetaAnalysis analysis = new HierarchicalMetaAnalysis(allDataModels,
+				new HierarchicalMetaAnalysisConfiguration());
 
 		Runner runner = new Runner(analysis, chainLength, burnIn, subSampleFrequency, 666);
 
