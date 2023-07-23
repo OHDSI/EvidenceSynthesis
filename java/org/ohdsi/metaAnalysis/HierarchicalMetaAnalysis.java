@@ -20,6 +20,7 @@ import dr.inference.distribution.NormalDistributionModel;
 import dr.inference.hmc.CompoundDerivative;
 import dr.inference.hmc.CompoundGradient;
 import dr.inference.hmc.GradientWrtParameterProvider;
+import dr.inference.hmc.JointGradient;
 import dr.inference.loggers.Loggable;
 import dr.inference.model.*;
 import dr.inference.operators.*;
@@ -87,6 +88,7 @@ public class HierarchicalMetaAnalysis implements Analysis {
 		DesignMatrix designMatrix = new DesignMatrix("designMatrix", false);
 		CompoundParameter allEffects = new CompoundParameter("allEffects");
 		List<Likelihood> allPriors = new ArrayList<>();
+		List<GradientWrtParameterProvider> allEffectsGradient = new ArrayList<>();
 
 		Parameter tau = new Parameter.Default("tau", cg.startingTau, 0.0, Double.POSITIVE_INFINITY);
 		DistributionLikelihood tauPrior = new DistributionLikelihood(
@@ -109,6 +111,7 @@ public class HierarchicalMetaAnalysis implements Analysis {
 		allParameters.addAll(primaryComponents.parameters);
 		allOperators.addAll(primaryComponents.operators);
 		allPriors.addAll(primaryComponents.likelihoods);
+		allEffectsGradient.addAll(primaryComponents.gradients);
 
 		if (cg.includeSecondary) {
 
@@ -124,6 +127,7 @@ public class HierarchicalMetaAnalysis implements Analysis {
 			allParameters.addAll(secondaryComponents.parameters);
 			allOperators.addAll(secondaryComponents.operators);
 			allPriors.addAll(secondaryComponents.likelihoods);
+			allEffectsGradient.addAll(secondaryComponents.gradients);
 		}
 
 		int effectCount = addEffectDesign(designMatrix, allMetaAnalysisDataModels, cg.exposureEffectName);
@@ -132,6 +136,7 @@ public class HierarchicalMetaAnalysis implements Analysis {
 
 		DistributionLikelihood exposureDistribution = new DistributionLikelihood(
 				new NormalDistribution(cg.exposureHyperLocation, cg.exposureHyperStdDev));
+		exposureDistribution.addData(exposureEffect);
 
 		MCMCOperator exposureOperator = new RandomWalkOperator(exposureEffect, null, 0.75,
 				RandomWalkOperator.BoundaryCondition.reflecting, cg.operatorWeight, cg.mode); // TODO Gibbs sample
@@ -139,6 +144,10 @@ public class HierarchicalMetaAnalysis implements Analysis {
 		allParameters.add(exposureEffect);
 		allOperators.add(exposureOperator);
 		allPriors.add(exposureDistribution);
+		if (exposureDistribution.getDistribution() instanceof GradientProvider) {
+			allEffectsGradient.add(new GradientWrtParameterProvider.ParameterWrapper(
+					(GradientProvider) exposureDistribution.getDistribution(), exposureEffect, exposureDistribution));
+		}
 
 		if (designMatrix.getColumnDimension() != allEffects.getDimension()) {
 			throw new RuntimeException("Invalid parameter dimensions");
@@ -159,14 +168,17 @@ public class HierarchicalMetaAnalysis implements Analysis {
 		this.schedule = new SimpleOperatorSchedule(1000, 0.0);
 		this.schedule.addOperators(allOperators);
 
-//		SimpleLinearModelGradientWrtArgument gradient1 = new SimpleLinearModelGradientWrtArgument(allEffectDistribution);
-//		System.err.println(gradient1.getReport());
-//
-//		SimpleLinearModelGradientWrtEffects gradient2 = new SimpleLinearModelGradientWrtEffects(allEffectDistribution);
-//		System.err.println(gradient2.getReport());
-//
-//		CompoundGradient gradient3 = makeCompoundGradient(allMetaAnalysisDataModels);
-//		System.err.println(gradient3.getReport());
+		GradientWrtParameterProvider subGradientDataModel1 = makeDataModelCompoundGradient(allMetaAnalysisDataModels);
+		GradientWrtParameterProvider subGradientDataModel2 = new SimpleLinearModelGradientWrtArgument(allEffectDistribution);
+		JointGradient gradientDataModel = new JointGradient(List.of(subGradientDataModel1, subGradientDataModel2));
+
+		System.err.println(gradientDataModel.getReport());
+
+		GradientWrtParameterProvider subGradientEffects1 = new SimpleLinearModelGradientWrtEffects(allEffectDistribution);
+		CompoundGradient subGradientEffects2 = new CompoundDerivative(allEffectsGradient);
+		JointGradient gradientEffects = new JointGradient(List.of(subGradientEffects1, subGradientEffects2));
+
+		System.err.println(gradientEffects.getReport());
 	}
 
 	@Override
@@ -231,13 +243,16 @@ public class HierarchicalMetaAnalysis implements Analysis {
 		final List<Parameter> parameters;
 		final List<MCMCOperator> operators;
 		final List<Likelihood> likelihoods;
+		final List<GradientWrtParameterProvider> gradients;
 
 		HierarchicalNormalComponents(List<Parameter> parameters,
 									 List<MCMCOperator> operators,
-									 List<Likelihood> likelihoods) {
+									 List<Likelihood> likelihoods,
+									 List<GradientWrtParameterProvider> gradients) {
 			this.parameters = parameters;
 			this.operators = operators;
 			this.likelihoods = likelihoods;
+			this.gradients = gradients;
 		}
 	}
 
@@ -275,7 +290,14 @@ public class HierarchicalMetaAnalysis implements Analysis {
 		likelihood.add(meanHyperDistribution);
 		likelihood.add(scalePrior.getPrior());
 
-		return new HierarchicalNormalComponents(parameters, operators, likelihood);
+		List<GradientWrtParameterProvider> gradients = new ArrayList<>();
+		if (distribution.getDistribution() instanceof GradientProvider) {
+			gradients.add(new GradientWrtParameterProvider.ParameterWrapper(
+					(GradientProvider) distribution.getDistribution(),
+					effects, distribution));
+		}
+
+		return new HierarchicalNormalComponents(parameters, operators, likelihood, gradients);
 	}
 
 	private int addPrimaryDesign(DesignMatrix designMatrix,
@@ -370,7 +392,7 @@ public class HierarchicalMetaAnalysis implements Analysis {
 		return identifiers.indexOf(id);
 	}
 
-	public static CompoundGradient makeCompoundGradient(List<DataModel> dataModels) {
+	public static CompoundGradient makeDataModelCompoundGradient(List<DataModel> dataModels) {
 		List<GradientWrtParameterProvider> gpp = new ArrayList<>();
 		for (DataModel dm : dataModels) {
 			GradientProvider gp = (GradientProvider) dm.getLikelihood();

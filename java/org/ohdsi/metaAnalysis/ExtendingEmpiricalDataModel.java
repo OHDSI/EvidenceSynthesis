@@ -83,10 +83,12 @@ public class ExtendingEmpiricalDataModel extends EmpiricalDataModel {
 
 			@Override
 			public double gradientLogPdf(double x, EmpiricalDistributionData data) {
-				final int end = data.values.length;
+				final int end = data.values.length - 1;
 
-				if (x <= data.values[0] || x >= data.values[end - 1]) {
-					return 0.0;
+				if (x <= data.values[0]) {
+					return Math.max(0, (data.density[1] - data.density[0]) / (data.values[1] - data.values[0]));
+				} else if (x >= data.values[end]) {
+					return Math.min(0, (data.density[end] - data.density[end - 1]) / (data.values[end] - data.values[end - 1]));
 				} else {
 					return super.gradientLogPdf(x, data);
 				}
