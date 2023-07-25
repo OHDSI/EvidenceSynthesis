@@ -24,9 +24,11 @@ import dr.inference.hmc.JointGradient;
 import dr.inference.loggers.Loggable;
 import dr.inference.model.*;
 import dr.inference.operators.*;
+import dr.inference.operators.hmc.*;
 import dr.math.MathUtils;
 import dr.math.distributions.GammaDistribution;
 import dr.math.distributions.NormalDistribution;
+import org.ohdsi.hmc.HmcOptions;
 import org.ohdsi.likelihood.CachedModelLikelihood;
 import org.ohdsi.mcmc.Analysis;
 import org.ohdsi.mcmc.Runner;
@@ -179,6 +181,15 @@ public class HierarchicalMetaAnalysis implements Analysis {
 		JointGradient gradientEffects = new JointGradient(List.of(subGradientEffects1, subGradientEffects2));
 
 		System.err.println(gradientEffects.getReport());
+
+//		HmcOptions options = new HmcOptions(gradientEffects);
+//		HamiltonianMonteCarloOperator hmc = new HamiltonianMonteCarloOperator(
+//				AdaptationMode.ADAPTATION_ON, 1.0,
+//				gradientEffects,
+//				gradientEffects.getParameter(), null, null,
+//				options.getHmcOptions(), options.getPreconditioner());
+//
+//		schedule.addOperator(hmc);
 	}
 
 	@Override
