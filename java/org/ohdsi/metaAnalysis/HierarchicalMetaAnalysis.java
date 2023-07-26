@@ -167,29 +167,42 @@ public class HierarchicalMetaAnalysis implements Analysis {
 
 		this.parameters = allParameters;
 
-		this.schedule = new SimpleOperatorSchedule(1000, 0.0);
-		this.schedule.addOperators(allOperators);
-
-		GradientWrtParameterProvider subGradientDataModel1 = makeDataModelCompoundGradient(allMetaAnalysisDataModels);
-		GradientWrtParameterProvider subGradientDataModel2 = new SimpleLinearModelGradientWrtArgument(allEffectDistribution);
-		JointGradient gradientDataModel = new JointGradient(List.of(subGradientDataModel1, subGradientDataModel2));
-
-		System.err.println(gradientDataModel.getReport());
-
-		GradientWrtParameterProvider subGradientEffects1 = new SimpleLinearModelGradientWrtEffects(allEffectDistribution);
-		CompoundGradient subGradientEffects2 = new CompoundDerivative(allEffectsGradient);
-		JointGradient gradientEffects = new JointGradient(List.of(subGradientEffects1, subGradientEffects2));
-
-		System.err.println(gradientEffects.getReport());
-
-//		HmcOptions options = new HmcOptions(gradientEffects);
+//		GradientWrtParameterProvider subGradientDataModel1 = makeDataModelCompoundGradient(allMetaAnalysisDataModels);
+//		GradientWrtParameterProvider subGradientDataModel2 = new SimpleLinearModelGradientWrtArgument(allEffectDistribution);
+//		JointGradient gradientDataModel = new JointGradient(List.of(subGradientDataModel1, subGradientDataModel2));
+//
+//		System.err.println(gradientDataModel.getReport());
+//
+//		GradientWrtParameterProvider subGradientEffects1 = new SimpleLinearModelGradientWrtEffects(allEffectDistribution);
+//		CompoundGradient subGradientEffects2 = new CompoundDerivative(allEffectsGradient);
+//		JointGradient gradientEffects = new JointGradient(List.of(subGradientEffects1, subGradientEffects2));
+//
+//		System.err.println(gradientEffects.getReport());
+//
+//		CompoundGradient totalGradient = new CompoundDerivative(List.of(gradientDataModel, gradientEffects));
+//
+//		System.err.println(totalGradient.getReport());
+//
+//		// Use HMC
+//		HmcOptions options = new HmcOptions(totalGradient);
 //		HamiltonianMonteCarloOperator hmc = new HamiltonianMonteCarloOperator(
 //				AdaptationMode.ADAPTATION_ON, 1.0,
-//				gradientEffects,
-//				gradientEffects.getParameter(), null, null,
+//				totalGradient,
+//				totalGradient.getParameter(), null, null,
 //				options.getHmcOptions(), options.getPreconditioner());
 //
-//		schedule.addOperator(hmc);
+//		// Remove old MH operators
+//		allOperators.remove(0);
+//		allOperators.remove(0);
+//		allOperators.remove(0);
+//		allOperators.remove(1);
+//		allOperators.remove(3);
+//		allOperators.remove(5);
+//
+//		allOperators.add(hmc);
+
+		this.schedule = new SimpleOperatorSchedule(1000, 0.0);
+		this.schedule.addOperators(allOperators);
 	}
 
 	@Override
