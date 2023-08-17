@@ -236,7 +236,7 @@ public class HierarchicalMetaAnalysis implements Analysis {
 		return parameter;
 	}
 
-	static class HierarchicalMetaAnalysisConfiguration {
+	public static class HierarchicalMetaAnalysisConfiguration {
 
 		//prior standard deviation for primary & secondary effect mean
 		double hierarchicalLocationHyperStdDev = 1.0;
@@ -460,7 +460,7 @@ public class HierarchicalMetaAnalysis implements Analysis {
 		HierarchicalMetaAnalysis analysis = new HierarchicalMetaAnalysis(allDataModels,
 				cg);
 
-		Runner runner = new Runner(analysis, chainLength, burnIn, subSampleFrequency, 666);
+		Runner runner = new Runner(analysis, chainLength, burnIn, subSampleFrequency, cg.seed);
 
 		runner.run();
 
