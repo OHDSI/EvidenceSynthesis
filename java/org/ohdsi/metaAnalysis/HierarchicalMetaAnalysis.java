@@ -92,7 +92,7 @@ public class HierarchicalMetaAnalysis implements Analysis {
 
 		Parameter tau = new Parameter.Default("tau", cg.startingTau, 0.0, Double.POSITIVE_INFINITY);
 		DistributionLikelihood tauPrior = new DistributionLikelihood(
-				new GammaDistribution(cg.tauScale, cg.tauRate));
+				new GammaDistribution(cg.tauShape, cg.tauScale));
 		tauPrior.addData(tau);
 		MCMCOperator tauOperator = new ScaleOperator(tau, 0.75, cg.mode, cg.operatorWeight);
 		allPriors.add(tauPrior);
@@ -105,7 +105,7 @@ public class HierarchicalMetaAnalysis implements Analysis {
 
 		HierarchicalNormalComponents primaryComponents = makeHierarchicalNormalComponents(
 				cg.primaryEffectName, primaryEffect, cg.hierarchicalLocationHyperStdDev,
-				makeHierarchicalScalePrior(cg.gammaHyperShape, cg.gammaHyperRate), cg.operatorWeight, cg.mode);
+				makeHierarchicalScalePrior(cg.gammaHyperShape, cg.gammaHyperScale), cg.operatorWeight, cg.mode);
 
 		allParameters.add(primaryEffect);
 		allParameters.addAll(primaryComponents.parameters);
@@ -121,7 +121,7 @@ public class HierarchicalMetaAnalysis implements Analysis {
 
 			HierarchicalNormalComponents secondaryComponents = makeHierarchicalNormalComponents(
 					cg.secondaryEffectName, secondaryEffect, cg.hierarchicalLocationHyperStdDev,
-					makeHierarchicalScalePrior(cg.gammaHyperShape, cg.gammaHyperRate), cg.operatorWeight, cg.mode);
+					makeHierarchicalScalePrior(cg.gammaHyperShape, cg.gammaHyperScale), cg.operatorWeight, cg.mode);
 
 			allParameters.add(secondaryEffect);
 			allParameters.addAll(secondaryComponents.parameters);
@@ -213,21 +213,26 @@ public class HierarchicalMetaAnalysis implements Analysis {
 	}
 
 	static class HierarchicalMetaAnalysisConfiguration {
+
+		//prior standard deviation for primary & secondary effect mean
 		double hierarchicalLocationHyperStdDev = 1.0;
 
+		// gamma prior for primary & secondary effect precision (normal dist)
 		double gammaHyperShape = 1.0;
-		double gammaHyperRate = 1.0;
+		double gammaHyperScale = 1.0;
 
+		// prior mean and std for exposure effect (global effect for outcome of interest)
 		double exposureHyperLocation = 0.0;
 		double exposureHyperStdDev = 2.0;
 
+		// gamma prior for std of the random error
+		double tauShape = 1.0;
 		double tauScale = 1.0;
-		double tauRate = 1.0;
+
+		double startingTau = 1.0;
 
 		AdaptationMode mode = AdaptationMode.ADAPTATION_ON;
 		double operatorWeight = 1.0;
-
-		double startingTau = 1.0;
 
 		long seed = 666;
 
@@ -235,6 +240,7 @@ public class HierarchicalMetaAnalysis implements Analysis {
 		String secondaryEffectName = "source";
 		String exposureEffectName = "exposure";
 
+		// include the secondary effects? (e.g., data source effects)
 		boolean includeSecondary = true;
 	}
 
@@ -414,8 +420,21 @@ public class HierarchicalMetaAnalysis implements Analysis {
 		allDataModels.add(new ExtendingEmpiricalDataModel("ForDavid/grids_example_2.csv"));
 		allDataModels.add(new ExtendingEmpiricalDataModel("ForDavid/grids_example_3.csv"));
 
+		HierarchicalMetaAnalysisConfiguration cg = new HierarchicalMetaAnalysisConfiguration();
+		//cg.exposureHyperStdDev = 0.0001; // fix exposure effect
+		//cg.exposureHyperLocation = 0.5;
+
+		//cg.hierarchicalLocationHyperStdDev = 0.0001; // fix source.mean and outcome.mean to default 0
+
+		//cg.tauShape = 1.0;
+		//cg.tauScale = 100.0; // change up prior for tau, precision for the iid normal error term
+		//cg.startingTau = 0.5;
+
+		//cg.gammaHyperShape = 1000000; // change up prior for across-outcome / across-datasource precision term
+		//cg.gammaHyperScale = 0.0001;
+
 		HierarchicalMetaAnalysis analysis = new HierarchicalMetaAnalysis(allDataModels,
-				new HierarchicalMetaAnalysisConfiguration());
+				cg);
 
 		Runner runner = new Runner(analysis, chainLength, burnIn, subSampleFrequency, 666);
 
