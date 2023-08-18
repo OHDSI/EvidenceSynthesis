@@ -191,11 +191,12 @@ computeHierarchicalMetaAnalysis <- function(data,
   }
 
   # build data models
-  dataModelList <- list()
+  dataModelList <- rJava::.jnew("java.util.ArrayList")
   for(i in 1:length(data)){
     thisDataModel = constructDataModel(data[[i]])
     #thisDataModel = rJava::.jcast(thisDataModel, "org.ohdsi.metaAnalysis.DataModel")
-    dataModelList[[i]] = rJava::.jcast(thisDataModel, "org.ohdsi.metaAnalysis.DataModel")
+    dataModelList$add(rJava::.jcast(thisDataModel,
+                                    "org.ohdsi.metaAnalysis.DataModel"))
   }
 
   # convert to Java
@@ -218,7 +219,7 @@ computeHierarchicalMetaAnalysis <- function(data,
     "org.ohdsi.mcmc.Runner",
     rJava::.jcast(rJava::.jnew(
       "org.ohdsi.metaAnalysis.HierarchicalMetaAnalysis",
-      rJava::.jcast(dataModelList, "List<org.ohdsi.metaAnalysis.DataModel>"),
+      dataModelList,
       hmaConfiguration
     ), "org.ohdsi.mcmc.Analysis"),
     as.integer(chainLength),
