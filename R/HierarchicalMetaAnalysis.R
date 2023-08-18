@@ -201,7 +201,7 @@ computeHierarchicalMetaAnalysis <- function(data,
 
   # convert to Java
   ## configuration
-  hmaConfiguration = rJava::.jnew("org.ohdsi.metaAnalysis.HierarchicalMetaAnalysis.HierarchicalMetaAnalysisConfiguration")
+  hmaConfiguration = rJava::.jnew("org.ohdsi.metaAnalysis.HierarchicalMetaAnalysis$HierarchicalMetaAnalysisConfiguration")
   hmaConfiguration$hierarchicalLocationHyperStdDev = as.numeric(effectPriorStd)
   hmaConfiguration$gammaHyperShape = as.numeric(effectPrecisionPrior[1])
   hmaConfiguration$gammaHyperScale = as.numeric(effectPrecisionPrior[2])
@@ -214,7 +214,6 @@ computeHierarchicalMetaAnalysis <- function(data,
   hmaConfiguration$seed = as.integer(seed) # this is surplus...
 
   # construct the analysis
-  #dataModelList = rJava::.jcast(dataModelList, "List<org.ohdsi.metaAnalysis.DataModel>")
   hierarchicalMetaAnalysis <- rJava::.jnew(
     "org.ohdsi.mcmc.Runner",
     rJava::.jcast(rJava::.jnew(
