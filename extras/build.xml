@@ -20,7 +20,7 @@
     <!-- set global properties for this build -->
     <property name="src" location="${repodir}/java"/>
     <property name="build" location="build"/>
-    <property name="beastjar" location="${repodir}/../BeastJar/inst/java"/>
+    <property name="beastjar" location="${repodir}/../BeastJar/java"/>
     <property name="dist" location="${repodir}/inst/java"/>
 
      <path id="classpath">
