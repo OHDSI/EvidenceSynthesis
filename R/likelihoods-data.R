@@ -63,3 +63,27 @@
 #' plot(value ~ point, data = ooiLikEx)
 #' }
 "ooiLikelihoods"
+
+
+#' Example profile likelihoods for hierarchical meta analysis with bias correction
+#'
+#' A list that contains profile likelihoods for two negative control outcomes and
+#' a synthetic outcome of interest, across four data sources.
+#' Each element of the list contains profile likelihoods for one outcome,
+#' where each row provides profile likelihood values (over a grid) from one data source.
+#'
+#' @docType data
+#'
+#' @format An objects of class `list`; the list contains 3 dataframes,
+#' where each dataframe includes four rows of likelihood function values
+#' corresponding to the points in the column names.
+#'
+#' @keywords datasets
+#'
+#' @examples
+#' data("hmaLikelihoodList")
+#' hmaLikEx <- hmaLikelihoodList[[1]]
+#' \donttest{
+#' plot(as.numeric(hmaLikEx[2,]) ~ as.numeric(names(hmaLikEx)))
+#' }
+"hmaLikelihoodList"
