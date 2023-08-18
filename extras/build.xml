@@ -49,6 +49,7 @@
                memorymaximumsize="1024m">
             <include name="org/ohdsi/**"/>
             <include name="test/org/ohdsi/**"/>
+            <include name="dr/inference/**"/>
         </javac>
         <echo message="Successfully compiled."/>
     </target>
