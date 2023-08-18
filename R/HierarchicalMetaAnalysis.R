@@ -110,8 +110,10 @@ summarizeChain <- function(chain, alpha = 0.05){
 #' Compute a Bayesian random-effects hierarchical meta-analysis
 #'
 #' @description
-#' Compute a Bayesian hierarchical meta-analysis (two-level model) using the Markov chain Monte Carlo (MCMC) engine BEAST.
-#' A normal prior is used for the global effects and primary / secondary effects;
+#' Compute a Bayesian hierarchical meta-analysis (two-level model) to learn the global effect
+#' with bias correction via negative control outcomes analysis.
+#' Bayesian inference is performed using the Markov chain Monte Carlo (MCMC) engine BEAST.
+#' Nnormal priors are used for the global effect, outcome-specific effects, and data-source-specific effects;
 #' a half normal prior is used for the standard deviation; a gamma prior is used for the precision parameters.
 #'
 #' @param data                 A data frame containing either normal, skew-normal, custom parametric,
@@ -122,15 +124,22 @@ summarizeChain <- function(chain, alpha = 0.05){
 #' @param priorSd              A two-dimensional vector with the standard deviation of the prior for mu
 #'                             and tau, respectively.
 #' @param alpha                The alpha (expected type I error) used for the credible intervals.
-#' @param robust               Whether or not to use a t-distribution model; default: FALSE.
-#' @param df                   Degrees of freedom for the t-model, only used if robust is TRUE.
-#' @param seed                 The seed for the random number generator.
+#' @param effectPriorStd       Standard deviation for the average outcome / data-source effect.
+#' @param globalExposureEffectPrior  Prior mean and standard deviation for the global main effect.
+#' @param errorPrecisionPrior  Shape and scale for the gamma prior of the precision term in the
+#'                             random effects model (normal) for individual outcome / data-source effects.
+#' @param errorPrecisionPrior  Shape and scale for the gamma prior of the precision term in the
+#'                             normal model for random errors.
+#' @param errorPrecisionStartValue Initial value for the error distribution's precision term.
+#' @param includeSourceEffect Whether or not to consider the data-source-specific random effects. Default is TRUE.
+#' @param seed                 Seed for the random number generator.
 #' @seealso
-#' [approximateLikelihood], [computeFixedEffectMetaAnalysis]
+#' [approximateLikelihood], [computeBayesianMetaAnalysis]
 #'
 #' @return
-#' A data frame with the point estimates and 95% credible intervals for the mu and tau parameters (the
-#' mean and standard deviation of the distribution from which the per-site effect sizes are drawn).
+#' A data frame with the point estimates, 95% credible intervals and sample standard errors
+#' for the (de-biased) global main effect, the average outcome effect, the average data source effect,
+#' and precision of random errors.
 #' Attributes of the data frame contain the MCMC trace and the detected approximation type.
 #'
 #' @examples
