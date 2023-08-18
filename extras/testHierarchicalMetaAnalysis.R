@@ -7,7 +7,7 @@
 ## read in data
 dataModelList = list()
 for(i in 1:3){
-  dataModelList[[i]] = as.data.frame(readr::read_csv(sprintf("ForDavid/grids_example_%s.csv", i)))
+  dataModelList[[i]] = as.data.frame(readr::read_csv(sprintf("../ForDavid/grids_example_%s.csv", i)))
 }
 
 ## construct data model for one element in the list
