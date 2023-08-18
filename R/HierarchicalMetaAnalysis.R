@@ -211,14 +211,14 @@ computeHierarchicalMetaAnalysis <- function(data,
   hmaConfiguration$tauScale = as.numeric(errorPrecisionPrior[2])
   hmaConfiguration$startingTau = as.numeric(errorPrecisionStartValue)
   hmaConfiguration$includeSecondary = as.logical(includeSourceEffect)
-  hmaConfiguration$seed = as.integer(seed) # this is surplus...
+  hmaConfiguration$seed = rJava::.jlong(seed) # this is surplus though...
 
   # construct the analysis
   hierarchicalMetaAnalysis <- rJava::.jnew(
     "org.ohdsi.mcmc.Runner",
     rJava::.jcast(rJava::.jnew(
       "org.ohdsi.metaAnalysis.HierarchicalMetaAnalysis",
-      dataModelList,
+      rJava::.jcast(dataModelList, "java.util.List"),
       hmaConfiguration
     ), "org.ohdsi.mcmc.Analysis"),
     as.integer(chainLength),
