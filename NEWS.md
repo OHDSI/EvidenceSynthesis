@@ -1,3 +1,12 @@
+EvidenceSynthesis 0.6.0
+=======================
+
+Changes
+
+1. Supporting Bayesian hierarchical meta analysis with bias correction using negative control outcomes
+by adding `computeHierarchicalMetaAnalysis()`. 
+
+
 EvidenceSynthesis 0.5.0
 =======================
 
