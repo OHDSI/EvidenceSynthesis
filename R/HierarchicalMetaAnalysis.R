@@ -121,12 +121,10 @@ summarizeChain <- function(chain, alpha = 0.05){
 #' @param chainLength          Number of MCMC iterations.
 #' @param burnIn               Number of MCMC iterations to consider as burn in.
 #' @param subSampleFrequency   Subsample frequency for the MCMC.
-#' @param priorSd              A two-dimensional vector with the standard deviation of the prior for mu
-#'                             and tau, respectively.
 #' @param alpha                The alpha (expected type I error) used for the credible intervals.
 #' @param effectPriorStd       Standard deviation for the average outcome / data-source effect.
 #' @param globalExposureEffectPrior  Prior mean and standard deviation for the global main effect.
-#' @param errorPrecisionPrior  Shape and scale for the gamma prior of the precision term in the
+#' @param effectPrecisionPrior  Shape and scale for the gamma prior of the precision term in the
 #'                             random effects model (normal) for individual outcome / data-source effects.
 #' @param errorPrecisionPrior  Shape and scale for the gamma prior of the precision term in the
 #'                             normal model for random errors.
@@ -143,7 +141,12 @@ summarizeChain <- function(chain, alpha = 0.05){
 #' Attributes of the data frame contain the MCMC trace and the detected approximation type.
 #'
 #' @examples
-
+#' data("hmaLikelihoodList")
+#' estimates = EvidenceSynthesis::computeHierarchicalMetaAnalysis(data = hmaLikelihoodList,
+#' chainLength = 110000,
+#' burnIn = 1e+04,
+#' subSampleFrequency = 10,
+#' seed = 666)
 #'
 #' @export
 computeHierarchicalMetaAnalysis <- function(data,

@@ -31,25 +31,44 @@ or grid likelihood data, with one row per database.}
 
 \item{alpha}{The alpha (expected type I error) used for the credible intervals.}
 
-\item{seed}{The seed for the random number generator.}
+\item{effectPriorStd}{Standard deviation for the average outcome / data-source effect.}
 
-\item{priorSd}{A two-dimensional vector with the standard deviation of the prior for mu
-and tau, respectively.}
+\item{globalExposureEffectPrior}{Prior mean and standard deviation for the global main effect.}
 
-\item{robust}{Whether or not to use a t-distribution model; default: FALSE.}
+\item{effectPrecisionPrior}{Shape and scale for the gamma prior of the precision term in the
+random effects model (normal) for individual outcome / data-source effects.}
 
-\item{df}{Degrees of freedom for the t-model, only used if robust is TRUE.}
+\item{errorPrecisionPrior}{Shape and scale for the gamma prior of the precision term in the
+normal model for random errors.}
+
+\item{errorPrecisionStartValue}{Initial value for the error distribution's precision term.}
+
+\item{includeSourceEffect}{Whether or not to consider the data-source-specific random effects. Default is TRUE.}
+
+\item{seed}{Seed for the random number generator.}
 }
 \value{
-A data frame with the point estimates and 95\% credible intervals for the mu and tau parameters (the
-mean and standard deviation of the distribution from which the per-site effect sizes are drawn).
+A data frame with the point estimates, 95\% credible intervals and sample standard errors
+for the (de-biased) global main effect, the average outcome effect, the average data source effect,
+and precision of random errors.
 Attributes of the data frame contain the MCMC trace and the detected approximation type.
 }
 \description{
-Compute a Bayesian hierarchical meta-analysis (two-level model) using the Markov chain Monte Carlo (MCMC) engine BEAST.
-A normal prior is used for the global effects and primary / secondary effects;
+Compute a Bayesian hierarchical meta-analysis (two-level model) to learn the global effect
+with bias correction via negative control outcomes analysis.
+Bayesian inference is performed using the Markov chain Monte Carlo (MCMC) engine BEAST.
+Nnormal priors are used for the global effect, outcome-specific effects, and data-source-specific effects;
 a half normal prior is used for the standard deviation; a gamma prior is used for the precision parameters.
 }
+\examples{
+data("hmaLikelihoodList")
+estimates = EvidenceSynthesis::computeHierarchicalMetaAnalysis(data = hmaLikelihoodList,
+chainLength = 110000,
+burnIn = 1e+04,
+subSampleFrequency = 10,
+seed = 666)
+
+}
 \seealso{
-\link{approximateLikelihood}, \link{computeFixedEffectMetaAnalysis}
+\link{approximateLikelihood}, \link{computeBayesianMetaAnalysis}
 }
