@@ -571,16 +571,16 @@ constructDataModel <- function(data, labelReferences = NULL){
 # another utility function to construct the label references
 # only works for "grid" and "adaptive grid" data types now!
 buildLabelReferences <- function(data){
-  type <- detectApproximationType(data)
+  type <- detectApproximationType(data[[1]])
   if(type == "grid" || type == "adaptive grid"){
 
     labelRefs = list()
     counter = 1
     for(i in 1:length(data)){
       if(type == "grid"){
-        thisLabels = row.names(data[[1]])
+        thisLabels = row.names(data[[i]])
       }else{
-        thisLabels = names(data[[1]])
+        thisLabels = names(data[[i]])
       }
       # if(i == 1 && is.null(thisLabels)){
       #   return(NULL)
