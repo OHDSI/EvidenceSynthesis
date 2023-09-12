@@ -118,82 +118,9 @@ computeBayesianMetaAnalysis <- function(data,
     Sys.sleep(1) # To avoid CRAN message about CPU time being more than 2.5. times elapsed time
   }
 
-  type <- detectApproximationType(data)
-  data <- cleanApproximations(data)
-  if (type == "normal") {
-    if (nrow(data) == 0) {
-      return(createNaEstimate(type))
-    }
-    dataModel <- rJava::.jnew("org.ohdsi.metaAnalysis.NormalDataModel")
-    for (i in 1:nrow(data)) {
-      dataModel$addLikelihoodParameters(
-        as.numeric(c(data$logRr[i], data$seLogRr[i])),
-        as.numeric(c(NA, NA))
-      )
-    }
-    dataModel$finish()
-  } else if (type == "custom") {
-    if (nrow(data) == 0) {
-      return(createNaEstimate(type))
-    }
-    dataModel <- rJava::.jnew("org.ohdsi.metaAnalysis.ParametricDataModel")
-    for (i in 1:nrow(data)) {
-      dataModel$addLikelihoodParameters(
-        as.numeric(c(data$mu[i], data$sigma[i], data$gamma[i])),
-        as.numeric(c(NA, NA))
-      )
-    }
-    dataModel$finish()
-  } else if (type == "skew normal") {
-    if (nrow(data) == 0) {
-      return(createNaEstimate(type))
-    }
-    dataModel <- rJava::.jnew("org.ohdsi.metaAnalysis.SkewNormalDataModel")
-    for (i in 1:nrow(data)) {
-      dataModel$addLikelihoodParameters(
-        as.numeric(c(data$mu[i], data$sigma[i], data$alpha[i])),
-        as.numeric(c(NA, NA))
-      )
-    }
-    dataModel$finish()
-  } else if (type == "pooled") {
-    dataModel <- rJava::.jnew("org.ohdsi.metaAnalysis.CoxDataModel")
-    for (i in 1:length(data)) {
-      dataModel$addLikelihoodData(
-        as.integer(data[[i]]$stratumId),
-        as.integer(data[[i]]$y),
-        as.numeric(data[[i]]$time),
-        as.numeric(data[[i]]$x)
-      )
-    }
-    dataModel$finish()
-  } else if (type == "adaptive grid") {
-    dataModel <- rJava::.jnew("org.ohdsi.metaAnalysis.ExtendingEmpiricalDataModel")
-    for (i in 1:length(data)) {
-      cleanedData <- as.data.frame(data[[i]])
-      cleanedData$value <- cleanedData$value - max(cleanedData$value)
-      cleanedData <- cleanData(cleanedData,
-        c("point", "value"),
-        minValues = c(-100, -1e6),
-        maxValues = c(100, 0)
-      )
-      dataModel$addLikelihoodParameters(cleanedData$point, cleanedData$value)
-    }
-    dataModel$finish()
-  } else if (type == "grid") {
-    if (nrow(data) == 0) {
-      return(createNaEstimate(type))
-    }
-    x <- as.numeric(colnames(data))
-    data <- as.matrix(data)
-    dataModel <- rJava::.jnew("org.ohdsi.metaAnalysis.ExtendingEmpiricalDataModel")
-    for (i in 1:nrow(data)) {
-      dataModel$addLikelihoodParameters(x, data[i, ])
-    }
-    dataModel$finish()
-  } else {
-    abort(sprintf("Approximation type '%s' not supported by this function", type))
-  }
+  # refactored: using utils function to create a `dataModel` object
+  dataModel = constructDataModel(data)
+
 
   inform("Performing MCMC. This may take a while")
   prior <- rJava::.jnew("org.ohdsi.metaAnalysis.HalfNormalOnStdDevPrior", 0, as.numeric(priorSd[2]))
