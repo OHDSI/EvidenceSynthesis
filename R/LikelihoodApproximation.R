@@ -482,7 +482,7 @@ cleanData <- function(data,
 
 
 # add utility function to construct a dataModel object from `data` R object
-constructDataModel <- function(data){
+constructDataModel <- function(data, labelReferences = NULL){
   type <- detectApproximationType(data)
   data <- cleanApproximations(data)
   if (type == "normal") {
@@ -542,7 +542,12 @@ constructDataModel <- function(data){
                                minValues = c(-100, -1e6),
                                maxValues = c(100, 0)
       )
-      dataModel$addLikelihoodParameters(cleanedData$point, cleanedData$value)
+      if(!is.null(labelReferences) && !is.null(names(data))){
+        id = labelReferences[[names(data)[i]]]
+      }else{
+        id = i
+      }
+      dataModel$addLikelihoodParameters(cleanedData$point, cleanedData$value, id) # specify identifier
     }
     dataModel$finish()
   } else if (type == "grid") {
@@ -561,4 +566,38 @@ constructDataModel <- function(data){
   }
 
   return(dataModel)
+}
+
+# another utility function to construct the label references
+# only works for "grid" and "adaptive grid" data types now!
+buildLabelReferences <- function(data){
+  type <- detectApproximationType(data)
+  if(type == "grid" || type == "adaptive grid"){
+
+    labelRefs = list()
+    counter = 1
+    for(i in 1:length(data)){
+      if(type == "grid"){
+        thisLabels = row.names(data[[1]])
+      }else{
+        thisLabels = names(data[[1]])
+      }
+      # if(i == 1 && is.null(thisLabels)){
+      #   return(NULL)
+      # }
+      for(l in thisLabels){
+        if(!l %in% names(labelRefs)){
+          labelRefs[[l]] = counter
+          counter = counter + 1
+        }
+      }
+    }
+
+    if(length(labelRefs) == 0) {labelRefs = NULL}
+
+  }else{
+    labelRefs = NULL
+  }
+
+  return(labelRefs)
 }

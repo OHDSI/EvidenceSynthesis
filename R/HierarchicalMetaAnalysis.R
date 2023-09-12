@@ -112,6 +112,10 @@ computeHierarchicalMetaAnalysis <- function(data,
   }
 
   # build data models
+  ## build a reference list of string labels and integer labels...
+  labelReferences = buildLabelReferences(data)
+
+  ## construct list of dataModel objects
   dataModelList <- rJava::.jnew("java.util.ArrayList")
   for(i in 1:length(data)){
     thisDataModel = constructDataModel(data[[i]])
