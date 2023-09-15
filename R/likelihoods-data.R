@@ -87,3 +87,30 @@
 #' plot(as.numeric(hmaLikEx[2,]) ~ as.numeric(names(hmaLikEx)))
 #' }
 "hmaLikelihoodList"
+
+
+
+#' A bigger example of profile likelihoods for hierarchical meta analysis with bias correction
+#'
+#' A list that contains profile likelihoods for 10 negative control outcomes and
+#' an outcome of interest, across data sources.
+#' Each element of the list contains a named list of profile likelihoods for one outcome,
+#' where each element is a data frame that provides likelihood values over a grid of
+#' parameter values, the element name corresponding to data source name.
+#'
+#' @docType data
+#'
+#' @format An objects of class `list`; the list contains 11 named lists, each list for one outcome.
+#' Each list contains data frames that record profile likelihoods from different data sources.
+#' The first 10 list corresponds to 10 negative control outcomes,
+#' whereas the last list the outcome of interest.
+#'
+#' @keywords datasets
+#'
+#' @examples
+#' data("likelihoodProfileLists")
+#' exLP <- likelihoodProfileLists[[1]][[1]]
+#' \donttest{
+#' plot(value ~ point, data = exLP)
+#' }
+"likelihoodProfileLists"

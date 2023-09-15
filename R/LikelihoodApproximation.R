@@ -481,7 +481,19 @@ cleanData <- function(data,
 }
 
 
-# add utility function to construct a dataModel object from `data` R object
+#' Construct `DataModel` objects from approximate likelihood or profile likelihood data
+#'
+#' @param data             The likelihood data. Can be a single approximation, approximations
+#'                         from multiple sites, or (adaptive) gride profile likelihoods.
+#' @param labelReferences  Optional parameter that provides a reference list that
+#'                         maps string names to integer indices; only applies to
+#'                         "grid" or "adaptive grip" type of data.
+#'
+#' @examples
+#' data("likelihoodProfileLists")
+#' dataModel = constructDataModel(likelihoodProfileLists[[1]])
+#'
+#' @export
 constructDataModel <- function(data, labelReferences = NULL){
   type <- detectApproximationType(data)
   data <- cleanApproximations(data)
@@ -544,6 +556,8 @@ constructDataModel <- function(data, labelReferences = NULL){
       )
       if(!is.null(labelReferences) && !is.null(names(data))){
         id = labelReferences[[names(data)[i]]]
+        cat(sprintf("ata source %s, with label %s ...\n",
+                    names(data)[i], id))
       }else{
         id = i
       }
@@ -558,7 +572,12 @@ constructDataModel <- function(data, labelReferences = NULL){
     data <- as.matrix(data)
     dataModel <- rJava::.jnew("org.ohdsi.metaAnalysis.ExtendingEmpiricalDataModel")
     for (i in 1:nrow(data)) {
-      dataModel$addLikelihoodParameters(x, data[i, ])
+      if(!is.null(labelReferences) && !is.null(row.names(data))){
+        id = labelReferences[[row.names(data)[i]]]
+      }else{
+        id = i
+      }
+      dataModel$addLikelihoodParameters(x, data[i, ], id) # specify identifier
     }
     dataModel$finish()
   } else {
@@ -568,8 +587,17 @@ constructDataModel <- function(data, labelReferences = NULL){
   return(dataModel)
 }
 
-# another utility function to construct the label references
-# only works for "grid" and "adaptive grid" data types now!
+
+#' Build a list of references that map likelihood names to integer labels for later use
+#'
+#' @param data             The likelihood data. Can be a single approximation, approximations
+#'                         from multiple sites, or (adaptive) gride profile likelihoods.
+#'
+#' @examples
+#' data("likelihoodProfileLists")
+#' refLabs = buildLabelReferences(likelihoodProfileLists)
+#'
+#' @export
 buildLabelReferences <- function(data){
   type <- detectApproximationType(data[[1]])
   if(type == "grid" || type == "adaptive grid"){

@@ -120,7 +120,7 @@ computeBayesianMetaAnalysis <- function(data,
 
   # refactored: using utils function to create a `dataModel` object
   dataModel = constructDataModel(data)
-
+  type = detectApproximationType(data)
 
   inform("Performing MCMC. This may take a while")
   prior <- rJava::.jnew("org.ohdsi.metaAnalysis.HalfNormalOnStdDevPrior", 0, as.numeric(priorSd[2]))

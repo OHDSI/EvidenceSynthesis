@@ -115,6 +115,9 @@ computeHierarchicalMetaAnalysis <- function(data,
   ## build a reference list of string labels and integer labels...
   labelReferences = buildLabelReferences(data)
 
+  ## get the type of data in each element of the list
+  type = detectApproximationType(data[[1]])
+
   ## construct list of dataModel objects
   dataModelList <- rJava::.jnew("java.util.ArrayList")
   for(i in 1:length(data)){
@@ -177,8 +180,10 @@ computeHierarchicalMetaAnalysis <- function(data,
   estimates = data.frame(t(estimates), row.names = NULL)
   names(estimates) = c("mean", "LB", "UB", "se")
   estimates$parameter = mainParameters
+
   ## add attributes
   type = detectApproximationType(data[[1]])
+  ## add parameter names to the trace matrix
   attr(estimates, "traces") <- traces
   attr(estimates, "type") <- type
   attr(estimates, "ess") <- coda::effectiveSize(traces)
