@@ -37,3 +37,12 @@ hmaObject = rJava::.jnew(
 ## try the whole function
 estimates = EvidenceSynthesis::computeHierarchicalMetaAnalysis(data = dataModelList,
                                                                seed = 666)
+
+
+## try an example list of likelihood profiles extracted from LegendT2dm class CES
+
+#dataModelList = readRDS('data/likelihoodProfileLists.rda')
+data("likelihoodProfileLists")
+
+estimates = EvidenceSynthesis::computeHierarchicalMetaAnalysis(data = likelihoodProfileLists,
+                                                               seed = 666)
