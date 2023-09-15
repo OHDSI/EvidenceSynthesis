@@ -41,9 +41,18 @@ test_that('run hierarchical meta analysis', {
 
 
 
+## load another (bigger & different) list of profile likelihoods
+## (from LegendT2dm class CES)
+data("likelihoodProfileLists")
 
+test_that("run hierarchical meta analysis on bigger data", {
+  estimates = EvidenceSynthesis::computeHierarchicalMetaAnalysis(data = likelihoodProfileLists,
+                                                                 chainLength = 110000,
+                                                                 burnIn = 1e+04,
+                                                                 subSampleFrequency = 10,
+                                                                 seed = 666)
 
-
-
-
-exDataModel = EvidenceSynthesis:::constructDataModel(hmaLikelihoodList[[1]])
+  expect_type(estimates, "list")
+  expect_named(estimates, c("mean", "LB", "UB", "se", "parameter"))
+  expect_type(attr(estimates, "traces"), "double")
+})
