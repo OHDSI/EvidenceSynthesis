@@ -367,6 +367,7 @@ public class HierarchicalMetaAnalysis implements Analysis {
 				int whichIndex = findIdentifier(dataModel, id + 1);
 				if (whichIndex >= 0) {
 					effect[offset + whichIndex] = 1.0;
+					// matching secondary (e.g., data source) effects
 				}
 				offset += length;
 			}
