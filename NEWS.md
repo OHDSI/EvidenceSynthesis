@@ -1,3 +1,12 @@
+EvidenceSynthesis 0.6.1
+=======================
+
+Changes
+
+1. Providing additional example dataset -- profile likelihoods from LegendT2dm. 
+2. Refactor code for constructing `DataModel` objects. 
+
+
 EvidenceSynthesis 0.6.0
 =======================
 
