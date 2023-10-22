@@ -132,23 +132,25 @@ public class HierarchicalMetaAnalysis implements Analysis {
 			allEffectsGradient.addAll(secondaryComponents.gradients);
 		}
 
-		int effectCount = addEffectDesign(designMatrix, allMetaAnalysisDataModels, cg.exposureEffectName);
-		Parameter exposureEffect = randomize(cg.exposureEffectName, effectCount, 0, 1);
-		allEffects.addParameter(exposureEffect);
+		if (cg.includeExposure) {
+			int effectCount = addEffectDesign(designMatrix, allMetaAnalysisDataModels, cg.exposureEffectName);
+			Parameter exposureEffect = randomize(cg.exposureEffectName, effectCount, 0, 1);
+			allEffects.addParameter(exposureEffect);
 
-		DistributionLikelihood exposureDistribution = new DistributionLikelihood(
-				new NormalDistribution(cg.exposureHyperLocation, cg.exposureHyperStdDev));
-		exposureDistribution.addData(exposureEffect);
+			DistributionLikelihood exposureDistribution = new DistributionLikelihood(
+					new NormalDistribution(cg.exposureHyperLocation, cg.exposureHyperStdDev));
+			exposureDistribution.addData(exposureEffect);
 
-		MCMCOperator exposureOperator = new RandomWalkOperator(exposureEffect, null, 0.75,
-				RandomWalkOperator.BoundaryCondition.reflecting, cg.operatorWeight, cg.mode); // TODO Gibbs sample
+			MCMCOperator exposureOperator = new RandomWalkOperator(exposureEffect, null, 0.75,
+					RandomWalkOperator.BoundaryCondition.reflecting, cg.operatorWeight, cg.mode); // TODO Gibbs sample
 
-		allParameters.add(exposureEffect);
-		allOperators.add(exposureOperator);
-		allPriors.add(exposureDistribution);
-		if (exposureDistribution.getDistribution() instanceof GradientProvider) {
-			allEffectsGradient.add(new GradientWrtParameterProvider.ParameterWrapper(
-					(GradientProvider) exposureDistribution.getDistribution(), exposureEffect, exposureDistribution));
+			allParameters.add(exposureEffect);
+			allOperators.add(exposureOperator);
+			allPriors.add(exposureDistribution);
+			if (exposureDistribution.getDistribution() instanceof GradientProvider) {
+				allEffectsGradient.add(new GradientWrtParameterProvider.ParameterWrapper(
+						(GradientProvider) exposureDistribution.getDistribution(), exposureEffect, exposureDistribution));
+			}
 		}
 
 		if (designMatrix.getColumnDimension() != allEffects.getDimension()) {
@@ -266,6 +268,9 @@ public class HierarchicalMetaAnalysis implements Analysis {
 
 		// include the secondary effects? (e.g., data source effects)
 		boolean includeSecondary = true;
+
+		// include the exposure effect for main outcome of interest? (in addition to negative controls?)
+		boolean includeExposure = true;
 	}
 
 	static class HierarchicalNormalComponents {
