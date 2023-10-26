@@ -1,0 +1,118 @@
+---
+title: "Hierarchical bias correction"
+author: "Fan Bu"
+date: "10/25/2023"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(dplyr)
+library(lme4)
+
+set.seed(42)
+```
+
+Our goal is to fit a hierarchical model to learn the meta-analytic effect with bias correction using negative control experiments. Let's first try something very naive to prove the point. 
+
+
+### Focusing on negative controls only, first
+
+Let's only use the negative controls first for simplicity (which doesn't hurt). Suppose $\beta_{ij}$ is the (biased) effect estimate for negative control $j$ within data source $i$, then
+
+$$
+\begin{aligned}
+\beta_{ij} &= \lambda_j + b_j + \delta_i, \quad \text{ where }\\
+\lambda_j &= 0 \qquad \text{(true meta-analytic effect)}, \\
+b_j&: \quad \qquad \text{meta-analytic bias for outcome } j, \\
+\delta_i&: \quad \qquad \text{data-source additional bias for source } i.
+\end{aligned}
+$$
+
+Further assume
+$$
+\begin{aligned}
+b_j &\sim N(b_0, \tau_b^2), \, \text{and}\\
+\delta_i &\sim N(\delta_0, \tau_{\delta}^2).
+\end{aligned}
+$$
+Then within each data source $i$, with $\delta_i$ fixed, we should have 
+$$
+\beta_{ij} = b_j + \delta_i \sim N(b_0 + \delta_i, \tau_b^2). 
+$$
+That is, within each data source, the source-specific bias term $\delta_i$ cannot be ``modeled away''. 
+And thus, the within-data-source-$i$ average bias should be $b_0 + \delta_i$. 
+
+#### Some toy-example simulations
+
+Following the logic above, let's run a simple-stupid simulation with 5 databases and 20 negative control outcomes. 
+
+Set $b_0 = 0.5, \tau_b = 0.1$, and $\delta_0 = 0, \tau_{\delta} = 0.5$. 
+```{r simulate bias terms}
+n_data = 5; m_nc = 20
+bs = rnorm(m_nc, mean = 0.5, sd = 0.1)
+deltas = rnorm(n_data, mean = 0, sd = 0.5)
+```
+
+Then put together all the bias terms (with a little bit standard normal random errors):
+```{r assemble biases}
+biases = matrix(rep(bs, n_data),nrow = m_nc, ncol = n_data) +
+  matrix(rep(deltas, m_nc), nrow = m_nc, ncol = n_data, byrow = TRUE)
+
+bias_dat = data.frame(bias = c(biases), 
+                      outcome = as.factor(rep(1:m_nc, n_data)), 
+                      datasource = as.factor(rep(1:n_data, each = m_nc)))
+```
+
+
+Check the data-source biases:
+```{r print data biases}
+cat("Data source biases are: \n", paste(format(deltas, digits = 3), collapse = ", "), "\n")
+```
+
+Check out the distribution of the meta-analysis biases for all outcomes:
+```{r check meta-analytic biases distribution, fig.width=4, fig.height=3}
+hist(bs)
+```
+
+
+First, fit a mixed effects model that includes a fixed effect for data sources, and a random effect for outcomes (honestly don't know the difference but let's run with that):
+```{r hierarchical model}
+hier.mod = lmer(bias ~ datasource + (1|outcome), data = bias_dat)
+coef(hier.mod)
+```
+
+Also fit a purely fixed effects model (linear regression):
+```{r simple LM}
+hier.mod.lm = lm(bias ~ datasource + outcome - 1, data = bias_dat)
+coef(hier.mod.lm)
+```
+
+There is an identifiability issue in that not all effects can be separately estimated. 
+We can see that, for example, the estimated effects for `datasource1` through `datasource5` are in fact $\delta_1 + b_1$ through $\delta_5 + b_1$,
+```{r}
+cat("Data source effects + effect for outcome 1 are: \n", 
+    paste(format(deltas + bs[1], digits = 3), collapse = ", "), "\n\n")
+
+cat("Estimated data source effects in linear model are: \n",
+    paste(format(coef(hier.mod.lm)[1:5], digits = 3), collapse = ", "), "\n")
+```
+
+
+Second, fit a ``local'' bias model for each data source separately. 
+```{r}
+local.mod.lm = lm(bias ~ datasource - 1, data = bias_dat)
+coef(local.mod.lm)
+```
+
+Basically we are getting the relative data-source effects plus some intercept, with the intercept being the average bias across all outcomes:
+```{r check differences}
+cat("Differences between estimated and real data-source effects:\n",
+    paste(format(coef(local.mod.lm) - deltas, digits = 3), collapse = ", "), "\n\n")
+
+cat("The sample average bias across outcomes:\n",
+    format(mean(bs), digits = 3), "\n")
+```
+
+
