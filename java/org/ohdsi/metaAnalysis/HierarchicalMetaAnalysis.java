@@ -269,7 +269,7 @@ public class HierarchicalMetaAnalysis implements Analysis {
 		// include the secondary effects? (e.g., data source effects)
 		boolean includeSecondary = true;
 
-		// include the exposure effect for main outcome of interest? (in addition to negative controls?)
+		// include the exposure effect for main outcome of interest? (in addition to negative controls)
 		boolean includeExposure = true;
 	}
 
