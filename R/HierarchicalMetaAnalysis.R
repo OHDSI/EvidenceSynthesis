@@ -47,7 +47,8 @@ summarizeChain <- function(chain, alpha = 0.05){
 #' @param errorPrecisionPrior  Shape and scale for the gamma prior of the precision term in the
 #'                             normal model for random errors.
 #' @param errorPrecisionStartValue Initial value for the error distribution's precision term.
-#' @param includeSourceEffect Whether or not to consider the data-source-specific random effects. Default is TRUE.
+#' @param includeSourceEffect   Whether or not to consider the data-source-specific random effects. Default is TRUE.
+#' @param includeExposureEffect Whether or not to estimate the main effect of interest. Default is TRUE.
 #' @param seed                 Seed for the random number generator.
 #' @seealso
 #' [approximateLikelihood], [computeBayesianMetaAnalysis]
@@ -78,6 +79,7 @@ computeHierarchicalMetaAnalysis <- function(data,
                                             errorPrecisionPrior = c(1.0, 1.0),
                                             errorPrecisionStartValue = 1.0,
                                             includeSourceEffect = TRUE,
+                                            includeExposureEffect = TRUE,
                                             seed = 1){
   # checks...
   if (!supportsJava8()) {
@@ -139,6 +141,7 @@ computeHierarchicalMetaAnalysis <- function(data,
   hmaConfiguration$tauScale = as.numeric(errorPrecisionPrior[2])
   hmaConfiguration$startingTau = as.numeric(errorPrecisionStartValue)
   hmaConfiguration$includeSecondary = as.logical(includeSourceEffect)
+  hmaConfiguration$includeExposure = as.logical(includeExposureEffect)
   hmaConfiguration$seed = rJava::.jlong(seed) # this is surplus though...
 
   # construct the analysis
@@ -162,6 +165,9 @@ computeHierarchicalMetaAnalysis <- function(data,
   # extract results and chains
   parameterNames <- hierarchicalMetaAnalysis$getParameterNames()
 
+  # cat(sprintf("configuration: include exposure? %s \n\n",
+  #             hmaConfiguration$includeExposure))
+
   ## get the MCMC chains one by one
   trace <- hierarchicalMetaAnalysis$getTrace(as.integer(3))
   traces <- matrix(ncol = length(parameterNames) - 2, nrow = length(trace))
@@ -172,8 +178,17 @@ computeHierarchicalMetaAnalysis <- function(data,
   }
   ## get summary on key parameters
   parameterNames = parameterNames[-c(1:2)]
-  mainParameters = c("tau", "outcome.mean", "outcome.scale",
-                     "source.mean", "source.scale", "exposure")
+
+  # cat(sprintf("All parameter names: %s \n\n",
+  #             paste(parameterNames, collapse = ",")))
+
+  mainParameters = c("tau", "outcome.mean", "outcome.scale")
+  if(includeSourceEffect){
+    mainParameters = c(mainParameters, c("source.mean", "source.scale"))
+  }
+  if(includeExposureEffect){
+    mainParameters = c(mainParameters, "exposure")
+  }
   mainParameterIndices = which(parameterNames %in% mainParameters)
 
   estimates = apply(traces[,mainParameterIndices], 2, summarizeChain, alpha)
@@ -185,6 +200,7 @@ computeHierarchicalMetaAnalysis <- function(data,
   type = detectApproximationType(data[[1]])
   ## add parameter names to the trace matrix
   attr(estimates, "traces") <- traces
+  colnames(traces) = parameterNames
   attr(estimates, "type") <- type
   attr(estimates, "ess") <- coda::effectiveSize(traces)
 

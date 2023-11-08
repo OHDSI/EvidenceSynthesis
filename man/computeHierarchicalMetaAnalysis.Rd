@@ -16,6 +16,7 @@ computeHierarchicalMetaAnalysis(
   errorPrecisionPrior = c(1, 1),
   errorPrecisionStartValue = 1,
   includeSourceEffect = TRUE,
+  includeExposureEffect = TRUE,
   seed = 1
 )
 }
@@ -44,6 +45,8 @@ normal model for random errors.}
 \item{errorPrecisionStartValue}{Initial value for the error distribution's precision term.}
 
 \item{includeSourceEffect}{Whether or not to consider the data-source-specific random effects. Default is TRUE.}
+
+\item{includeExposureEffect}{Whether or not to estimate the main effect of interest. Default is TRUE.}
 
 \item{seed}{Seed for the random number generator.}
 }
