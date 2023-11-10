@@ -56,3 +56,19 @@ test_that("run hierarchical meta analysis on bigger data", {
   expect_named(estimates, c("mean", "LB", "UB", "se", "parameter"))
   expect_type(attr(estimates, "traces"), "double")
 })
+
+
+test_that("run hierarchical meta analysis without main exposure effect", {
+  estimates = EvidenceSynthesis::computeHierarchicalMetaAnalysis(data = likelihoodProfileLists,
+                                                                 chainLength = 110000,
+                                                                 burnIn = 1e+04,
+                                                                 subSampleFrequency = 10,
+                                                                 seed = 666,
+                                                                 includeExposureEffect = FALSE)
+
+  expect_type(estimates, "list")
+  expect_named(estimates, c("mean", "LB", "UB", "se", "parameter"))
+  expect_type(attr(estimates, "traces"), "double")
+  expect_false("exposure" %in% estimates$parameter)
+})
+

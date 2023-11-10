@@ -132,6 +132,7 @@ computeHierarchicalMetaAnalysis <- function(data,
   # convert to Java
   ## configuration
   hmaConfiguration = rJava::.jnew("org.ohdsi.metaAnalysis.HierarchicalMetaAnalysis$HierarchicalMetaAnalysisConfiguration")
+
   hmaConfiguration$hierarchicalLocationHyperStdDev = as.numeric(effectPriorStd)
   hmaConfiguration$gammaHyperShape = as.numeric(effectPrecisionPrior[1])
   hmaConfiguration$gammaHyperScale = as.numeric(effectPrecisionPrior[2])

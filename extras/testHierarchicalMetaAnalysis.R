@@ -45,4 +45,14 @@ estimates = EvidenceSynthesis::computeHierarchicalMetaAnalysis(data = dataModelL
 data("likelihoodProfileLists")
 
 estimates = EvidenceSynthesis::computeHierarchicalMetaAnalysis(data = likelihoodProfileLists,
-                                                               seed = 666)
+                                                               seed = 666,
+                                                               chainLength = 10000,
+                                                               burnIn = 100)
+
+## try the option of negative controls only (no exposure effect)
+estimates = EvidenceSynthesis::computeHierarchicalMetaAnalysis(data = likelihoodProfileLists,
+                                                               includeExposureEffect = FALSE,
+                                                               seed = 666,
+                                                               chainLength = 10000,
+                                                               burnIn = 100)
+
