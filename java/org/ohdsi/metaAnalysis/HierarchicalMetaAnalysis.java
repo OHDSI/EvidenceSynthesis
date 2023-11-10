@@ -151,6 +151,8 @@ public class HierarchicalMetaAnalysis implements Analysis {
 				allEffectsGradient.add(new GradientWrtParameterProvider.ParameterWrapper(
 						(GradientProvider) exposureDistribution.getDistribution(), exposureEffect, exposureDistribution));
 			}
+
+			//System.err.println("added exposure effect!");
 		}
 
 		if (designMatrix.getColumnDimension() != allEffects.getDimension()) {
@@ -240,37 +242,40 @@ public class HierarchicalMetaAnalysis implements Analysis {
 
 	public static class HierarchicalMetaAnalysisConfiguration {
 
+		// make all fields public to allow rJava interface
+		// alternatively, can also do: (a) turn into constructor (but no default allowed); (b). write a setter for each field (too much trouble)
+
 		//prior standard deviation for primary & secondary effect mean
-		double hierarchicalLocationHyperStdDev = 1.0;
+		public double hierarchicalLocationHyperStdDev = 1.0;
 
 		// gamma prior for primary & secondary effect precision (normal dist)
-		double gammaHyperShape = 1.0;
-		double gammaHyperScale = 1.0;
+		public double gammaHyperShape = 1.0;
+		public double gammaHyperScale = 1.0;
 
 		// prior mean and std for exposure effect (global effect for outcome of interest)
-		double exposureHyperLocation = 0.0;
-		double exposureHyperStdDev = 2.0;
+		public double exposureHyperLocation = 0.0;
+		public double exposureHyperStdDev = 2.0;
 
 		// gamma prior for std of the random error
-		double tauShape = 1.0;
-		double tauScale = 1.0;
+		public double tauShape = 1.0;
+		public double tauScale = 1.0;
 
-		double startingTau = 1.0;
+		public double startingTau = 1.0;
 
 		AdaptationMode mode = AdaptationMode.ADAPTATION_ON;
-		double operatorWeight = 1.0;
+		public double operatorWeight = 1.0;
 
-		long seed = 666;
+		public long seed = 666;
 
-		String primaryEffectName = "outcome";
-		String secondaryEffectName = "source";
-		String exposureEffectName = "exposure";
+		public String primaryEffectName = "outcome";
+		public String secondaryEffectName = "source";
+		public String exposureEffectName = "exposure";
 
 		// include the secondary effects? (e.g., data source effects)
-		boolean includeSecondary = true;
+		public boolean includeSecondary = true;
 
 		// include the exposure effect for main outcome of interest? (in addition to negative controls)
-		boolean includeExposure = true;
+		public boolean includeExposure = true;
 	}
 
 	static class HierarchicalNormalComponents {
