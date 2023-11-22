@@ -12,7 +12,8 @@ createSimulationSettings(
   minBackgroundHazard = 2e-07,
   maxBackgroundHazard = 2e-05,
   hazardRatio = 2,
-  randomEffectSd = 0
+  randomEffectSd = 0,
+  siteEffects = 0
 )
 }
 \arguments{
@@ -36,6 +37,8 @@ length nSites.}
 \item{hazardRatio}{Hazard ratio.}
 
 \item{randomEffectSd}{Standard deviation of the log(hazardRatio). Fixed effect if equal to 0.}
+
+\item{siteEffects}{Fixed site effects (if assuming varying site-specific effects). Same effects if 0.}
 }
 \value{
 An object of type \code{simulationSettings}, to be used in the \code{\link[=simulatePopulations]{simulatePopulations()}} function.

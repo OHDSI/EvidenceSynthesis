@@ -200,8 +200,8 @@ computeHierarchicalMetaAnalysis <- function(data,
   ## add attributes
   type = detectApproximationType(data[[1]])
   ## add parameter names to the trace matrix
-  attr(estimates, "traces") <- traces
   colnames(traces) = parameterNames
+  attr(estimates, "traces") <- traces
   attr(estimates, "type") <- type
   attr(estimates, "ess") <- coda::effectiveSize(traces)
 
