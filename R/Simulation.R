@@ -33,6 +33,7 @@
 #'                              length nSites.
 #' @param hazardRatio           Hazard ratio.
 #' @param randomEffectSd        Standard deviation of the log(hazardRatio). Fixed effect if equal to 0.
+#' @param siteEffects           Fixed site effects (if assuming varying site-specific effects). Same effects if 0.
 #'
 #' @seealso
 #' [simulatePopulations]
@@ -62,7 +63,8 @@ createSimulationSettings <- function(nSites = 5,
                                      minBackgroundHazard = 2e-07,
                                      maxBackgroundHazard = 2e-05,
                                      hazardRatio = 2,
-                                     randomEffectSd = 0) {
+                                     randomEffectSd = 0,
+                                     siteEffects = 0) {
   expand <- function(x) {
     if (length(x) == 1) {
       return(rep(x, nSites))
@@ -79,7 +81,8 @@ createSimulationSettings <- function(nSites = 5,
     minBackgroundHazard = expand(minBackgroundHazard),
     maxBackgroundHazard = expand(maxBackgroundHazard),
     hazardRatio = hazardRatio,
-    randomEffectSd = randomEffectSd
+    randomEffectSd = randomEffectSd,
+    siteEffects = expand(siteEffects)
   )
   class(settings) <- "simulationSettings"
   return(settings)
@@ -116,6 +119,7 @@ simulatePopulations <- function(settings = createSimulationSettings()) {
     mean = log(settings$hazardRatio),
     sd = settings$randomEffectSd
   )
+  thetas = thetas + settings$siteEffects
   hazardRatios <- exp(thetas)
 
   simulateSite <- function(i) {
