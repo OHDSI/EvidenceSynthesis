@@ -106,8 +106,8 @@ public class HierarchicalMetaAnalysis implements Analysis {
 		allEffects.addParameter(primaryEffect);
 
 		HierarchicalNormalComponents primaryComponents = makeHierarchicalNormalComponents(
-				cg.primaryEffectName, primaryEffect, cg.hierarchicalLocationHyperStdDev,
-				makeHierarchicalScalePrior(cg.gammaHyperShape, cg.gammaHyperScale), cg.operatorWeight, cg.mode);
+				cg.primaryEffectName, primaryEffect, cg.hierarchicalLocationPrimaryHyperStdDev,
+				makeHierarchicalScalePrior(cg.gammaHyperPrimaryShape, cg.gammaHyperPrimaryScale), cg.operatorWeight, cg.mode);
 
 		allParameters.add(primaryEffect);
 		allParameters.addAll(primaryComponents.parameters);
@@ -122,8 +122,8 @@ public class HierarchicalMetaAnalysis implements Analysis {
 			allEffects.addParameter(secondaryEffect);
 
 			HierarchicalNormalComponents secondaryComponents = makeHierarchicalNormalComponents(
-					cg.secondaryEffectName, secondaryEffect, cg.hierarchicalLocationHyperStdDev,
-					makeHierarchicalScalePrior(cg.gammaHyperShape, cg.gammaHyperScale), cg.operatorWeight, cg.mode);
+					cg.secondaryEffectName, secondaryEffect, cg.hierarchicalLocationSecondaryHyperStdDev,
+					makeHierarchicalScalePrior(cg.gammaHyperSecondaryShape, cg.gammaHyperSecondaryScale), cg.operatorWeight, cg.mode);
 
 			allParameters.add(secondaryEffect);
 			allParameters.addAll(secondaryComponents.parameters);
@@ -246,11 +246,15 @@ public class HierarchicalMetaAnalysis implements Analysis {
 		// alternatively, can also do: (a) turn into constructor (but no default allowed); (b). write a setter for each field (too much trouble)
 
 		//prior standard deviation for primary & secondary effect mean
-		public double hierarchicalLocationHyperStdDev = 1.0;
+		public double hierarchicalLocationPrimaryHyperStdDev = 1.0;
+		public double hierarchicalLocationSecondaryHyperStdDev = 1.0;
 
 		// gamma prior for primary & secondary effect precision (normal dist)
-		public double gammaHyperShape = 1.0;
-		public double gammaHyperScale = 1.0;
+		public double gammaHyperPrimaryShape = 1.0;
+		public double gammaHyperPrimaryScale = 1.0;
+
+		public double gammaHyperSecondaryShape = 1.0;
+		public double gammaHyperSecondaryScale = 1.0;
 
 		// prior mean and std for exposure effect (global effect for outcome of interest)
 		public double exposureHyperLocation = 0.0;
@@ -459,14 +463,14 @@ public class HierarchicalMetaAnalysis implements Analysis {
 		//cg.exposureHyperStdDev = 0.0001; // fix exposure effect
 		//cg.exposureHyperLocation = 0.5;
 
-		//cg.hierarchicalLocationHyperStdDev = 0.0001; // fix source.mean and outcome.mean to default 0
+		//cg.hierarchicalLocationSecondaryHyperStdDev = 0.0001; // fix source.mean  to default 0
 
 		//cg.tauShape = 1.0;
 		//cg.tauScale = 100.0; // change up prior for tau, precision for the iid normal error term
 		//cg.startingTau = 0.5;
 
-		//cg.gammaHyperShape = 1000000; // change up prior for across-outcome / across-datasource precision term
-		//cg.gammaHyperScale = 0.0001;
+		//cg.gammaPrimaryHyperShape = 1000000; // change up prior for across-outcome / across-datasource precision term
+		//cg.gammaPrimaryHyperScale = 0.0001;
 
 		HierarchicalMetaAnalysis analysis = new HierarchicalMetaAnalysis(allDataModels,
 				cg);

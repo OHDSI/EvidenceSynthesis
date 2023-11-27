@@ -21,6 +21,9 @@ summarizeChain <- function(chain, alpha = 0.05){
   hdi = HDInterval::hdi(chain, credMass = 1 - alpha)
   se = sqrt(mean((chain - avg)^2))
 
+  res = c(avg, hdi, se)
+  names(res) = c("mean", "LB", "UB", "se")
+
   return(c(avg, hdi, se))
 }
 
@@ -40,10 +43,13 @@ summarizeChain <- function(chain, alpha = 0.05){
 #' @param burnIn               Number of MCMC iterations to consider as burn in.
 #' @param subSampleFrequency   Subsample frequency for the MCMC.
 #' @param alpha                The alpha (expected type I error) used for the credible intervals.
-#' @param effectPriorStd       Standard deviation for the average outcome / data-source effect.
+#' @param primaryEffectPriorStd   Standard deviation for the average outcome effect.
+#' @param secondaryEffectPriorStd Standard deviation for the average data-source effect.
 #' @param globalExposureEffectPrior  Prior mean and standard deviation for the global main effect.
-#' @param effectPrecisionPrior  Shape and scale for the gamma prior of the precision term in the
-#'                             random effects model (normal) for individual outcome / data-source effects.
+#' @param primaryEffectPrecisionPrior  Shape and scale for the gamma prior of the precision term in the
+#'                             random effects model (normal) for individual outcome effects.
+#' @param secondaryEffectPrecisionPrior Shape and scale for the gamma prior of the precision term in the
+#'                             random effects model (normal) for individual data-source effects.
 #' @param errorPrecisionPrior  Shape and scale for the gamma prior of the precision term in the
 #'                             normal model for random errors.
 #' @param errorPrecisionStartValue Initial value for the error distribution's precision term.
@@ -73,9 +79,11 @@ computeHierarchicalMetaAnalysis <- function(data,
                                             burnIn = 1e+05,
                                             subSampleFrequency = 100,
                                             alpha = 0.05,
-                                            effectPriorStd = 1.0,
+                                            primaryEffectPriorStd = 1.0,
+                                            secondaryEffectPriorStd = 1.0,
                                             globalExposureEffectPrior = c(0.0, 2.0),
-                                            effectPrecisionPrior = c(1.0, 1.0),
+                                            primaryEffectPrecisionPrior = c(1.0, 1.0),
+                                            secondaryEffectPrecisionPrior = c(1.0, 1.0),
                                             errorPrecisionPrior = c(1.0, 1.0),
                                             errorPrecisionStartValue = 1.0,
                                             includeSourceEffect = TRUE,
@@ -133,9 +141,12 @@ computeHierarchicalMetaAnalysis <- function(data,
   ## configuration
   hmaConfiguration = rJava::.jnew("org.ohdsi.metaAnalysis.HierarchicalMetaAnalysis$HierarchicalMetaAnalysisConfiguration")
 
-  hmaConfiguration$hierarchicalLocationHyperStdDev = as.numeric(effectPriorStd)
-  hmaConfiguration$gammaHyperShape = as.numeric(effectPrecisionPrior[1])
-  hmaConfiguration$gammaHyperScale = as.numeric(effectPrecisionPrior[2])
+  hmaConfiguration$hierarchicalLocationPrimaryHyperStdDev = as.numeric(primaryEffectPriorStd)
+  hmaConfiguration$hierarchicalLocationSecondaryHyperStdDev = as.numeric(secondaryEffectPriorStd)
+  hmaConfiguration$gammaHyperPrimaryShape = as.numeric(primaryEffectPrecisionPrior[1])
+  hmaConfiguration$gammaHyperPrimaryScale = as.numeric(primaryEffectPrecisionPrior[2])
+  hmaConfiguration$gammaHyperSecondaryShape = as.numeric(secondaryEffectPrecisionPrior[1])
+  hmaConfiguration$gammaHyperSecondaryScale = as.numeric(secondaryEffectPrecisionPrior[2])
   hmaConfiguration$exposureHyperLocation = as.numeric(globalExposureEffectPrior[1])
   hmaConfiguration$exposureHyperStdDev = as.numeric(globalExposureEffectPrior[2])
   hmaConfiguration$tauShape = as.numeric(errorPrecisionPrior[1])
