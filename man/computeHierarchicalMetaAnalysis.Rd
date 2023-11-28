@@ -10,9 +10,11 @@ computeHierarchicalMetaAnalysis(
   burnIn = 1e+05,
   subSampleFrequency = 100,
   alpha = 0.05,
-  effectPriorStd = 1,
+  primaryEffectPriorStd = 1,
+  secondaryEffectPriorStd = 1,
   globalExposureEffectPrior = c(0, 2),
-  effectPrecisionPrior = c(1, 1),
+  primaryEffectPrecisionPrior = c(1, 1),
+  secondaryEffectPrecisionPrior = c(1, 1),
   errorPrecisionPrior = c(1, 1),
   errorPrecisionStartValue = 1,
   includeSourceEffect = TRUE,
@@ -32,12 +34,17 @@ or grid likelihood data, with one row per database.}
 
 \item{alpha}{The alpha (expected type I error) used for the credible intervals.}
 
-\item{effectPriorStd}{Standard deviation for the average outcome / data-source effect.}
+\item{primaryEffectPriorStd}{Standard deviation for the average outcome effect.}
+
+\item{secondaryEffectPriorStd}{Standard deviation for the average data-source effect.}
 
 \item{globalExposureEffectPrior}{Prior mean and standard deviation for the global main effect.}
 
-\item{effectPrecisionPrior}{Shape and scale for the gamma prior of the precision term in the
-random effects model (normal) for individual outcome / data-source effects.}
+\item{primaryEffectPrecisionPrior}{Shape and scale for the gamma prior of the precision term in the
+random effects model (normal) for individual outcome effects.}
+
+\item{secondaryEffectPrecisionPrior}{Shape and scale for the gamma prior of the precision term in the
+random effects model (normal) for individual data-source effects.}
 
 \item{errorPrecisionPrior}{Shape and scale for the gamma prior of the precision term in the
 normal model for random errors.}
