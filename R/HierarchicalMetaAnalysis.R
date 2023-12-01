@@ -56,6 +56,7 @@ summarizeChain <- function(chain, alpha = 0.05){
 #' @param includeSourceEffect   Whether or not to consider the data-source-specific random effects. Default is TRUE.
 #' @param includeExposureEffect Whether or not to estimate the main effect of interest. Default is TRUE.
 #' @param seed                 Seed for the random number generator.
+#' @param showProgressBar      Showing a progress bar for MCMC?
 #' @seealso
 #' [approximateLikelihood], [computeBayesianMetaAnalysis]
 #'
@@ -88,7 +89,8 @@ computeHierarchicalMetaAnalysis <- function(data,
                                             errorPrecisionStartValue = 1.0,
                                             includeSourceEffect = TRUE,
                                             includeExposureEffect = TRUE,
-                                            seed = 1){
+                                            seed = 1,
+                                            showProgressBar = TRUE){
   # checks...
   if (!supportsJava8()) {
     inform("Java 8 or higher is required, but older version was found. Cannot compute estimate.")
@@ -167,11 +169,13 @@ computeHierarchicalMetaAnalysis <- function(data,
     as.integer(chainLength),
     as.integer(burnIn),
     as.integer(subSampleFrequency),
-    as.numeric(seed)
+    as.numeric(seed),
+    as.logical(showProgressBar)
   )
 
   # run analysis
   hierarchicalMetaAnalysis$setConsoleWidth(getOption("width"))
+  inform("Performing MCMC. This may take a while")
   hierarchicalMetaAnalysis$run()
 
   # extract results and chains

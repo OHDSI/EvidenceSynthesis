@@ -46,6 +46,7 @@ createNaEstimate <- function(type) {
 #' @param robust               Whether or not to use a t-distribution model; default: FALSE.
 #' @param df                   Degrees of freedom for the t-model, only used if robust is TRUE.
 #' @param seed                 The seed for the random number generator.
+#' @param showProgressBar      Showing a progress bar for MCMC?
 #' @seealso
 #' [approximateLikelihood], [computeFixedEffectMetaAnalysis]
 #'
@@ -86,7 +87,8 @@ computeBayesianMetaAnalysis <- function(data,
                                         alpha = 0.05,
                                         robust = FALSE,
                                         df = 4,
-                                        seed = 1) {
+                                        seed = 1,
+                                        showProgressBar = TRUE) {
   if (!supportsJava8()) {
     inform("Java 8 or higher is required, but older version was found. Cannot compute estimate.")
     estimate <- data.frame(
@@ -140,7 +142,8 @@ computeBayesianMetaAnalysis <- function(data,
       as.integer(chainLength),
       as.integer(burnIn),
       as.integer(subSampleFrequency),
-      as.numeric(seed)
+      as.numeric(seed),
+      as.logical(showProgressBar)
     )
   } else {
     metaAnalysis <- rJava::.jnew(
@@ -154,7 +157,8 @@ computeBayesianMetaAnalysis <- function(data,
       as.integer(chainLength),
       as.integer(burnIn),
       as.integer(subSampleFrequency),
-      as.numeric(seed)
+      as.numeric(seed),
+      as.logical(showProgressBar)
     )
   }
 

@@ -43,21 +43,25 @@ public class Runner {
 	final int subSampleFrequency;
 	int consoleWidth = 175;
 
-	public Runner(Analysis analysis, int chainLength, int burnIn, int subSampleFrequency, double seed) {
+	public Runner(Analysis analysis, int chainLength, int burnIn, int subSampleFrequency, double seed, boolean showProgressBar) {
 
 		// Set seed
 		MathUtils.setSeed(Math.round(seed));
 
 		this.joint = analysis.getJoint();
 		this.schedule = analysis.getSchedule();
-		this.logger = getLogger(analysis.getLoggerColumns(), subSampleFrequency);
+		this.logger = getLogger(analysis.getLoggerColumns(), subSampleFrequency, showProgressBar);
 
 		this.chainLength = chainLength;
 		this.burnIn = burnIn;
 		this.subSampleFrequency = subSampleFrequency;
 	}
 
-	private Logger[] getLogger(List<Loggable> columns, int subSampleFrequency) {
+	public Runner(Analysis analysis, int chainLength, int burnIn, int subSampleFrequency, double seed) {
+		this(analysis, chainLength, burnIn, subSampleFrequency, seed, true);
+	}
+
+	private Logger[] getLogger(List<Loggable> columns, int subSampleFrequency, boolean showProgressBar) {
 
 		ArrayLogFormatter formatter = new ArrayLogFormatter(false);
 
@@ -83,7 +87,7 @@ public class Runner {
 
 			@Override
 			public void log(long iteration) {
-				if (iteration % 10000 == 0) {
+				if (iteration % 10000 == 0 && showProgressBar) {
 					progressPercentage(iteration, chainLength);
 				}
 			}
@@ -115,7 +119,7 @@ public class Runner {
 	public void run() {
 		MCMC mcmc = new MCMC("mcmc1");
 		mcmc.setShowOperatorAnalysis(false);
-		mcmc.init(getOptions(chainLength), joint, schedule, logger);
+		mcmc.init(getOptions(chainLength), joint, schedule,logger);
 		mcmc.run();
 	}
 

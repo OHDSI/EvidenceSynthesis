@@ -19,7 +19,8 @@ computeHierarchicalMetaAnalysis(
   errorPrecisionStartValue = 1,
   includeSourceEffect = TRUE,
   includeExposureEffect = TRUE,
-  seed = 1
+  seed = 1,
+  showProgressBar = TRUE
 )
 }
 \arguments{
@@ -56,6 +57,8 @@ normal model for random errors.}
 \item{includeExposureEffect}{Whether or not to estimate the main effect of interest. Default is TRUE.}
 
 \item{seed}{Seed for the random number generator.}
+
+\item{showProgressBar}{Showing a progress bar for MCMC?}
 }
 \value{
 A data frame with the point estimates, 95\% credible intervals and sample standard errors

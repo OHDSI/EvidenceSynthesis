@@ -13,7 +13,8 @@ computeBayesianMetaAnalysis(
   alpha = 0.05,
   robust = FALSE,
   df = 4,
-  seed = 1
+  seed = 1,
+  showProgressBar = TRUE
 )
 }
 \arguments{
@@ -36,6 +37,8 @@ and tau, respectively.}
 \item{df}{Degrees of freedom for the t-model, only used if robust is TRUE.}
 
 \item{seed}{The seed for the random number generator.}
+
+\item{showProgressBar}{Showing a progress bar for MCMC?}
 }
 \value{
 A data frame with the point estimates and 95\% credible intervals for the mu and tau parameters (the
