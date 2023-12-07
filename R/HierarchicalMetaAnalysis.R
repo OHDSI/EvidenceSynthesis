@@ -15,7 +15,9 @@
 # limitations under the License.
 
 
-# utility function to summarize MCMC samples -- mean, HDI, std, etc.
+#' Utility function to summarize MCMC samples (posterior mean, median, HDI, std, etc.)
+#'
+#' @export
 summarizeChain <- function(chain, alpha = 0.05){
   avg = mean(chain, na.rm = TRUE)
   med = median(chain, na.rm = TRUE)
@@ -215,7 +217,7 @@ computeHierarchicalMetaAnalysis <- function(data,
       effectBiasSamps = traces[,effectBiasCol]
       effectSamps = traces[,"exposure"]
       traces = cbind(traces, effectSamps)
-      colnames(traces) = c(colnames(traces), "unadjustedExposure")
+      colnames(traces)[ncol(traces)] = "unadjustedExposure"
       traces[,"exposure"] = effectSamps - effectBiasSamps
     }
   }

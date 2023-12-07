@@ -189,3 +189,80 @@ print.summary.simulation <- function(x, ...) {
   rownames(x) <- 1:nrow(x)
   printCoefmat(x)
 }
+
+
+#' Simulate survival data across a federated data network, with negative control outcomes as well.
+#'
+#' @export
+simulateMetaAnalysisWithNegativeControls <- function(meanExposureEffect = log(2),
+                                                     meanBias = 0.5,
+                                                     biasStd = 0.2,
+                                                     meanSiteEffect = 0,
+                                                     siteEffectStd = 0.1,
+                                                     mNegativeControls = 10,
+                                                     nSites = 10,
+                                                     sitePop = 2000,
+                                                     seed = 42,
+                                                     ...){
+
+  set.seed(seed)
+  metaPopulations = list()
+
+  # per outcome biases
+  biases = rnorm(mNegativeControls, mean = meanBias, sd = biasStd)
+
+  # per site variations
+  siteEffects = rnorm(nSites, mean = meanSiteEffect, sd = siteEffectStd)
+
+  # negative controls data
+  for(i in 1:mNegativeControls){
+    simulationSettings = createSimulationSettings(nSites = nSites,
+                                                  n = sitePop,
+                                                  hazardRatio = exp(biases[i]),
+                                                  siteEffects = siteEffects,
+                                                  ...)
+    metaPopulations[[i]] = simulatePopulations(simulationSettings)
+  }
+
+  # main exposure data
+  simulationSettings = createSimulationSettings(nSites = nSites,
+                                                n = sitePop,
+                                                hazardRatio = exp(meanExposureEffect + rnorm(1, meanBias, biasStd)),
+                                                siteEffects = siteEffects,
+                                                ...)
+  metaPopulations[[mNegativeControls + 1]] = simulatePopulations(simulationSettings)
+
+
+  hyperParameters = list(meanExposureEffect = meanExposureEffect,
+                         meanBias = meanBias,
+                         biasStd = biasStd,
+                         meanSiteEffect = meanSiteEffect,
+                         siteEffectStd = siteEffectStd,
+                         mNegativeControls = mNegativeControls,
+                         nSites = nSites,
+                         sitePop = sitePop)
+
+  attr(metaPopulations, "hyperParameters") = hyperParameters
+
+  return(metaPopulations)
+}
+
+#' @export
+createApproximations <- function(populations, approximation) {
+  fitModelInDatabase <- function(population, approximation) {
+    cyclopsData <- Cyclops::createCyclopsData(Surv(time, y) ~ x + strata(stratumId),
+                                              data = population,
+                                              modelType = "cox"
+    )
+    cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData,
+                                           fixedCoefficients = c(approximation != "normal")
+    )
+    approximation <- approximateLikelihood(cyclopsFit, "x", approximation = approximation)
+    return(approximation)
+  }
+  data <- lapply(populations, fitModelInDatabase, approximation = approximation)
+  if (approximation != "adaptive grid") {
+    data <- do.call("rbind", data)
+  }
+  return(data)
+}
