@@ -18,13 +18,14 @@
 # utility function to summarize MCMC samples -- mean, HDI, std, etc.
 summarizeChain <- function(chain, alpha = 0.05){
   avg = mean(chain, na.rm = TRUE)
+  med = median(chain, na.rm = TRUE)
   hdi = HDInterval::hdi(chain, credMass = 1 - alpha)
   se = sqrt(mean((chain - avg)^2))
 
-  res = c(avg, hdi, se)
-  names(res) = c("mean", "LB", "UB", "se")
+  res = c(avg, med, hdi, se)
+  names(res) = c("mean", "median", "LB", "UB", "se")
 
-  return(c(avg, hdi, se))
+  return(res)
 }
 
 
@@ -197,6 +198,8 @@ computeHierarchicalMetaAnalysis <- function(data,
   }
   ## get summary on key parameters
   parameterNames = parameterNames[-c(1:2)]
+  ## add parameter names to the trace matrix
+  colnames(traces) = parameterNames
 
   # cat(sprintf("All parameter names: %s \n\n",
   #             paste(parameterNames, collapse = ",")))
@@ -207,18 +210,24 @@ computeHierarchicalMetaAnalysis <- function(data,
   }
   if(includeExposureEffect){
     mainParameters = c(mainParameters, "exposure")
+    if(separateExposurePrior){
+      effectBiasCol = paste0("outcome",length(dataModelList))
+      effectBiasSamps = traces[,effectBiasCol]
+      effectSamps = traces[,"exposure"]
+      traces = cbind(traces, effectSamps)
+      colnames(traces) = c(colnames(traces), "unadjustedExposure")
+      traces[,"exposure"] = effectSamps - effectBiasSamps
+    }
   }
   mainParameterIndices = which(parameterNames %in% mainParameters)
 
   estimates = apply(traces[,mainParameterIndices], 2, summarizeChain, alpha)
   estimates = data.frame(t(estimates), row.names = NULL)
-  names(estimates) = c("mean", "LB", "UB", "se")
+  names(estimates) = c("mean", "median", "LB", "UB", "se")
   estimates$parameter = mainParameters
 
   ## add attributes
   type = detectApproximationType(data[[1]])
-  ## add parameter names to the trace matrix
-  colnames(traces) = parameterNames
   attr(estimates, "traces") <- traces
   attr(estimates, "type") <- type
   attr(estimates, "ess") <- coda::effectiveSize(traces)
