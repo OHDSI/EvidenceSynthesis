@@ -55,6 +55,7 @@ summarizeChain <- function(chain, alpha = 0.05){
 #' @param errorPrecisionStartValue Initial value for the error distribution's precision term.
 #' @param includeSourceEffect   Whether or not to consider the data-source-specific random effects. Default is TRUE.
 #' @param includeExposureEffect Whether or not to estimate the main effect of interest. Default is TRUE.
+#' @param separateExposurePrior Use a separable prior on the main exposure effect? Default is FALSE.
 #' @param seed                 Seed for the random number generator.
 #' @param showProgressBar      Showing a progress bar for MCMC?
 #' @seealso
@@ -89,6 +90,7 @@ computeHierarchicalMetaAnalysis <- function(data,
                                             errorPrecisionStartValue = 1.0,
                                             includeSourceEffect = TRUE,
                                             includeExposureEffect = TRUE,
+                                            separateExposurePrior = FALSE,
                                             seed = 1,
                                             showProgressBar = TRUE){
   # checks...
@@ -156,7 +158,8 @@ computeHierarchicalMetaAnalysis <- function(data,
   hmaConfiguration$startingTau = as.numeric(errorPrecisionStartValue)
   hmaConfiguration$includeSecondary = as.logical(includeSourceEffect)
   hmaConfiguration$includeExposure = as.logical(includeExposureEffect)
-  hmaConfiguration$seed = rJava::.jlong(seed) # this is surplus though...
+  hmaConfiguration$separateEffectPrior = as.logical(separateExposurePrior)
+  hmaConfiguration$seed = rJava::.jlong(seed)
 
   # construct the analysis
   hierarchicalMetaAnalysis <- rJava::.jnew(

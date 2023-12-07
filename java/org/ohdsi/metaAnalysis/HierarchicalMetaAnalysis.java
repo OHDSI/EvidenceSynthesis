@@ -101,7 +101,7 @@ public class HierarchicalMetaAnalysis implements Analysis {
 		allParameters.add(tau);
 		allOperators.add(tauOperator);
 
-		int primaryCount = addPrimaryDesign(designMatrix, allMetaAnalysisDataModels, cg.primaryEffectName);
+		int primaryCount = addPrimaryDesign(designMatrix, allMetaAnalysisDataModels, cg.primaryEffectName, cg.separateEffectPrior);
 		Parameter primaryEffect = randomize(cg.primaryEffectName, primaryCount, 0, 1); // TODO Scale for over-dispersed noise
 		allEffects.addParameter(primaryEffect);
 
@@ -280,6 +280,9 @@ public class HierarchicalMetaAnalysis implements Analysis {
 
 		// include the exposure effect for main outcome of interest? (in addition to negative controls)
 		public boolean includeExposure = true;
+
+		// if using a separate prior on the main effect (i.e., set prior on biased effect instead of true effect)?
+		public boolean separateEffectPrior = false;
 	}
 
 	static class HierarchicalNormalComponents {
@@ -346,22 +349,30 @@ public class HierarchicalMetaAnalysis implements Analysis {
 
 	private int addPrimaryDesign(DesignMatrix designMatrix,
 								 List<DataModel> dataModels,
-								 String effectName) {
+								 String effectName,
+								 boolean separateEffectPrior) {
 		int totalLength = getTotalNumberOfProfiles(dataModels);
+		int effectOffset = totalLength;
+		if (separateEffectPrior) {
+			effectOffset -= dataModels.get(dataModels.size() - 1).getCompoundParameter().getDimension();
+		}
 
 		int offset = 0;
 		int label = 0;
 		for (DataModel dataModel : dataModels) {
 			int length = dataModel.getCompoundParameter().getDimension();
 			double[] effect = new double[totalLength];
-			for (int i = 0; i < length; ++i) {
-				effect[offset + i] = 1.0;
+			if (offset < effectOffset) {
+				for (int i = 0; i < length; ++i) {
+					effect[offset + i] = 1.0;
+				}
 			}
 			designMatrix.addParameter(
 					new Parameter.Default("dm." + effectName + (label + 1), effect));
 
 			++label;
 			offset += length;
+
 		}
 		return label;
 	}
@@ -471,6 +482,8 @@ public class HierarchicalMetaAnalysis implements Analysis {
 
 		//cg.gammaPrimaryHyperShape = 1000000; // change up prior for across-outcome / across-datasource precision term
 		//cg.gammaPrimaryHyperScale = 0.0001;
+
+		cg.separateEffectPrior = true; // try with separate prior on main effect
 
 		HierarchicalMetaAnalysis analysis = new HierarchicalMetaAnalysis(allDataModels,
 				cg);
