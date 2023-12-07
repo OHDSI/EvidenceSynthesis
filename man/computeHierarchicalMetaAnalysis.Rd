@@ -19,6 +19,7 @@ computeHierarchicalMetaAnalysis(
   errorPrecisionStartValue = 1,
   includeSourceEffect = TRUE,
   includeExposureEffect = TRUE,
+  separateExposurePrior = FALSE,
   seed = 1,
   showProgressBar = TRUE
 )
@@ -55,6 +56,8 @@ normal model for random errors.}
 \item{includeSourceEffect}{Whether or not to consider the data-source-specific random effects. Default is TRUE.}
 
 \item{includeExposureEffect}{Whether or not to estimate the main effect of interest. Default is TRUE.}
+
+\item{separateExposurePrior}{Use a separable prior on the main exposure effect? Default is FALSE.}
 
 \item{seed}{Seed for the random number generator.}
 
