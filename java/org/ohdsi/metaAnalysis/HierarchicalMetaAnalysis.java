@@ -101,7 +101,8 @@ public class HierarchicalMetaAnalysis implements Analysis {
 		allParameters.add(tau);
 		allOperators.add(tauOperator);
 
-		int primaryCount = addPrimaryDesign(designMatrix, allMetaAnalysisDataModels, cg.primaryEffectName, cg.separateEffectPrior);
+		int primaryCount = addPrimaryDesign(designMatrix, allMetaAnalysisDataModels, cg.primaryEffectName,
+				cg.separateEffectPrior, cg.effectCount);
 		Parameter primaryEffect = randomize(cg.primaryEffectName, primaryCount, 0, 1); // TODO Scale for over-dispersed noise
 		allEffects.addParameter(primaryEffect);
 
@@ -117,7 +118,8 @@ public class HierarchicalMetaAnalysis implements Analysis {
 
 		if (cg.includeSecondary) {
 
-			int secondaryCount = addSecondaryDesign(designMatrix, allMetaAnalysisDataModels, cg.secondaryEffectName, cg.separateEffectPrior);
+			int secondaryCount = addSecondaryDesign(designMatrix, allMetaAnalysisDataModels,
+					cg.secondaryEffectName, cg.separateEffectPrior, cg.effectCount);
 			Parameter secondaryEffect = randomize(cg.secondaryEffectName, secondaryCount, 0, 1);
 			allEffects.addParameter(secondaryEffect);
 
@@ -133,7 +135,7 @@ public class HierarchicalMetaAnalysis implements Analysis {
 		}
 
 		if (cg.includeExposure) {
-			int effectCount = addEffectDesign(designMatrix, allMetaAnalysisDataModels, cg.exposureEffectName);
+			int effectCount = addEffectDesign(designMatrix, allMetaAnalysisDataModels, cg.exposureEffectName, cg.effectCount);
 			Parameter exposureEffect = randomize(cg.exposureEffectName, effectCount, 0, 1);
 			allEffects.addParameter(exposureEffect);
 
@@ -283,6 +285,9 @@ public class HierarchicalMetaAnalysis implements Analysis {
 
 		// if using a separate prior on the main effect (i.e., set prior on biased effect instead of true effect)?
 		public boolean separateEffectPrior = false;
+
+		// number of main outcomes of interest (default = 1, but can be multiple!)
+		public int effectCount = 1;
 	}
 
 	static class HierarchicalNormalComponents {
@@ -350,11 +355,12 @@ public class HierarchicalMetaAnalysis implements Analysis {
 	private int addPrimaryDesign(DesignMatrix designMatrix,
 								 List<DataModel> dataModels,
 								 String effectName,
-								 boolean separateEffectPrior) {
+								 boolean separateEffectPrior,
+								 int effectCount) {
 		int totalLength = getTotalNumberOfProfiles(dataModels);
 		int effectOffset = totalLength;
 		if (separateEffectPrior) {
-			effectOffset -= dataModels.get(dataModels.size() - 1).getCompoundParameter().getDimension();
+			effectOffset -= getEffectDimensions(dataModels, effectCount);
 		}
 
 		int offset = 0;
@@ -380,13 +386,14 @@ public class HierarchicalMetaAnalysis implements Analysis {
 	private int addSecondaryDesign(DesignMatrix designMatrix,
 								   List<DataModel> dataModels,
 								   String effectName,
-								   boolean separateEffectPrior) {
+								   boolean separateEffectPrior,
+								   int effectCount) {
 		int totalLength = getTotalNumberOfProfiles(dataModels);
 		int maxIdentifier = getMaxIdentifier(dataModels);
 
 		int effectOffset = totalLength;
 		if (separateEffectPrior) {
-			effectOffset -= dataModels.get(dataModels.size() - 1).getCompoundParameter().getDimension();
+			effectOffset -= getEffectDimensions(dataModels, effectCount);
 		}
 
 		for (int id = 0; id < maxIdentifier; ++id) {
@@ -413,9 +420,13 @@ public class HierarchicalMetaAnalysis implements Analysis {
 
 	public int addEffectDesign(DesignMatrix designMatrix,
 								List<DataModel> dataModels,
-								String effectName) {
+								String effectName,
+							    int effectCount) {
 		int totalLength = getTotalNumberOfProfiles(dataModels);
-		int offset = totalLength - dataModels.get(dataModels.size() - 1).getCompoundParameter().getDimension();
+		//int offset = totalLength - dataModels.get(dataModels.size() - 1).getCompoundParameter().getDimension();
+
+		int effectDimensions = getEffectDimensions(dataModels, effectCount);
+		int offset = totalLength - effectDimensions;
 
 		double[] effect = new double[totalLength];
 		for (int i = offset; i < totalLength; ++i) {
@@ -424,7 +435,17 @@ public class HierarchicalMetaAnalysis implements Analysis {
 
 		designMatrix.addParameter(
 				new Parameter.Default("dm." + effectName, effect));
-		return 1;
+		return effectCount;
+	}
+
+	private int getEffectDimensions(List<DataModel> dataModels,
+									int effectCount) {
+		int effectDimensions = 0;
+		for (int i = 1; i <= effectCount; i++) {
+			effectDimensions += dataModels.get(dataModels.size() - i).getCompoundParameter().getDimension();
+		}
+
+		return effectDimensions;
 	}
 
 	private int getTotalNumberOfProfiles(List<DataModel> dataModels) {
