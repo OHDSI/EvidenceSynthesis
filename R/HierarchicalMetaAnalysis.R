@@ -58,6 +58,7 @@ summarizeChain <- function(chain, alpha = 0.05){
 #' @param errorPrecisionStartValue Initial value for the error distribution's precision term.
 #' @param includeSourceEffect   Whether or not to consider the data-source-specific random effects. Default is TRUE.
 #' @param includeExposureEffect Whether or not to estimate the main effect of interest. Default is TRUE.
+#' @param exposureEffectCount   Number of main outcomes of interest to estimate effect for? Default = 1
 #' @param separateExposurePrior Use a separable prior on the main exposure effect? Default is FALSE.
 #' @param seed                 Seed for the random number generator.
 #' @param showProgressBar      Showing a progress bar for MCMC?
@@ -93,6 +94,7 @@ computeHierarchicalMetaAnalysis <- function(data,
                                             errorPrecisionStartValue = 1.0,
                                             includeSourceEffect = TRUE,
                                             includeExposureEffect = TRUE,
+                                            exposureEffectCount = 1,
                                             separateExposurePrior = FALSE,
                                             seed = 1,
                                             showProgressBar = TRUE){
@@ -162,6 +164,7 @@ computeHierarchicalMetaAnalysis <- function(data,
   hmaConfiguration$includeSecondary = as.logical(includeSourceEffect)
   hmaConfiguration$includeExposure = as.logical(includeExposureEffect)
   hmaConfiguration$separateEffectPrior = as.logical(separateExposurePrior)
+  hmaConfiguration$effectCount = as.integer(exposureEffectCount)
   hmaConfiguration$seed = rJava::.jlong(seed)
 
   # construct the analysis
@@ -218,6 +221,9 @@ computeHierarchicalMetaAnalysis <- function(data,
       effectSamps = traces[,"exposure"]
       traces = cbind(traces, effectSamps)
       colnames(traces)[ncol(traces)] = "unadjustedExposure"
+      if(includeSourceEffect){
+        effectBiasSamps = effectBiasSamps + traces[,"source.mean"]
+      }
       traces[,"exposure"] = effectSamps - effectBiasSamps
     }
   }
