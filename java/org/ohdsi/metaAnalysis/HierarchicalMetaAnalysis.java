@@ -428,13 +428,22 @@ public class HierarchicalMetaAnalysis implements Analysis {
 		int effectDimensions = getEffectDimensions(dataModels, effectCount);
 		int offset = totalLength - effectDimensions;
 
-		double[] effect = new double[totalLength];
-		for (int i = offset; i < totalLength; ++i) {
-			effect[i] = 1.0;
+		// for multiple main effects: add the main effect indicators in the design matrix one by one, as in `addPrimaryDesign`
+		int label = 0;
+		for (int k = effectCount; k > 0; --k) {
+			int length = dataModels.get(dataModels.size() - k).getCompoundParameter().getDimension();
+			double[] effect = new double[totalLength];
+			for (int i = 0; i < length; ++i) {
+				effect[offset + i] = 1.0;
+			}
+			designMatrix.addParameter(
+					new Parameter.Default("dm." + effectName + (label + 1), effect));
+
+			++label;
+			offset += length;
+
 		}
 
-		designMatrix.addParameter(
-				new Parameter.Default("dm." + effectName, effect));
 		return effectCount;
 	}
 
@@ -499,6 +508,9 @@ public class HierarchicalMetaAnalysis implements Analysis {
 		allDataModels.add(new ExtendingEmpiricalDataModel("ForDavid/grids_example_2.csv"));
 		allDataModels.add(new ExtendingEmpiricalDataModel("ForDavid/grids_example_3.csv"));
 
+		// just add the main outcome again profiles, pretending there are 2 main outcomes
+		// allDataModels.add(new ExtendingEmpiricalDataModel("ForDavid/grids_example_4.csv"));
+
 		HierarchicalMetaAnalysisConfiguration cg = new HierarchicalMetaAnalysisConfiguration();
 
 		//cg.tauShape = 1.0;
@@ -513,9 +525,11 @@ public class HierarchicalMetaAnalysis implements Analysis {
 		//cg.gammaHyperSecondaryShape = 100000;
 		//cg.gammaHyperSecondaryScale = 0.0001;
 
-		cg.separateEffectPrior = true; // try with separate prior on main effect
+		//cg.separateEffectPrior = true; // try with separate prior on main effect
 		//cg.exposureHyperLocation = 3; // try very strong prior for main effect
 		//cg.exposureHyperStdDev = 0.01;
+
+		//cg.effectCount = 2; // try a fake example with 2 main outcomes?
 
 		HierarchicalMetaAnalysis analysis = new HierarchicalMetaAnalysis(allDataModels,
 				cg);
