@@ -117,7 +117,7 @@ public class HierarchicalMetaAnalysis implements Analysis {
 
 		if (cg.includeSecondary) {
 
-			int secondaryCount = addSecondaryDesign(designMatrix, allMetaAnalysisDataModels, cg.secondaryEffectName);
+			int secondaryCount = addSecondaryDesign(designMatrix, allMetaAnalysisDataModels, cg.secondaryEffectName, cg.separateEffectPrior);
 			Parameter secondaryEffect = randomize(cg.secondaryEffectName, secondaryCount, 0, 1);
 			allEffects.addParameter(secondaryEffect);
 
@@ -379,22 +379,30 @@ public class HierarchicalMetaAnalysis implements Analysis {
 
 	private int addSecondaryDesign(DesignMatrix designMatrix,
 								   List<DataModel> dataModels,
-								   String effectName) {
+								   String effectName,
+								   boolean separateEffectPrior) {
 		int totalLength = getTotalNumberOfProfiles(dataModels);
 		int maxIdentifier = getMaxIdentifier(dataModels);
+
+		int effectOffset = totalLength;
+		if (separateEffectPrior) {
+			effectOffset -= dataModels.get(dataModels.size() - 1).getCompoundParameter().getDimension();
+		}
 
 		for (int id = 0; id < maxIdentifier; ++id) {
 			double[] effect = new double[totalLength];
 
 			int offset = 0;
 			for (DataModel dataModel : dataModels) {
-				int length = dataModel.getCompoundParameter().getDimension();
-				int whichIndex = findIdentifier(dataModel, id + 1);
-				if (whichIndex >= 0) {
-					effect[offset + whichIndex] = 1.0;
-					// matching secondary (e.g., data source) effects
+				if (offset < effectOffset) {
+					int length = dataModel.getCompoundParameter().getDimension();
+					int whichIndex = findIdentifier(dataModel, id + 1);
+					if (whichIndex >= 0) {
+						effect[offset + whichIndex] = 1.0;
+						// matching secondary (e.g., data source) effects
+					}
+					offset += length;
 				}
-				offset += length;
 			}
 
 			designMatrix.addParameter(
@@ -471,19 +479,22 @@ public class HierarchicalMetaAnalysis implements Analysis {
 		allDataModels.add(new ExtendingEmpiricalDataModel("ForDavid/grids_example_3.csv"));
 
 		HierarchicalMetaAnalysisConfiguration cg = new HierarchicalMetaAnalysisConfiguration();
-		//cg.exposureHyperStdDev = 0.0001; // fix exposure effect
-		//cg.exposureHyperLocation = 0.5;
-
-		//cg.hierarchicalLocationSecondaryHyperStdDev = 0.0001; // fix source.mean  to default 0
 
 		//cg.tauShape = 1.0;
 		//cg.tauScale = 100.0; // change up prior for tau, precision for the iid normal error term
 		//cg.startingTau = 0.5;
 
-		//cg.gammaPrimaryHyperShape = 1000000; // change up prior for across-outcome / across-datasource precision term
-		//cg.gammaPrimaryHyperScale = 0.0001;
+		//cg.hierarchicalLocationPrimaryHyperStdDev = 0.0001; // trying forcing outcome.mean to be very close to 0
+		//cg.gammaHyperPrimaryShape = 1000000; // change up prior for across-outcome / across-datasource precision term
+		//cg.gammaHyperPrimaryScale = 0.0001;
+
+		//cg.hierarchicalLocationSecondaryHyperStdDev = 0.0001; // force source.mean to be very close to 0
+		//cg.gammaHyperSecondaryShape = 100000;
+		//cg.gammaHyperSecondaryScale = 0.0001;
 
 		cg.separateEffectPrior = true; // try with separate prior on main effect
+		//cg.exposureHyperLocation = 3; // try very strong prior for main effect
+		//cg.exposureHyperStdDev = 0.01;
 
 		HierarchicalMetaAnalysis analysis = new HierarchicalMetaAnalysis(allDataModels,
 				cg);
