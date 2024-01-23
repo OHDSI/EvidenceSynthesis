@@ -136,23 +136,46 @@ public class HierarchicalMetaAnalysis implements Analysis {
 
 		if (cg.includeExposure) {
 			int effectCount = addEffectDesign(designMatrix, allMetaAnalysisDataModels, cg.exposureEffectName, cg.effectCount);
-			Parameter exposureEffect = randomize(cg.exposureEffectName, effectCount, 0, 1);
-			allEffects.addParameter(exposureEffect);
 
-			DistributionLikelihood exposureDistribution = new DistributionLikelihood(
-					new NormalDistribution(cg.exposureHyperLocation, cg.exposureHyperStdDev));
-			exposureDistribution.addData(exposureEffect);
+			for(int i=0; i<effectCount; ++i) {
+				Parameter exposureEffect = randomize(cg.exposureEffectName + (i+1), 1, 0, 1);
+				allEffects.addParameter(exposureEffect);
 
-			MCMCOperator exposureOperator = new RandomWalkOperator(exposureEffect, null, 0.75,
-					RandomWalkOperator.BoundaryCondition.reflecting, cg.operatorWeight, cg.mode); // TODO Gibbs sample
+				DistributionLikelihood exposureDistribution = new DistributionLikelihood(
+						new NormalDistribution(cg.exposureHyperLocation.get(cg.exposureHyperLocation.size() > 1 ? i : 0),
+								cg.exposureHyperStdDev.get(cg.exposureHyperStdDev.size() > 1 ? i : 0))
+				);
+				exposureDistribution.addData(exposureEffect);
 
-			allParameters.add(exposureEffect);
-			allOperators.add(exposureOperator);
-			allPriors.add(exposureDistribution);
-			if (exposureDistribution.getDistribution() instanceof GradientProvider) {
-				allEffectsGradient.add(new GradientWrtParameterProvider.ParameterWrapper(
-						(GradientProvider) exposureDistribution.getDistribution(), exposureEffect, exposureDistribution));
+				MCMCOperator exposureOperator = new RandomWalkOperator(exposureEffect, null, 0.75,
+						RandomWalkOperator.BoundaryCondition.reflecting, cg.operatorWeight, cg.mode); // TODO Gibbs sample
+
+				allParameters.add(exposureEffect);
+				allOperators.add(exposureOperator);
+				allPriors.add(exposureDistribution);
+				if (exposureDistribution.getDistribution() instanceof GradientProvider) {
+					allEffectsGradient.add(new GradientWrtParameterProvider.ParameterWrapper(
+							(GradientProvider) exposureDistribution.getDistribution(), exposureEffect, exposureDistribution));
+				}
 			}
+
+//			Parameter exposureEffect = randomize(cg.exposureEffectName, effectCount, 0, 1);
+//			allEffects.addParameter(exposureEffect);
+//
+//			DistributionLikelihood exposureDistribution = new DistributionLikelihood(
+//					new NormalDistribution(cg.exposureHyperLocation, cg.exposureHyperStdDev));
+//			exposureDistribution.addData(exposureEffect);
+//
+//			MCMCOperator exposureOperator = new RandomWalkOperator(exposureEffect, null, 0.75,
+//					RandomWalkOperator.BoundaryCondition.reflecting, cg.operatorWeight, cg.mode); // TODO Gibbs sample
+//
+//			allParameters.add(exposureEffect);
+//			allOperators.add(exposureOperator);
+//			allPriors.add(exposureDistribution);
+//			if (exposureDistribution.getDistribution() instanceof GradientProvider) {
+//				allEffectsGradient.add(new GradientWrtParameterProvider.ParameterWrapper(
+//						(GradientProvider) exposureDistribution.getDistribution(), exposureEffect, exposureDistribution));
+//			}
 
 			//System.err.println("added exposure effect!");
 		}
@@ -258,9 +281,14 @@ public class HierarchicalMetaAnalysis implements Analysis {
 		public double gammaHyperSecondaryShape = 1.0;
 		public double gammaHyperSecondaryScale = 1.0;
 
+		// number of main outcomes of interest (default = 1, but can be multiple!)
+		public int effectCount = 1;
+
 		// prior mean and std for exposure effect (global effect for outcome of interest)
-		public double exposureHyperLocation = 0.0;
-		public double exposureHyperStdDev = 2.0;
+		//public double exposureHyperLocation = 0.0;
+		//public double exposureHyperStdDev = 2.0;
+		public List<Double> exposureHyperLocation = new ArrayList<>(Arrays.asList(0.0));
+		public List<Double> exposureHyperStdDev = new ArrayList<>(Arrays.asList(2.0));
 
 		// gamma prior for std of the random error
 		public double tauShape = 1.0;
@@ -285,9 +313,6 @@ public class HierarchicalMetaAnalysis implements Analysis {
 
 		// if using a separate prior on the main effect (i.e., set prior on biased effect instead of true effect)?
 		public boolean separateEffectPrior = false;
-
-		// number of main outcomes of interest (default = 1, but can be multiple!)
-		public int effectCount = 1;
 	}
 
 	static class HierarchicalNormalComponents {
@@ -509,7 +534,7 @@ public class HierarchicalMetaAnalysis implements Analysis {
 		allDataModels.add(new ExtendingEmpiricalDataModel("ForDavid/grids_example_3.csv"));
 
 		// just add the main outcome again profiles, pretending there are 2 main outcomes
-		// allDataModels.add(new ExtendingEmpiricalDataModel("ForDavid/grids_example_4.csv"));
+		allDataModels.add(new ExtendingEmpiricalDataModel("ForDavid/grids_example_4.csv"));
 
 		HierarchicalMetaAnalysisConfiguration cg = new HierarchicalMetaAnalysisConfiguration();
 
@@ -529,7 +554,9 @@ public class HierarchicalMetaAnalysis implements Analysis {
 		//cg.exposureHyperLocation = 3; // try very strong prior for main effect
 		//cg.exposureHyperStdDev = 0.01;
 
-		//cg.effectCount = 2; // try a fake example with 2 main outcomes?
+		cg.effectCount = 2; // try a fake example with 2 main outcomes
+		//cg.exposureHyperLocation.add(2.0);
+		cg.exposureHyperStdDev.add(10.0);
 
 		HierarchicalMetaAnalysis analysis = new HierarchicalMetaAnalysis(allDataModels,
 				cg);
