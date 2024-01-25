@@ -257,8 +257,9 @@ createApproximations <- function(populations, approximation) {
     cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData,
                                            fixedCoefficients = c(approximation != "normal")
     )
-    approximation <- approximateLikelihood(cyclopsFit, "x", approximation = approximation)
-    return(approximation)
+    res <- approximateLikelihood(cyclopsFit, "x",
+                                 approximation = approximation)
+    return(res)
   }
   data <- lapply(populations, fitModelInDatabase, approximation = approximation)
   if (approximation != "adaptive grid") {
