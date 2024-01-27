@@ -30,6 +30,7 @@ Imports:
   coda,
   rlang,
   methods
+  stringr
 Suggests:
   knitr,
   rmarkdown,
