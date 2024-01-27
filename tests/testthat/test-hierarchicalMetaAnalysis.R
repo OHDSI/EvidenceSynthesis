@@ -34,7 +34,7 @@ test_that('run hierarchical meta analysis', {
                                                                  seed = 666)
 
   expect_type(estimates, "list")
-  expect_named(estimates, c("mean", "LB", "UB", "se", "parameter"))
+  expect_named(estimates, c("mean", "median", "LB", "UB", "se", "parameter"))
   expect_type(attr(estimates, "traces"), "double")
 
 })
@@ -53,7 +53,7 @@ test_that("run hierarchical meta analysis on bigger data", {
                                                                  seed = 666)
 
   expect_type(estimates, "list")
-  expect_named(estimates, c("mean", "LB", "UB", "se", "parameter"))
+  expect_named(estimates, c("mean", "median", "LB", "UB", "se", "parameter"))
   expect_type(attr(estimates, "traces"), "double")
 })
 
@@ -67,7 +67,7 @@ test_that("run hierarchical meta analysis without main exposure effect", {
                                                                  includeExposureEffect = FALSE)
 
   expect_type(estimates, "list")
-  expect_named(estimates, c("mean", "LB", "UB", "se", "parameter"))
+  expect_named(estimates, c("mean", "median", "LB", "UB", "se", "parameter"))
   expect_type(attr(estimates, "traces"), "double")
   expect_false("exposure" %in% estimates$parameter)
 })
