@@ -17,6 +17,32 @@ simulateMetaAnalysisWithNegativeControls(
   ...
 )
 }
+\arguments{
+\item{meanExposureEffect}{Average exposure effect; has to be on the log-scale}
+
+\item{meanBias}{Average bias for the bias distribution}
+
+\item{biasStd}{Standard deviation for the bias distribution}
+
+\item{meanSiteEffect}{Average of the data-source-specific effects (typically should be zero)}
+
+\item{siteEffectStd}{Standard deviation for data-source-specific effects}
+
+\item{mNegativeControls}{Number of negative control outcomes}
+
+\item{nSites}{Number of data sources}
+
+\item{sitePop}{Population size per data source}
+
+\item{seed}{Random seed}
+
+\item{...}{Arguments that will be passed to other functions}
+}
 \description{
-Simulate survival data across a federated data network, with negative control outcomes as well.
+A function to simulate patient-level survival data for a hypothetical exposure, with simulated bias
+and data-source-specific random effects. Patient-level data for negative control outcomes are simulated
+as well to reflect systematic error.
+}
+\seealso{
+\link{computeHierarchicalMetaAnalysis}
 }

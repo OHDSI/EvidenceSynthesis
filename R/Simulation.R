@@ -193,6 +193,24 @@ print.summary.simulation <- function(x, ...) {
 
 #' Simulate survival data across a federated data network, with negative control outcomes as well.
 #'
+#' @description
+#' A function to simulate patient-level survival data for a hypothetical exposure, with simulated bias
+#' and data-source-specific random effects. Patient-level data for negative control outcomes are simulated
+#' as well to reflect systematic error.
+#'
+#' @param meanExposureEffect Average exposure effect; has to be on the log-scale
+#' @param meanBias Average bias for the bias distribution
+#' @param biasStd Standard deviation for the bias distribution
+#' @param meanSiteEffect Average of the data-source-specific effects (typically should be zero)
+#' @param siteEffectStd Standard deviation for data-source-specific effects
+#' @param mNegativeControls Number of negative control outcomes
+#' @param nSites Number of data sources
+#' @param sitePop Population size per data source
+#' @param seed Random seed
+#' @param ... Arguments that will be passed to other functions
+#'
+#' @seealso [computeHierarchicalMetaAnalysis]
+#'
 #' @export
 simulateMetaAnalysisWithNegativeControls <- function(meanExposureEffect = log(2),
                                                      meanBias = 0.5,
@@ -247,6 +265,11 @@ simulateMetaAnalysisWithNegativeControls <- function(meanExposureEffect = log(2)
   return(metaPopulations)
 }
 
+#' Create likelihood approximations from individual-trajectory data
+#'
+#' @param populations Individual-level population data
+#' @param approximation Type of approximation method
+#'
 #' @export
 createApproximations <- function(populations, approximation) {
   fitModelInDatabase <- function(population, approximation) {

@@ -17,6 +17,9 @@
 
 #' Utility function to summarize MCMC samples (posterior mean, median, HDI, std, etc.)
 #'
+#' @param chain A vector of posterior samples from MCMC.
+#' @param alpha Alpha level for the credible interval.
+#'
 #' @export
 summarizeChain <- function(chain, alpha = 0.05){
   avg = mean(chain, na.rm = TRUE)
@@ -389,13 +392,15 @@ extractSourceSpecificEffects <- function(estimates, alpha = 0.05){
     stop("Cannot find MCMC samples from the input model object!")
   }
   traces = attr(estimates, "traces")
-  sourceColumns = which(stringr::str_detect(colnames(traces), "source[0-9]+"))
+  #sourceColumns = which(stringr::str_detect(colnames(traces), "source[0-9]+"))
+  sourceColumns = which(grepl("source[0-9]+", colnames(traces)))
   if(length(sourceColumns) < 1){
     stop("Cannot find posterior samples for source-specific effects!")
   }
   sourceColumnNames = colnames(traces)[sourceColumns]
 
-  effectColumns = which(stringr::str_starts(estimates$parameter, "exposure*"))
+  #effectColumns = which(stringr::str_starts(estimates$parameter, "exposure*"))
+  effectColumns = which(grepl("^exposure*",estimates$parameter))
   if(length(effectColumns) < 1){
     stop("Cannot find main exposure effects in main parameters!")
   }

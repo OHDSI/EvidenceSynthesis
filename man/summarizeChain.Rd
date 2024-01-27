@@ -6,6 +6,11 @@
 \usage{
 summarizeChain(chain, alpha = 0.05)
 }
+\arguments{
+\item{chain}{A vector of posterior samples from MCMC.}
+
+\item{alpha}{Alpha level for the credible interval.}
+}
 \description{
 Utility function to summarize MCMC samples (posterior mean, median, HDI, std, etc.)
 }
