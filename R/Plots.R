@@ -787,7 +787,7 @@ plotBiasCorrectionInference <- function(bbcResult,
         color = .data$label
       )
     ) +
-      ggplot2::geom_line(size = 1) +
+      ggplot2::geom_line(linewidth = 1) +
       ggplot2::scale_y_continuous(limits = c(0, 1)) +
       ggplot2::labs(
         y = "Posterior probability",
