@@ -172,6 +172,13 @@ test_that("Normal approximation: pooled matches random-effects meta-analysis", {
   expect_equal(estimate, pooledRandomFxEstimate, tolerance = 1, check.attributes = FALSE)
 })
 
+test_that("Normal approximation: pooled matches random-effects meta-analysis using tibble", {
+  skip_if_not(supportsJava8())
+  estimate <- computeBayesianMetaAnalysis(dplyr::as_tibble(data), seed = seed)
+  # Not really expecting normal approximation is close to gold standard:
+  expect_equal(estimate, pooledRandomFxEstimate, tolerance = 1, check.attributes = FALSE)
+})
+
 # Skew-normal approximation
 data <- createApproximations(populations, "skew normal")
 

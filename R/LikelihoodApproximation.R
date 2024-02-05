@@ -425,7 +425,7 @@ cleanData <- function(data,
                       grid = FALSE) {
   for (i in 1:length(columns)) {
     column <- columns[i]
-    if (any(is.infinite(data[, column]))) {
+    if (any(is.infinite(data[[column]]))) {
       if (grid) {
         warn(paste("Estimate(s) with infinite log-likelihood detected. Removing before computing meta-analysis."))
       } else {
@@ -435,9 +435,9 @@ cleanData <- function(data,
           "detected. Removing before computing meta-analysis."
         ))
       }
-      data <- data[!is.infinite(data[, column]), ]
+      data <- data[!is.infinite(data[[column]]), ]
     }
-    if (any(is.na(data[, column]))) {
+    if (any(is.na(data[[column]]))) {
       if (grid) {
         warn(paste("Estimate(s) with NA log-likelihood detected. Removing before computing meta-analysis."))
       } else {
@@ -447,9 +447,9 @@ cleanData <- function(data,
           "detected. Removing before computing meta-analysis."
         ))
       }
-      data <- data[!is.na(data[, column]), ]
+      data <- data[!is.na(data[[column]]), ]
     }
-    if (any(data[, column] > maxValues[i])) {
+    if (any(data[[column]] > maxValues[i])) {
       if (grid) {
         warn(paste("Estimate(s) with positive log-likelihood detected. Removing before computing meta-analysis."))
       } else {
@@ -459,9 +459,9 @@ cleanData <- function(data,
           maxValues[i]
         ))
       }
-      data <- data[data[, column] <= maxValues[i], ]
+      data <- data[data[[column]] <= maxValues[i], ]
     }
-    if (any(data[, column] < minValues[i])) {
+    if (any(data[[column]] < minValues[i])) {
       if (grid) {
         warn(paste("Estimate(s) with extremely low log-likelihood detected. Removing before computing meta-analysis."))
       } else {
@@ -471,7 +471,7 @@ cleanData <- function(data,
           minValues[i]
         ))
       }
-      data <- data[data[, column] >= minValues[i], ]
+      data <- data[data[[column]] >= minValues[i], ]
     }
   }
   if (nrow(data) == 0) {
