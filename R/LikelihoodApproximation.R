@@ -72,8 +72,8 @@ approximateLikelihood <- function(cyclopsFit,
     if (cyclopsFit$return_flag != "SUCCESS") {
       return(data.frame(rr = NA, ci95Lb = NA, ci95Ub = NA, logRr = NA, seLogRr = NA))
     } else {
-      mode <- coef(cyclopsFit)
-      ci95 <- confint(cyclopsFit, 1, level = 0.95)
+      mode <- coef(cyclopsFit)[parameter]
+      ci95 <- confint(cyclopsFit, parameter, level = 0.95)
       return(data.frame(
         rr = exp(mode),
         ci95Lb = exp(ci95[2]),
