@@ -407,7 +407,7 @@ cleanApproximations <- function(data) {
         )
       }
     } else {
-      data <- cleanData(data,
+      data <- cleanData(as.data.frame(data),
         colnames(data),
         minValues = rep(-1e6, ncol(data)),
         maxValues = rep(0, ncol(data)),
