@@ -54,7 +54,7 @@ public class SccsPartialLikelihood extends AbstractModelLikelihood {
 		this.data = data;
 		this.n = data.y.length;
 
-		//		addVariable(beta);
+		addVariable(beta);
 
 		int stratumSize = 1;
 		int maxStratumSize = 0;
