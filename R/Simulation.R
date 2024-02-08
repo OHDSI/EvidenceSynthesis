@@ -90,12 +90,15 @@ createSimulationSettings <- function(nSites = 5,
 
 #' Simulate survival data for multiple databases
 #'
-#' @param settings   An object of type `simulationSettings`, created by the
-#'                   [createSimulationSettings()] function.
+#' @param settings   Either an object of type `simulationSettings`, created by the
+#'                   [createSimulationSettings()] function or an object of type `sccsSimulationSettings`
+#'                   as created by the [createSccsSimulationSettings()] function.
 #'
 #' @return
-#' A object of class `simulation`, which is a list of populations, each a data frame with columns
-#' `rowId`, `stratumId`, `x`, `time`, and `y`.
+#' A object of class `simulation`, which is a list of population data frames. Depending on the type of
+#' simulation, the data frames have different columns: Cox simulations will have the columns
+#' `rowId`, `stratumId`, `x`, `time`, and `y`. SCCS simulations will have the columns `stratumId`, `a`,
+#' `x1...xN`, `time`, and `y`.
 #'
 #' @examples
 #' settings <- createSimulationSettings(nSites = 1, hazardRatio = 2)
@@ -113,6 +116,11 @@ createSimulationSettings <- function(nSites = 5,
 #'
 #' @export
 simulatePopulations <- function(settings = createSimulationSettings()) {
+  UseMethod("simulatePopulations", settings)
+}
+
+#' @export
+simulatePopulations.simulationSettings <- function(settings = createSimulationSettings()) {
   stopifnot(class(settings) == "simulationSettings")
   thetas <- rnorm(
     n = settings$nSites,
@@ -267,11 +275,17 @@ simulateMetaAnalysisWithNegativeControls <- function(meanExposureEffect = log(2)
 
 #' Create likelihood approximations from individual-trajectory data
 #'
-#' @param populations Individual-level population data
+#' @param populations   Individual-level population data
 #' @param approximation Type of approximation method
 #'
 #' @export
 createApproximations <- function(populations, approximation) {
+  UseMethod("createApproximations", populations)
+}
+
+#' @export
+createApproximations.simulation <- function(populations, approximation) {
+
   fitModelInDatabase <- function(population, approximation) {
     cyclopsData <- Cyclops::createCyclopsData(Surv(time, y) ~ x + strata(stratumId),
                                               data = population,
@@ -289,4 +303,252 @@ createApproximations <- function(populations, approximation) {
     data <- do.call("rbind", data)
   }
   return(data)
+}
+
+#' @export
+createApproximations.sccsSimulation <- function(populations, approximation) {
+
+  fitModelInDatabase <- function(population, approximation) {
+    if (nrow(population) == 0) {
+      return(NULL)
+    }
+    xColnames <- colnames(population)[grep("x[0-9]+", colnames(population))]
+    formula <- as.formula(paste("y ~ a +", paste0(xColnames, collapse = " + "), " + strata(stratumId) + offset(log(time))"))
+    cyclopsData <- Cyclops::createCyclopsData(formula, data = population, modelType = "cpr")
+    cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData, fixedCoefficients = rep(approximation != "normal", 1 + length(xColnames)))
+    res <- EvidenceSynthesis::approximateLikelihood(cyclopsFit, "a", approximation = approximation)
+    return(res)
+  }
+  data <- lapply(populations, fitModelInDatabase, approximation = approximation)
+  if (approximation == "adaptive grid") {
+    data <- data[!sapply(data, is.null)]
+  } else {
+    data <- do.call("rbind", data)
+  }
+  return(data)
+}
+
+#' Create SCCS simulation settings
+#'
+#' @description
+#' Create an object specifying a simulation for the Self-Controlled Case Series (SCCS).
+#'
+#' @param nSites                Number of database sites to simulate.
+#' @param n                     Number of subjects per site. Either a single number, or a vector of
+#'                              length nSites.
+#' @param atRiskTimeFraction    Fraction of patient time when at risk (exposed). Either a single number, or a
+#'                              vector of length nSites.
+#' @param timePartitions        Number of time partitions for seasonal covariates. Either a single number,
+#'                              or a vector of length nSites.
+#' @param timeCovariates        Number of covariates to represent seasonality. Either a single number,
+#'                              or a vector of length nSites.
+#' @param timeEffectSize        Strength of the seasonality effect. Either a single number,
+#'                              or a vector of length nSites.
+#' @param minBackgroundRate     Minimum background outcome rate. Either a single number, or a vector of
+#'                              length nSites.
+#' @param maxBackgroundRate     Maximum background outcome rate. Either a single number, or a vector of
+#'                              length nSites.
+#' @param rateRatio             The incidence rate ratio.
+#' @param randomEffectSd        Standard deviation of the log(hazardRatio). Fixed effect if equal to 0.
+#'
+#' @seealso
+#' [simulatePopulations]
+#'
+#' @return
+#' An object of type `simulationSccsSettings`, to be used in the [simulatePopulations()] function.
+#'
+#' @examples
+#' settings <- createSccsSimulationSettings(nSites = 1, rateRatio = 2)
+#' populations <- simulatePopulations(settings)
+#'
+#' # Fit a SCCS regression for the simulated data site:
+#' cyclopsData <- Cyclops::createCyclopsData(
+#'   y ~ a + x1 + x2 + x3 + x4 + x5 + strata(stratumId) + offset(log(time)),
+#'   data = populations[[1]],
+#'   modelType = "cpr"
+#' )
+#' cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
+#' coef(cyclopsFit)
+#'
+#' # (Estimates in this example will vary due to the random simulation)
+#'
+#' @export
+createSccsSimulationSettings <- function(nSites = 5,
+                                         n = 10000,
+                                         atRiskTimeFraction = 0.1,
+                                         timePartitions = 24,
+                                         timeCovariates = 5,
+                                         timeEffectSize = log(2),
+                                         minBackgroundRate = 0.001,
+                                         maxBackgroundRate = 0.01,
+                                         rateRatio = 2,
+                                         randomEffectSd = 0) {
+  expand <- function(x) {
+    if (length(x) == 1) {
+      return(rep(x, nSites))
+    } else {
+      return(x)
+    }
+  }
+  settings <- list(
+    nSites = nSites,
+    n = expand(n),
+    atRiskTimeFraction = expand(atRiskTimeFraction),
+    timePartitions = expand(timePartitions),
+    timeCovariates = expand(timeCovariates),
+    timeEffectSize = expand(timeEffectSize),
+    minBackgroundRate = expand(minBackgroundRate),
+    maxBackgroundRate = expand(maxBackgroundRate),
+    rateRatio = rateRatio,
+    randomEffectSd = randomEffectSd
+  )
+  class(settings) <- "sccsSimulationSettings"
+  return(settings)
+}
+
+#' @export
+simulatePopulations.sccsSimulationSettings <- function(settings = createSimulationSettings()) {
+  thetas <- rnorm(
+    n = settings$nSites,
+    mean = log(settings$rateRatio),
+    sd = settings$randomEffectSd
+  )
+  rateRatios <- exp(thetas)
+
+  simulateSite <- function(i) {
+    personBackgroundRate <- runif(settings$n[i],
+                                  min = settings$minBackgroundRate[i],
+                                  max = settings$maxBackgroundRate[i]
+    )
+    if (settings $timeCovariates[i] == 0) {
+      designMatrix <- NULL
+    } else {
+      seasonKnots <- 0.5 + seq(0, 12, length.out = settings$timeCovariates[i] + 1)
+      designMatrix <- cyclicSplineDesign(1:12, seasonKnots)
+      while(nrow(designMatrix) < settings$timePartitions[i]) {
+        designMatrix <- rbind(designMatrix, designMatrix)
+      }
+      designMatrix <- designMatrix[1:settings$timePartitions[i], ]
+    }
+
+    # Simulate time periods with covariates
+    population <- data.frame(
+      stratumId = rep(seq_len(settings$n[i]), each = settings$timePartitions[i]),
+      time = 1/settings$timePartitions[i],
+      a = 0,
+      deltaA = 0,
+      backgroundRate = rep(personBackgroundRate, each = settings$timePartitions[i])
+    )
+    if (settings $timeCovariates[i] != 0) {
+      x <- do.call(rbind, replicate(settings$n[i], designMatrix, simplify = FALSE))
+      population <- cbind(population, x)
+      colnames(population)[-(1:5)] <- paste0("x", seq_len(settings$timeCovariates[i]))
+    }
+
+    # Simulate time at risk and merge with time periods
+    tarStarts <- runif(settings$n[i], min = 0, max = 1 - settings$atRiskTimeFraction[i])
+    tarEnds <- tarStarts + settings$atRiskTimeFraction[i]
+    tarStartIdx <- (tarStarts + seq_len(settings$n[i]) - 1) * settings$timePartitions[i] + 1
+    tarEndIdx <- (tarEnds + seq_len(settings$n[i]) - 1) * settings$timePartitions[i] + 1
+    prePartitionTime <- (tarStartIdx - floor(tarStartIdx)) / settings$timePartitions[i]
+    postPartitionTime <- (ceiling(tarEndIdx) - tarEndIdx) / settings$timePartitions[i]
+    tarStartIdx <- floor(tarStartIdx)
+    tarEndIdx <- floor(tarEndIdx)
+    population$deltaA[tarStartIdx] <- 1
+    population$deltaA[tarEndIdx] <- population$deltaA[tarEndIdx] - 1
+    population$a <- cumsum(population$deltaA)
+    population$deltaA <- NULL
+    prePartitions <- population[tarStartIdx, ]
+    postPartitions <- population[tarEndIdx, ]
+    population$time[tarStartIdx] <- population$time[tarStartIdx] - prePartitionTime
+    population$a[tarStartIdx] <- 1
+    prePartitions$time <- prePartitionTime
+    prePartitions$a <- 0
+    population$time[tarEndIdx] <- population$time[tarEndIdx] - postPartitionTime
+    population$a[tarEndIdx] <- 1
+    postPartitions$time <- postPartitionTime
+    postPartitions$a <- 0
+    population <- rbind(population, prePartitions, postPartitions)
+
+    # Simulate outcomes
+    timeEffect <- runif(settings$timeCovariates[i], max = settings$timeEffectSize[i])
+    population$rate <- population$backgroundRate * exp(population$a * thetas[i] + rowSums(population[, ncol(population)-(seq_len(settings$timeCovariates[i])) + 1] * timeEffect))
+
+    # Normalize so higher hazard ratios don't come with more statistical power:
+    population$totalRate <- population$rate * population$time
+    totalRates <- aggregate(totalRate ~ stratumId, data = population, sum)
+    population$totalRate <- NULL
+    population <- merge(population, totalRates, by = "stratumId")
+    population$rate <- population$rate * population$backgroundRate / population$totalRate
+
+    population$y <- rpois(nrow(population), population$rate * population$time)
+    population$backgroundRate <- NULL
+    population$rate <- NULL
+
+    # Remove subjects with no events
+    stratumIds <- unique(population$stratumId[population$y > 0])
+    population <- population[population$stratumId %in% stratumIds, ]
+    population$rowId <- seq_len(nrow(population))
+
+    return(population)
+  }
+  simulation <- lapply(1:settings$nSites, simulateSite)
+  attr(simulation, "sccsSimulationSettings") <- settings
+  attr(simulation, "thetas") <- thetas
+  class(simulation) <- "sccsSimulation"
+  return(simulation)
+}
+
+#' @export
+print.sccsSimulation <- function(x, ...) {
+  writeLines("SCCS simulation object")
+  writeLines("")
+  writeLines(paste("Number of sites: ", length(x)))
+}
+
+#' @export
+summary.sccsSimulation<- function(object, ...) {
+  summarizeSite <- function(site) {
+    return(data.frame(
+      cases = length(unique(site$stratumId)),
+      exposedCases = length(unique(site$stratumId[site$a == 1 & site$y > 0]))
+    ))
+  }
+  siteSummaries <- lapply(object, summarizeSite)
+  siteSummaries <- do.call("rbind", siteSummaries)
+  siteSummaries$theta <- attr(object, "thetas")
+  class(siteSummaries) <- "summary.sccsSimulation"
+  return(siteSummaries)
+}
+
+#' @export
+print.summary.sccsSimulation <- function(x, ...) {
+  class(x) <- "data.frame"
+  rownames(x) <- 1:nrow(x)
+  printCoefmat(x)
+}
+
+cyclicSplineDesign <- function(x, knots, ord = 4) {
+  nk <- length(knots)
+  if (ord < 2) {
+    stop("order too low")
+  }
+  if (nk < ord) {
+    stop("too few knots")
+  }
+  knots <- sort(knots)
+  k1 <- knots[1]
+  if (min(x) < k1 || max(x) > knots[nk]) {
+    stop("x out of range")
+  }
+  xc <- knots[nk - ord + 1]
+  knots <- c(k1 - (knots[nk] - knots[(nk - ord + 1):(nk - 1)]), knots)
+  ind <- x > xc
+  X1 <- splines::splineDesign(knots, x, ord, outer.ok = TRUE)
+  x[ind] <- x[ind] - max(knots) + k1
+  if (sum(ind)) {
+    X2 <- splines::splineDesign(knots, x[ind], ord, outer.ok = TRUE)
+    X1[ind, ] <- X1[ind, ] + X2
+  }
+  X1
 }

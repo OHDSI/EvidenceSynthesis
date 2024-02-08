@@ -352,10 +352,17 @@ detectApproximationType <- function(data, verbose = TRUE) {
     }
     return("skew normal")
   } else if ("stratumId" %in% columnNames) {
-    if (verbose) {
-      inform("Detected (pooled) patient-level data")
+    if (any(grepl("^x[0-9]+$", columnNames))) {
+      if (verbose) {
+        inform("Detected (pooled) patient-level SCCS data")
+      }
+      return("pooled sccs")
+    } else {
+      if (verbose) {
+        inform("Detected (pooled) patient-level data")
+      }
+      return("pooled")
     }
-    return("pooled")
   } else if ("point" %in% columnNames) {
     if (verbose) {
       inform("Detected data following adaptive grid distribution")
@@ -381,18 +388,18 @@ cleanApproximations <- function(data) {
     data <- cleanData(data, c("mu", "sigma", "gamma"), minValues = c(-100, 1e-05, -100))
   } else if (type == "skew normal") {
     data <- cleanData(data,
-      c("mu", "sigma", "alpha"),
-      minValues = c(-100, 1e-05, -10000),
-      maxValues = c(100, 10000, 10000)
+                      c("mu", "sigma", "alpha"),
+                      minValues = c(-100, 1e-05, -10000),
+                      maxValues = c(100, 10000, 10000)
     )
   } else if (type == "adaptive grid") {
     for (i in 1:length(data)) {
       cleanedData <- as.data.frame(data[[i]])
       cleanedData$value <- cleanedData$value - max(cleanedData$value)
       cleanedData <- cleanData(cleanedData,
-        c("point", "value"),
-        minValues = c(-100, -1e6),
-        maxValues = c(100, 0)
+                               c("point", "value"),
+                               minValues = c(-100, -1e6),
+                               maxValues = c(100, 0)
       )
       data[[i]] <- cleanedData
     }
@@ -400,18 +407,18 @@ cleanApproximations <- function(data) {
     if (is.list(data) && !is.data.frame(data)) {
       for (i in 1:length(data)) {
         data <- cleanData(data,
-          colnames(data),
-          minValues = rep(-1e6, ncol(data)),
-          maxValues = rep(0, ncol(data)),
-          grid = TRUE
+                          colnames(data),
+                          minValues = rep(-1e6, ncol(data)),
+                          maxValues = rep(0, ncol(data)),
+                          grid = TRUE
         )
       }
     } else {
       data <- cleanData(as.data.frame(data),
-        colnames(data),
-        minValues = rep(-1e6, ncol(data)),
-        maxValues = rep(0, ncol(data)),
-        grid = TRUE
+                        colnames(data),
+                        minValues = rep(-1e6, ncol(data)),
+                        maxValues = rep(0, ncol(data)),
+                        grid = TRUE
       )
     }
   }
@@ -499,7 +506,7 @@ constructDataModel <- function(data, labelReferences = NULL){
   data <- cleanApproximations(data)
   if (type == "normal") {
     if (nrow(data) == 0) {
-      return(createNaEstimate(type))
+      return(NULL)
     }
     dataModel <- rJava::.jnew("org.ohdsi.metaAnalysis.NormalDataModel")
     for (i in 1:nrow(data)) {
@@ -511,7 +518,7 @@ constructDataModel <- function(data, labelReferences = NULL){
     dataModel$finish()
   } else if (type == "custom") {
     if (nrow(data) == 0) {
-      return(createNaEstimate(type))
+      return(NULL)
     }
     dataModel <- rJava::.jnew("org.ohdsi.metaAnalysis.ParametricDataModel")
     for (i in 1:nrow(data)) {
@@ -523,7 +530,7 @@ constructDataModel <- function(data, labelReferences = NULL){
     dataModel$finish()
   } else if (type == "skew normal") {
     if (nrow(data) == 0) {
-      return(createNaEstimate(type))
+      return(NULL)
     }
     dataModel <- rJava::.jnew("org.ohdsi.metaAnalysis.SkewNormalDataModel")
     for (i in 1:nrow(data)) {
@@ -541,6 +548,21 @@ constructDataModel <- function(data, labelReferences = NULL){
         as.integer(data[[i]]$y),
         as.numeric(data[[i]]$time),
         as.numeric(data[[i]]$x)
+      )
+    }
+    dataModel$finish()
+  } else if (type == "pooled sccs") {
+    dataModel <- rJava::.jnew("org.ohdsi.metaAnalysis.SccsDataModel")
+    for (i in 1:length(data)) {
+      x <- data[[i]] %>%
+        select(matches("^x[0-9]+$")) %>%
+        apply(2, as.numeric)
+      dataModel$addLikelihoodData(
+        as.integer(data[[i]]$y),
+        as.double(data[[i]]$a),
+        rJava::.jarray(x, dispatch = TRUE),
+        as.integer(data[[i]]$stratumId),
+        as.double(data[[i]]$time)
       )
     }
     dataModel$finish()
@@ -566,7 +588,7 @@ constructDataModel <- function(data, labelReferences = NULL){
     dataModel$finish()
   } else if (type == "grid") {
     if (nrow(data) == 0) {
-      return(createNaEstimate(type))
+      return(NULL)
     }
     x <- as.numeric(colnames(data))
     data <- as.matrix(data)
@@ -628,4 +650,29 @@ buildLabelReferences <- function(data){
   }
 
   return(labelRefs)
+}
+
+#' Prepare SCCS interval data for pooled analysis
+#'
+#' @param sccsIntervalData An object of type `SccsIntervalData` as created using the `createSccsIntervalData`
+#'                         function in the OHDSI `SelfControlledCaseSeries` package.
+#' @param covariateId      The ID of the covariate of interest, for which the estimate will be synthesized.
+#'                         All other coveriates will be considered nuisance variables.
+#'
+#' @return
+#' A tibble that can be used in the `computeBayesianMetaAnalysis()` function.
+#'
+#' @export
+prepareSccsIntervalData <- function(sccsIntervalData, covariateId) {
+  ensureInstalled("tidyr")
+  covariates <- tidyr::pivot_wider(collect(sccsIntervalData$covariates),
+                                   names_from = "covariateId",
+                                   names_prefix = "x",
+                                   values_from = "covariateValue",
+                                   values_fill = 0)
+  data <- covariates %>%
+    rename(a = paste0("x", covariateId)) %>%
+    inner_join(collect(sccsIntervalData$outcomes), by = join_by("rowId", "stratumId")) %>%
+    select(-"rowId")
+  return(data)
 }

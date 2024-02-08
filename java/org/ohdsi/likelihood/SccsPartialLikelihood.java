@@ -42,10 +42,10 @@ public class SccsPartialLikelihood extends AbstractModelLikelihood {
 	private final double[] xps;
 	private final int[] idxs;
 	private boolean likelihoodKnown;
-	private double logLikelihood; // Internally using min log likelihood because lbfgs4j minimizes
+	private double minLogLikelihood; // Internally using min log likelihood because lbfgs4j minimizes
 	private boolean storedLikelihoodKnown;
-	private double storedLogLikelihood;
-	private double[] gradient; // Internally using min gradient because lbfgs4j minimizes
+	private double storedMinLogLikelihood;
+	private double[] minGradient; // Internally using min gradient because lbfgs4j minimizes
 
 	public SccsPartialLikelihood(Parameter beta, SccsData data) {
 
@@ -74,7 +74,7 @@ public class SccsPartialLikelihood extends AbstractModelLikelihood {
 		exps = new double[maxStratumSize];
 		xps = new double[maxStratumSize];
 		idxs = new int[maxStratumSize];
-		gradient = new double[data.x[0].length];
+		minGradient = new double[data.x[0].length];
 		likelihoodKnown = false;
 	}
 
@@ -86,8 +86,8 @@ public class SccsPartialLikelihood extends AbstractModelLikelihood {
 		double sumExps = 0;
 		double[] sumExpXs = new double[pX.length];
 		Arrays.fill(sumExpXs, 0);
-		logLikelihood = 0;
-		Arrays.fill(gradient, 0);
+		minLogLikelihood = 0;
+		Arrays.fill(minGradient, 0);
 		for (int i = 0; i < n; i++) {
 			double xp = data.a[i] * pA;
 			for (int j = 0; j < pX.length; j++)
@@ -107,12 +107,12 @@ public class SccsPartialLikelihood extends AbstractModelLikelihood {
 				double logDenominator = FastMath.log(sumExps);
 				for (int j = 0; j < cursor; j++) {
 					int idx = idxs[j];
-					logLikelihood -= data.y[idx]*(FastMath.log(exps[j])-logDenominator);
+					minLogLikelihood -= data.y[idx]*(FastMath.log(exps[j])-logDenominator);
 					for (int k = 0; k < pX.length; k++) {
 						double part1 = data.y[idx] * FastMath.exp(-xps[j]) * sumExps / data.time[idx];
 						double part2 = ((data.x[idx][k] * exps[j]) / sumExps); 
 						double part3 = ((exps[j] * sumExpXs[k])/FastMath.pow(sumExps, 2));
-						gradient[k] -= part1 * (part2 - part3);
+						minGradient[k] -= part1 * (part2 - part3);
 					}
 				}
 				cursor = 0;
@@ -124,7 +124,7 @@ public class SccsPartialLikelihood extends AbstractModelLikelihood {
 
 	private void refitModelAtNewBeta() {
 		OptimizableFuntion function = new OptimizableFuntion();
-		LbfgsMinimizer minimizer = new LbfgsMinimizer();
+		LbfgsMinimizer minimizer = new LbfgsMinimizer(false);
 		minimizer.minimize(function); 
 	}
 
@@ -138,13 +138,13 @@ public class SccsPartialLikelihood extends AbstractModelLikelihood {
 	@Override
 	protected void storeState() {
 		storedLikelihoodKnown = likelihoodKnown;
-		storedLogLikelihood = logLikelihood;
+		storedMinLogLikelihood = minLogLikelihood;
 	}
 
 	@Override
 	protected void restoreState() {
 		likelihoodKnown = storedLikelihoodKnown;
-		logLikelihood = storedLogLikelihood;
+		minLogLikelihood = storedMinLogLikelihood;
 	}
 
 	@Override
@@ -163,7 +163,7 @@ public class SccsPartialLikelihood extends AbstractModelLikelihood {
 			refitModelAtNewBeta();
 			likelihoodKnown = true;
 		}
-		return -logLikelihood;
+		return -minLogLikelihood;
 	}
 
 	@Override
@@ -181,7 +181,7 @@ public class SccsPartialLikelihood extends AbstractModelLikelihood {
 		double[] lastPoint;
 
 		public OptimizableFuntion() {
-			lastPoint = new double[gradient.length];
+			lastPoint = new double[minGradient.length];
 			Arrays.fill(lastPoint, 9999);
 		}
 
@@ -199,19 +199,19 @@ public class SccsPartialLikelihood extends AbstractModelLikelihood {
 
 		@Override
 		public int getDimension() {
-			return gradient.length;
+			return minGradient.length;
 		}
 
 		@Override
 		public double[] gradientAt(double[] arg0) {
 			updateIfNeeded(arg0);
-			return gradient;
+			return minGradient;
 		}
 
 		@Override
 		public double valueAt(double[] arg0) {
 			updateIfNeeded(arg0);
-			return logLikelihood;
+			return minLogLikelihood;
 		}
 	}
 	
@@ -248,13 +248,15 @@ public class SccsPartialLikelihood extends AbstractModelLikelihood {
 		double[] a = new double[] { 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0 };
 		double[][] x = new double[][] { {0}, {0}, {0}, {1}, {0}, {0}, {0}, {1}, {0}, {0}, {0}, {1}, {0}, {0}, {0}, {1}, {0}, {0}, {0}, {1}, {0}, {0}, {0}, {1}, {0}, {0}, {0}, {1}, {0}, {0}, {0}, {1}, {0}, {0}, {0}, {1}, {0}, {1}};
 		int[] stratumId = new int[] { 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9, 10, 10 };
-		double beta = 2.487975; // As fitted by Cyclops
 		SccsData data = new SccsData(y, a, x, stratumId, time);
 		
-		Parameter parameter = new Parameter.Default(beta);
-
+		Parameter parameter = new Parameter.Default(-9999.9);// Some extreme value
 		Likelihood sccs = new SccsPartialLikelihood(parameter, data);
-
+		System.err.println(sccs.getLogLikelihood());
+		// NaN
+		
+		parameter.setParameterValue(0, 2.487975); // As fitted by Cyclops
+		sccs.makeDirty();
 		System.err.println(sccs.getLogLikelihood());
 		// Should be ~ -10.08828 according to Cyclops
 	}

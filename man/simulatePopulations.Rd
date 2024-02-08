@@ -7,12 +7,15 @@
 simulatePopulations(settings = createSimulationSettings())
 }
 \arguments{
-\item{settings}{An object of type \code{simulationSettings}, created by the
-\code{\link[=createSimulationSettings]{createSimulationSettings()}} function.}
+\item{settings}{Either an object of type \code{simulationSettings}, created by the
+\code{\link[=createSimulationSettings]{createSimulationSettings()}} function or an object of type \code{sccsSimulationSettings}
+as created by the \code{\link[=createSccsSimulationSettings]{createSccsSimulationSettings()}} function.}
 }
 \value{
-A object of class \code{simulation}, which is a list of populations, each a data frame with columns
-\code{rowId}, \code{stratumId}, \code{x}, \code{time}, and \code{y}.
+A object of class \code{simulation}, which is a list of population data frames. Depending on the type of
+simulation, the data frames have different columns: Cox simulations will have the columns
+\code{rowId}, \code{stratumId}, \code{x}, \code{time}, and \code{y}. SCCS simulations will have the columns \code{stratumId}, \code{a},
+\code{x1...xN}, \code{time}, and \code{y}.
 }
 \description{
 Simulate survival data for multiple databases

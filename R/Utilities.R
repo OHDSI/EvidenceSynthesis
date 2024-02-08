@@ -59,3 +59,17 @@ isRmdCheck <- function() {
 isUnitTest <- function() {
   return(tolower(Sys.getenv("TESTTHAT", "")) == "true")
 }
+
+ensureInstalled <- function(pkgs) {
+  notInstalled <- pkgs[!(pkgs %in% rownames(utils::installed.packages()))]
+
+  if (interactive() & length(notInstalled) > 0) {
+    message("Package(s): ", paste(notInstalled, collapse = ", "), " not installed")
+    if (!isTRUE(utils::askYesNo("Would you like to install them?"))) {
+      stop("Required package(s) not installed")
+    }
+  }
+  for (package in notInstalled) {
+    utils::install.packages(package)
+  }
+}

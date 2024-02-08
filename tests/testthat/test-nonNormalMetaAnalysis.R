@@ -39,6 +39,20 @@ if (recomputeGoldStandard) {
   saveRDS(populations, "resources/populations.rds")
   saveRDS(pooledFixedFxEstimate, "resources/pooledFixedFxEstimate.rds")
   saveRDS(pooledRandomFxEstimate, "resources/pooledRandomFxEstimate.rds")
+
+  # populations <- simulatePopulations(settings = createSccsSimulationSettings(
+  #   nSites = 10,
+  #   n = 2500,
+  #   atRiskTimeFraction = 0.25,
+  #   timePartitions = 10,
+  #   timeCovariates = 5,
+  #   timeEffectSize = log(2),
+  #   rateRatio = 2,
+  #   randomEffectSd = 0.5
+  # ))
+  # pooledFixedFxEstimate <- computeFixedEffectMetaAnalysis(populations)
+  # pooledRandomFxEstimate <- computeBayesianMetaAnalysis(populations)
+
 } else {
   populations <- readRDS("resources/populations.rds")
   pooledFixedFxEstimate <- readRDS("resources/pooledFixedFxEstimate.rds")

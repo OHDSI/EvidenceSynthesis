@@ -25,6 +25,7 @@ createNaEstimate <- function(type) {
   )
   attr(estimate, "traces") <- matrix(ncol = 2)
   attr(estimate, "type") <- type
+  attr(estimate, "ess") <- NA
   return(estimate)
 }
 
@@ -121,9 +122,11 @@ computeBayesianMetaAnalysis <- function(data,
   }
 
   # refactored: using utils function to create a `dataModel` object
-  dataModel = constructDataModel(data)
   type = detectApproximationType(data)
-
+  dataModel = constructDataModel(data)
+  if (is.null(dataModel)) {
+    return(createNaEstimate(type))
+  }
   inform("Performing MCMC. This may take a while")
   prior <- rJava::.jnew("org.ohdsi.metaAnalysis.HalfNormalOnStdDevPrior", 0, as.numeric(priorSd[2]))
   if (robust) {

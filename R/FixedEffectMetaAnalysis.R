@@ -108,6 +108,22 @@ computeFixedEffectMetaAnalysis <- function(data, alpha = 0.05) {
       seLogRr = (ci95[3] - ci95[2]) / (2 * qnorm(0.975))
     )
     return(estimate)
+  } else if (type == "pooled sccs") {
+    population <- poolPopulations(data)
+    xColnames <- colnames(population)[grep("x[0-9]+", colnames(population))]
+    formula <- as.formula(paste("y ~ a +", paste0(xColnames, collapse = " + "), " + strata(stratumId) + offset(log(time))"))
+    cyclopsData <- Cyclops::createCyclopsData(formula, data = population, modelType = "cpr")
+    cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
+    mode <- coef(cyclopsFit)["a"]
+    ci95 <- confint(cyclopsFit, parm="a", level = 0.95)
+    estimate <- data.frame(
+      rr = exp(mode),
+      lb = exp(ci95[2]),
+      ub = exp(ci95[3]),
+      logRr = mode,
+      seLogRr = (ci95[3] - ci95[2]) / (2 * qnorm(0.975))
+    )
+    return(estimate)
   } else if (type == "adaptive grid") {
     estimate <- computeFixedEffectAdaptiveGrid(data, alpha)
     return(estimate)
