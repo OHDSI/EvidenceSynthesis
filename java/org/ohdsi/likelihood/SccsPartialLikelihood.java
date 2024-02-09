@@ -22,6 +22,8 @@ import org.ohdsi.data.SccsData;
 
 import com.github.lbfgs4j.LbfgsMinimizer;
 import com.github.lbfgs4j.liblbfgs.Function;
+import com.github.lbfgs4j.liblbfgs.Lbfgs;
+import com.github.lbfgs4j.liblbfgs.LbfgsConstant.LBFGS_Param;
 
 import dr.inference.model.AbstractModelLikelihood;
 import dr.inference.model.Likelihood;
@@ -124,7 +126,10 @@ public class SccsPartialLikelihood extends AbstractModelLikelihood {
 
 	private void refitModelAtNewBeta() {
 		OptimizableFuntion function = new OptimizableFuntion();
-		LbfgsMinimizer minimizer = new LbfgsMinimizer(false);
+		LBFGS_Param params = Lbfgs.defaultParams(); 
+		params.epsilon = 1e-06;
+		params.delta = 1e-06;
+		LbfgsMinimizer minimizer = new LbfgsMinimizer(params, false);
 		minimizer.minimize(function); 
 	}
 
