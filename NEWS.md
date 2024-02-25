@@ -5,6 +5,7 @@ Changes
 
 1. Providing additional example dataset -- profile likelihoods from LegendT2dm. 
 2. Refactor code for constructing `DataModel` objects. 
+3. Increasing tolerance for adaptive grid profiling in `approximateLikelihood()` from 0.001 to 0.1 for stability.
 
 
 EvidenceSynthesis 0.6.0
