@@ -66,7 +66,7 @@ approximateLikelihood <- function(cyclopsFit,
     names(result) <- x
     return(result)
   } else if (approximation == "adaptive grid") {
-    result <- Cyclops::getCyclopsProfileLogLikelihood(cyclopsFit, parameter, bounds = bounds, tolerance = 0.1)
+    result <- Cyclops::getCyclopsProfileLogLikelihood(cyclopsFit, parameter, bounds = bounds, tolerance = 0.001)
     return(result)
   } else if (approximation == "normal") {
     if (cyclopsFit$return_flag != "SUCCESS") {
