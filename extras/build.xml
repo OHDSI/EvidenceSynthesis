@@ -20,7 +20,7 @@
     <!-- set global properties for this build -->
     <property name="src" location="${repodir}/java"/>
     <property name="build" location="build"/>
-    <property name="beastjar" location="${repodir}/../BeastJar/java"/>
+    <property name="beastjar" location="${repodir}/../BeastJar/inst/java"/>
     <property name="dist" location="${repodir}/inst/java"/>
 
      <path id="classpath">
@@ -66,6 +66,7 @@
             </manifest>
             <fileset dir="${build}">
             	<include name="org/ohdsi/**/*.class"/>
+            	<include name="dr/inference/**/*.class"/>
             	<include name="test/org/ohdsi/**/*.class"/>
             </fileset>
         </jar>

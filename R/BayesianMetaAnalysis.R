@@ -13,6 +13,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 createNaEstimate <- function(type) {
   estimate <- data.frame(
     mu = NA,
@@ -192,3 +193,14 @@ computeBayesianMetaAnalysis <- function(data,
   attr(estimate, "ess") <- coda::effectiveSize(traces)
   return(estimate)
 }
+
+# TODO documentation
+#
+#' @export
+loadCyclopsLibraryForJava <- function(file = system.file("libs",
+                                                         "Cyclops.so",
+                                                         package = "Cyclops")) {
+  rJava::J("dr/inference/regression/NewRegressionJNIWrapper",
+           "loadLibrary", file)
+}
+
