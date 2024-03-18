@@ -194,7 +194,12 @@ computeBayesianMetaAnalysis <- function(data,
   return(estimate)
 }
 
-# TODO documentation
+#' Load the Cyclops dynamic C++ library for use in Java
+#'
+#' @description
+#' Load the Cyclops dynamic C++ library for Markov chain Monte Carlo (MCMC) engine BEAST sampling.
+#'
+#' @param file                 The full system path to the `Cyclops.so` library
 #
 #' @export
 loadCyclopsLibraryForJava <- function(file = system.file("libs",
