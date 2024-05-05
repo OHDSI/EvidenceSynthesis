@@ -187,6 +187,7 @@ computeBayesianMetaAnalysis <- function(data,
     seLogRr = sqrt(mean((traces[, 1] - mu)^2)),
     row.names = NULL
   )
+  colnames(traces) = parameterNames[3:length(parameterNames)]
   attr(estimate, "traces") <- traces
   attr(estimate, "type") <- type
   attr(estimate, "ess") <- coda::effectiveSize(traces)

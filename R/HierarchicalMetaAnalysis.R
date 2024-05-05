@@ -410,7 +410,7 @@ extractSourceSpecificEffects <- function(estimates, alpha = 0.05){
   newColumns = NULL
   for(e in effectColumnNames){
     for(s in sourceColumnNames){
-      this.source.effect = traces[,e] - (traces[,s] - traces[,"source.mean"])
+      this.source.effect = traces[,e] + (traces[,s] - traces[,"source.mean"])
       newTraces = cbind(newTraces, this.source.effect)
       newColumns = c(newColumns, sprintf("%s.%s", e, s))
     }

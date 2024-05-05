@@ -49,14 +49,14 @@ And thus, the within-data-source-$i$ average bias should be $b_0 + \delta_i$.
 Following the logic above, let's run a simple-stupid simulation with 5 databases and 20 negative control outcomes. 
 
 Set $b_0 = 0.5, \tau_b = 0.1$, and $\delta_0 = 0, \tau_{\delta} = 0.5$. 
-```{r simulate bias terms}
+```{r simulate bias terms, cache = TRUE}
 n_data = 5; m_nc = 20
 bs = rnorm(m_nc, mean = 0.5, sd = 0.1)
 deltas = rnorm(n_data, mean = 0, sd = 0.5)
 ```
 
 Then put together all the bias terms (with a little bit standard normal random errors):
-```{r assemble biases}
+```{r assemble biases, cache = TRUE}
 biases = matrix(rep(bs, n_data),nrow = m_nc, ncol = n_data) +
   matrix(rep(deltas, m_nc), nrow = m_nc, ncol = n_data, byrow = TRUE)
 
@@ -67,31 +67,31 @@ bias_dat = data.frame(bias = c(biases),
 
 
 Check the data-source biases:
-```{r print data biases}
+```{r print data biases, cache = TRUE}
 cat("Data source biases are: \n", paste(format(deltas, digits = 3), collapse = ", "), "\n")
 ```
 
 Check out the distribution of the meta-analysis biases for all outcomes:
-```{r check meta-analytic biases distribution, fig.width=4, fig.height=3}
+```{r check meta-analytic biases distribution, fig.width=4, fig.height=3, cache = TRUE}
 hist(bs)
 ```
 
 
 First, fit a mixed effects model that includes a fixed effect for data sources, and a random effect for outcomes (honestly don't know the difference but let's run with that):
-```{r hierarchical model}
+```{r hierarchical model, cache = TRUE}
 hier.mod = lmer(bias ~ datasource + (1|outcome), data = bias_dat)
 coef(hier.mod)
 ```
 
 Also fit a purely fixed effects model (linear regression):
-```{r simple LM}
+```{r simple LM, cache = TRUE}
 hier.mod.lm = lm(bias ~ datasource + outcome - 1, data = bias_dat)
 coef(hier.mod.lm)
 ```
 
 There is an identifiability issue in that not all effects can be separately estimated. 
 We can see that, for example, the estimated effects for `datasource1` through `datasource5` are in fact $\delta_1 + b_1$ through $\delta_5 + b_1$,
-```{r}
+```{r, cache = TRUE}
 cat("Data source effects + effect for outcome 1 are: \n", 
     paste(format(deltas + bs[1], digits = 3), collapse = ", "), "\n\n")
 
@@ -101,13 +101,13 @@ cat("Estimated data source effects in linear model are: \n",
 
 
 Second, fit a ``local'' bias model for each data source separately. 
-```{r}
+```{r, cache = TRUE}
 local.mod.lm = lm(bias ~ datasource - 1, data = bias_dat)
 coef(local.mod.lm)
 ```
 
 Basically we are getting the relative data-source effects plus some intercept, with the intercept being the average bias across all outcomes:
-```{r check differences}
+```{r check differences, cache = TRUE}
 cat("Differences between estimated and real data-source effects:\n",
     paste(format(coef(local.mod.lm) - deltas, digits = 3), collapse = ", "), "\n\n")
 
@@ -115,4 +115,184 @@ cat("The sample average bias across outcomes:\n",
     format(mean(bs), digits = 3), "\n")
 ```
 
+
+### Simulation experiments on multiple data sources with negative controls
+
+Let's generate some simulated data (survival data) across a federated data network and fit models with different setups. 
+
+```{r simulationSettings, message=FALSE, warning=FALSE}
+library(EvidenceSynthesis)
+
+nSites = 10
+sitePop = 10000
+mNegativeControls = 50
+meanBias = 0.5
+biasStd = 0.1
+meanSiteEffect = 0 # has to be fixed at 0 !
+siteEffectStd = 0.15
+seed = 42
+```
+
+```{r setToNoShow, echo = FALSE, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+
+```{r simulationCode, message=FALSE}
+# a simple function that simulates and approximates likelihood profiles for a specified RR
+simulateAndApproximate <- function(trueRR){
+  metaPopulations = simulateMetaAnalysisWithNegativeControls(meanExposureEffect = log(trueRR),
+                                                             nSites = nSites,
+                                                             mNegativeControls = mNegativeControls,
+                                                             sitePop = sitePop,
+                                                             treatedFraction = 0.3,
+                                                             minBackgroundHazard = 0.05,
+                                                             maxBackgroundHazard = 0.05,
+                                                             nStrata = 1,
+                                                             meanBias = meanBias,
+                                                             biasStd = biasStd,
+                                                             meanSiteEffect = meanSiteEffect,
+                                                             siteEffectStd = siteEffectStd,
+                                                             seed = seed)
+  metaLPs = lapply(metaPopulations, createApproximations, "adaptive grid")
+  
+  return(metaLPs)
+}
+
+```
+
+```{r inferenceCode, message=FALSE}
+
+estimateAsString <- function(v, digits = 3, exponentiate = TRUE){
+  if(exponentiate){v = exp(v)}
+  v = round(v, digits = digits)
+  s = sprintf("%s (%s, %s)", v[1], v[2], v[3])
+  return(s)
+}
+
+fitModels <- function(trueRR, metaLPs, seed = 666){
+  
+  res = list(RR = trueRR)
+  
+  # 1 ## fit a joint model with main exposure effect included (uninformative mean):
+  resFile = file.path("cache", sprintf("fittedModel-uninformed-%s.rds", trueRR))
+  if(file.exists(resFile)){
+    maWithExposure = readRDS(resFile)
+  }else{
+    maWithExposure = computeHierarchicalMetaAnalysis(data = metaLPs,
+                                                   globalExposureEffectPrior = c(0, 10.0),
+                                                   seed = seed)
+    saveRDS(maWithExposure, file = resFile)
+  }
+  
+  res$uninformed = estimateAsString(maWithExposure[6,2:4])
+  rm(maWithExposure)
+  
+  # 2. try using a "friendlier" prior for the meta-analytic effect
+  resFile = file.path("cache", sprintf("fittedModel-informed-%s.rds", trueRR))
+  if(file.exists(resFile)){
+    maWithExposure = readRDS(resFile)
+  }else{
+    maWithExposure = computeHierarchicalMetaAnalysis(data = metaLPs,
+                                                   globalExposureEffectPrior = c(log(trueRR), 2.0),
+                                                   seed = seed)
+    saveRDS(maWithExposure, file = resFile)
+  }
+  
+  res$informed = estimateAsString(maWithExposure[6,2:4])
+  rm(maWithExposure)
+  
+  #3.(try with the option that does the separate prior on biased effect estimand
+  resFile = file.path("cache", sprintf("fittedModel-separate-%s.rds", trueRR))
+  if(file.exists(resFile)){
+    maWithExposure = readRDS(resFile)
+  }else{
+    maWithExposure = computeHierarchicalMetaAnalysis(data = metaLPs,
+                                                   globalExposureEffectPrior = c(log(trueRR), 10.0),
+                                                   separateExposurePrior = TRUE,
+                                                   seed = seed)
+    saveRDS(maWithExposure, file = resFile)
+  }
+  
+  res$separate = estimateAsString(maWithExposure[6,2:4])
+  rm(maWithExposure)
+  
+  #4. two-stage approach
+  resFile = file.path("cache", sprintf("fittedModel-twoStage-%s.rds", trueRR))
+  if(file.exists(resFile)){
+    adjustedMainEffectSamps= readRDS(resFile)
+  }else{
+    maNCsOnly = computeHierarchicalMetaAnalysis(data = metaLPs[1:(length(metaLPs)-1)],
+                                                seed = seed,
+                                                includeExposureEffect = FALSE)
+    traces = attr(maNCsOnly, "traces")
+    newBiasSamps = rnorm(nrow(traces), 
+                         mean = traces[,"outcome.mean"] + traces[,"source.mean"], 
+                         sd = 1/sqrt(traces[,"outcome.scale"]))
+    
+    maExposure = computeBayesianMetaAnalysis(data = metaLPs[[length(metaLPs)]],
+                                             seed = seed)
+    tracesExposure = attr(maExposure, "traces")
+    mainEffectSamps = tracesExposure[,1]
+    adjustedMainEffectSamps = mainEffectSamps - newBiasSamps
+    
+    saveRDS(adjustedMainEffectSamps, file = resFile)
+  }
+  
+  res$twoStage = estimateAsString(summarizeChain(adjustedMainEffectSamps)[2:4])
+  rm(adjustedMainEffectSamps)
+  
+  res = data.frame(res)
+  return(res)
+  
+}
+
+```
+
+```{r runExperiment, message=TRUE, eval = TRUE}
+rJava::.jinit(parameters="-Xmx32g", force.init = TRUE)
+options(java.parameters = c("-Xms200g", "-Xmx200g"))
+
+trueRRs = c(1, 2, 4, 6, 8)
+
+res = NULL
+
+for(trueRR in trueRRs){
+  cat("\nSimulation experiments with true RR =", trueRR, "...\n")
+  LPfile = file.path("cache", sprintf("metaLPs-%s.rds", as.integer(trueRR)))
+  if(file.exists(LPfile)){
+    metaLPs = readRDS(LPfile)
+  }else{
+    metaLPs = simulateAndApproximate(trueRR)
+    saveRDS(metaLPs, file = LPfile)
+  }
+  this.res = fitModels(trueRR, metaLPs)
+  res = dplyr::bind_rows(res, this.res)
+  cat("Done!\n\n")
+}
+```
+
+
+```{r saveResults, echo=FALSE, include=FALSE, eval = TRUE}
+if(!dir.exists("cache")){
+  dir.create("cache/")
+}
+
+saveRDS(res, "cache/hmaSimulations.rds")
+```
+
+
+
+```{r displaySummary}
+# load pre-saved results
+
+loadPreSaved = FALSE
+
+if(loadPreSaved & file.exists("cache/hmaSimulations.rds")){
+  res = readRDS("cache/hmaSimulations.rds")
+}
+
+knitr::kable(res, 
+             align = c("r", "c", "c", "c", "c"))
+```
 

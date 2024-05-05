@@ -196,39 +196,63 @@ public class HierarchicalMetaAnalysis implements Analysis {
 
 		this.parameters = allParameters;
 
-//		GradientWrtParameterProvider subGradientDataModel1 = makeDataModelCompoundGradient(allMetaAnalysisDataModels);
-//		GradientWrtParameterProvider subGradientDataModel2 = new SimpleLinearModelGradientWrtArgument(allEffectDistribution);
-//		JointGradient gradientDataModel = new JointGradient(List.of(subGradientDataModel1, subGradientDataModel2));
-//
-//		System.err.println(gradientDataModel.getReport());
-//
-//		GradientWrtParameterProvider subGradientEffects1 = new SimpleLinearModelGradientWrtEffects(allEffectDistribution);
-//		CompoundGradient subGradientEffects2 = new CompoundDerivative(allEffectsGradient);
-//		JointGradient gradientEffects = new JointGradient(List.of(subGradientEffects1, subGradientEffects2));
-//
-//		System.err.println(gradientEffects.getReport());
-//
-//		CompoundGradient totalGradient = new CompoundDerivative(List.of(gradientDataModel, gradientEffects));
-//
-//		System.err.println(totalGradient.getReport());
-//
-//		// Use HMC
-//		HmcOptions options = new HmcOptions(totalGradient);
-//		HamiltonianMonteCarloOperator hmc = new HamiltonianMonteCarloOperator(
-//				AdaptationMode.ADAPTATION_ON, 1.0,
-//				totalGradient,
-//				totalGradient.getParameter(), null, null,
-//				options.getHmcOptions(), options.getPreconditioner());
-//
-//		// Remove old MH operators
+		GradientWrtParameterProvider subGradientDataModel1 = makeDataModelCompoundGradient(allMetaAnalysisDataModels);
+		GradientWrtParameterProvider subGradientDataModel2 = new SimpleLinearModelGradientWrtArgument(allEffectDistribution);
+		JointGradient gradientDataModel = new JointGradient(List.of(subGradientDataModel1, subGradientDataModel2));
+
+		System.err.println(gradientDataModel.getReport());
+
+		GradientWrtParameterProvider subGradientEffects1 = new SimpleLinearModelGradientWrtEffects(allEffectDistribution);
+		CompoundGradient subGradientEffects2 = new CompoundDerivative(allEffectsGradient);
+		JointGradient gradientEffects = new JointGradient(List.of(subGradientEffects1, subGradientEffects2));
+
+		System.err.println(gradientEffects.getReport());
+
+		CompoundGradient totalGradient = new CompoundDerivative(List.of(gradientDataModel, gradientEffects));
+
+		System.err.println(totalGradient.getReport());
+
+		// Use HMC
+		HmcOptions options = new HmcOptions(totalGradient);
+		HamiltonianMonteCarloOperator hmc = new HamiltonianMonteCarloOperator(
+				AdaptationMode.ADAPTATION_ON, 1.0,
+				totalGradient,
+				totalGradient.getParameter(), null, null,
+				options.getHmcOptions(), options.getPreconditioner());
+
+		// Remove old MH operators
+//	    // ???? what should be removed??
+		// Need to remove: all theta's (local parameters), all outcome effects, source effects, and primary exposure effects
 //		allOperators.remove(0);
 //		allOperators.remove(0);
 //		allOperators.remove(0);
 //		allOperators.remove(1);
 //		allOperators.remove(3);
 //		allOperators.remove(5);
-//
-//		allOperators.add(hmc);
+
+		// remove local data model parameters (the theta's)
+		for(int i = 0; i < allMetaAnalysisDataModels.size(); i++) {
+			allOperators.remove(0);
+		}
+		allOperators.remove(1); // remove outcome effects
+		if(cg.includeSecondary) {
+			allOperators.remove(3);
+			if(cg.includeExposure) {
+				for(int i = 0; i < cg.effectCount; i++) {
+					allOperators.remove(5);
+				}
+			}
+		} else {
+			if(cg.includeExposure) {
+				for(int i = 0; i < cg.effectCount; i++) {
+					allOperators.remove(3);
+				}
+			}
+		}
+
+
+		allOperators.add(hmc);
+
 
 		this.schedule = new SimpleOperatorSchedule(1000, 0.0);
 		this.schedule.addOperators(allOperators);

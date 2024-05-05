@@ -67,6 +67,9 @@
             <fileset dir="${build}">
             	<include name="org/ohdsi/**/*.class"/>
             	<include name="test/org/ohdsi/**/*.class"/>
+            	<include name="dr/inference/**/*.class"/>
+            	<include name="dr/inference/**/**/*.class"/>
+            	<include name="dr/inference/**/**/**/*.class"/>
             </fileset>
         </jar>
     </target>

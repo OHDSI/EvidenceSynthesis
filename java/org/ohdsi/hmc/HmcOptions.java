@@ -18,7 +18,7 @@ public class HmcOptions {
 
         hmcOptions = new HamiltonianMonteCarloOperator.Options(0.1, 5, 0.0,
                 preconditioningOptions,
-                100, 1E-4,
+                100, 1E-3,
                 10, 0.1, 0.8,
                 HamiltonianMonteCarloOperator.InstabilityHandler.factory("reject"));
 
