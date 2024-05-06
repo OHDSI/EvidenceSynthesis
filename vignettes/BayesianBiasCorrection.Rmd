@@ -200,3 +200,8 @@ plotBiasCorrectionInference(bbcSequential,
 )
 ```
 
+
+#### References
+
+F. Bu, M. J. Schuemie,  A. Nishimura, L. H. Smith, K. Kostka, T. Falconer, J. A. McLeggon, P. B. Ryan, G. Hripcsak, and M. A. Suchard.
+Bayesian Safety Surveillance with Adaptive Bias Correction (2023). _Statistics in Medicine._
