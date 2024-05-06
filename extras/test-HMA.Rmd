@@ -1,0 +1,215 @@
+---
+title: "Hierarchical meta analysis with bias correction"
+author: "Fan Bu"
+date: "05/05/2024"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(EvidenceSynthesis)
+library(dplyr)
+#library(lme4)
+
+rJava::.jinit(parameters="-Xmx32g", force.init = TRUE)
+options(java.parameters = c("-Xms200g", "-Xmx200g"))
+
+set.seed(42)
+```
+
+Our goal is to fit a hierarchical Bayesian model to learn the meta-analytic effect with bias correction using negative control experiments. We will first try some naive experiments as proof-of-concept. 
+
+
+### The modeling assumptions
+
+Suppose $\beta_{ij}$ is the (biased) effect estimate for outcome $j$ within data source $i$, then we may specify a two-way ANOVA model for heterogeneity across outcomes and data sources: 
+
+$$
+\begin{aligned}
+\beta_{ij} &= \lambda_j + b_j + \delta_i, \quad \text{ where }\\
+\lambda_j &= \quad \qquad \text{true meta-analytic effect}, \\
+b_j&= \quad \qquad \text{meta-analytic bias for outcome } j, \\
+\delta_i&= \quad \qquad \text{data-source additional bias for source } i.
+\end{aligned}
+$$
+By definition, $\lambda_j = 0$ if outcome $j$ is a negative control, and $\neq 0$ if it's an outcome of interest. For simplicity, assume that outcomes $j = 1, 2, \ldots, J$ are negative controls, and outcome $J+1$ is an outcome of interest. (There could be _multiple_ outcomes of interest, but here we start with only one.)
+
+Further assume (for $j = 1, 2, \ldots, J$)
+$$
+\begin{aligned}
+b_j &\sim N(b_0, \tau_b^2), \, \text{and}\\
+\delta_i &\sim N(\delta_0, \tau_{\delta}^2).
+\end{aligned}
+$$
+Then within each data source $i$, with $\delta_i$ fixed, we should have 
+$$
+\beta_{ij} = b_j + \delta_i \sim N(b_0 + \delta_i, \tau_b^2). 
+$$
+That is, within each data source, the _source-specific_ bias term $\delta_i$ cannot be ``modeled away''. 
+And thus, the within-data-source-$i$ average bias should be $b_0 + \delta_i$. 
+
+Therefore, for an outcome of interest $j$, we should estimate it's bias corrected meta-analytic effect via the following relationship:
+$$
+\lambda_j = \beta_{ij} - b_j - \delta_i;
+$$
+while the bias corrected effect from data source $i$ should follow:
+$$
+\lambda_{j,i} = \beta_{ij} - b_j,
+$$
+or, equivalently,
+$$
+\lambda_{j,i} = \lambda_j + \delta_i. 
+$$
+
+### Some initial tests for the `computeHierarchicalMetaAnalysis` function
+
+First, load some test data (derived from a real dataset):
+```{r loadTestData}
+data("likelihoodProfileLists")
+```
+
+We can check out the data structure:
+```{r checkData, eval=FALSE}
+str(likelihoodProfileLists)
+```
+It contains the profile likelihoods for 10 negative control outcomes and 1 primary outcome of interest, across 14 different data sources. The main goal is to produce a bias corrected effect estimate for the primary outcome. 
+
+Now, try to run the `computeHierarchicalMetaAnalysis` function on this test data. First, we need to specify the hyper-parameters and settings for running the analysis. Here, we may want to run a shorter MCMC chain to save some computing time (otherwise it take a lot of time to run); all other settings will just be default. 
+```{r hmaSettings}
+hmaSettings = generateBayesianHMAsettings(
+  chainLength = 110000,
+  burnIn = 1e+4,
+  subSampleFrequency = 10
+)
+```
+
+You can check out the help file to see what this function does (and the default for each argument). 
+```{r settingHelp}
+?generateBayesianHMAsettings
+```
+(You may want to run `?computeHierarchicalMetaAnalysis` as well.)
+
+Then let's try to run (want to make sure there is no error and it doesn't collapse somehow).
+```{r tryRunHMA, cache = TRUE}
+estimates = computeHierarchicalMetaAnalysis(data = likelihoodProfileLists,
+                                            settings = hmaSettings,
+                                            seed = 666)
+```
+Let's print the results and take a look.
+```{r printResults}
+print(estimates)
+
+```
+
+The results contain more than a summary table. Notably, it includes all retains MCMC samples for all parameters in the model. For example, MCMC samples for $\delta_1$, the source effect for data source $1$ can be extracted as follows:
+```{r getMCMCsamples}
+chains = attr(estimates, "traces")
+source1chain = chains[,"source1"]
+```
+
+We can look at its traceplot too (looks terrible though, as expected).
+```{r traceplot, fig.height=5, fig.width=8}
+plot(source1chain, type = "l")
+```
+
+### Some simulation experiments
+
+Now we run some (still quite simple) simulation experiments where the true effect size, denoted as the true relative ratio (``**true RR**''), is known. We will proceed by assuming to have $50$ negative controls and $10$ data sources. In each data source, the total population size is $10,000$ with $30\%$ individuals receiving the target treatment. 
+
+As proof of concept, we can first assume true RR $=2.0$; that is, $\lambda_{J+1} = \log(2.0)$. 
+```{r simSettings}
+trueRR = 2
+
+nSites = 10 # num. of data source
+sitePop = 10000 # per source patient count
+treatedFraction = 0.3 # fraction of patients in target arm
+
+mNegativeControls = 50 # num. of NCs
+meanBias = 0.5 # mean and std for the meta bias distribution
+biasStd = 0.1
+
+meanSiteEffect = 0 # this has to be fixed at 0 !
+siteEffectStd = 0.15 # mean and std for the data source effect distribution
+```
+
+Specify a path to save intermediate results.
+```{r cachePath}
+cachepath = "cache0" # can change this to whatever you like... 
+if(!dir.exists(cachepath)){dir.create(cachepath)}
+```
+
+
+Define a function that runs patient-level simulations and extracts profile likelihoods for all outcomes and data sources. 
+```{r simFunc}
+simulateAndApproximate <- function(trueRR, seed = 42, cachePath = NULL, repId = 1){
+  metaPopulations = simulateMetaAnalysisWithNegativeControls(meanExposureEffect = log(trueRR),
+                                                             nSites = nSites,
+                                                             mNegativeControls = mNegativeControls,
+                                                             sitePop = sitePop,
+                                                             treatedFraction = treatedFraction,
+                                                             minBackgroundHazard = 0.05,
+                                                             maxBackgroundHazard = 0.05,
+                                                             nStrata = 1,
+                                                             meanBias = meanBias,
+                                                             biasStd = biasStd,
+                                                             meanSiteEffect = meanSiteEffect,
+                                                             siteEffectStd = siteEffectStd,
+                                                             seed = seed)
+  metaLPs = lapply(metaPopulations, createApproximations, "adaptive grid")
+
+  if(!is.null(cachePath)){
+    saveRDS(metaLPs, file.path(cachePath, sprintf("metaLPs-%s-%s.rds", trueRR, repId)))
+  }
+
+  return(metaLPs)
+}
+```
+
+Run a simulation. For illustration purposes, only repeat for once. This may take a while. (Of course, we can run multiple repetitions.)
+```{r simulateOnce, cache=TRUE}
+this.seed = 71 # set some seed
+metaLPs = simulateAndApproximate(trueRR, seed = this.seed, cachePath = cachepath, repId = 1)
+
+```
+
+Then we run the hierarchical meta analysis, but with the following variations:
+
+- using a diffuse $N(0,10)$ prior for $\lambda_{J+1}$
+- using an informed prior that centers at the true log-RR for $\lambda_{J+1}$
+- using a separable prior for $\lambda_{J+1}$
+
+```{r diffusePrior, cache=TRUE}
+# diffuse prior
+hmaSettings = generateBayesianHMAsettings(globalExposureEffectPriorMean = 0,
+                                          globalExposureEffectPriorStd = 10)
+maDiffuse = computeHierarchicalMetaAnalysis(data = metaLPs,
+                                            settings = hmaSettings)
+```
+
+```{r informedPrior, cache=TRUE}
+hmaSettings = generateBayesianHMAsettings(globalExposureEffectPriorMean = log(trueRR),
+                                          globalExposureEffectPriorStd = 2)
+maInformed = computeHierarchicalMetaAnalysis(data = metaLPs,
+                                            settings = hmaSettings)
+```
+
+```{r separablePrior, cache=TRUE}
+hmaSettings = generateBayesianHMAsettings(separateExposurePrior = TRUE)
+maSeparate = computeHierarchicalMetaAnalysis(data = metaLPs,
+                                            settings = hmaSettings)
+```
+
+We can summarize and compare the RR estimates (using posterior median with 95\% credible interval) from these three variations: 
+```{r comparePriors}
+allExposureEst = bind_rows(
+  maDiffuse %>% mutate(prior = "diffuse"),
+  maInformed %>% mutate(prior = "informed"),
+  maSeparate %>% mutate(prior = "separable")
+) %>% 
+  filter(parameter == "exposure1") %>%
+  mutate(estimate = exp(median), LB95 = exp(LB), UB95 = exp(UB)) %>% # exponentiate to RR scale!
+  select(prior, estimate:UB95) %>%
+  print()
+```
+
