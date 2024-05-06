@@ -35,6 +35,8 @@ b_j&= \quad \qquad \text{meta-analytic bias for outcome } j, \\
 $$
 By definition, $\lambda_j = 0$ if outcome $j$ is a negative control, and $\neq 0$ if it's an outcome of interest. For simplicity, assume that outcomes $j = 1, 2, \ldots, J$ are negative controls, and outcome $J+1$ is an outcome of interest. (There could be _multiple_ outcomes of interest, but here we start with only one.)
 
+As a concrete example, suppose we want to estimate the rate ratio (RR) for some outcome comparing a target treatment against a comparator treatment. Here, the effect estimate is on the log-scale of RR; that is, $\lambda_j$ denotes the log-RR for outcome $j$. 
+
 Further assume (for $j = 1, 2, \ldots, J$)
 $$
 \begin{aligned}
@@ -102,7 +104,7 @@ print(estimates)
 
 ```
 
-The results contain more than a summary table. Notably, it includes all retains MCMC samples for all parameters in the model. For example, MCMC samples for $\delta_1$, the source effect for data source $1$ can be extracted as follows:
+The results contain more than a summary table. Notably, it retains the MCMC samples for all parameters in the model. For example, the MCMC samples for $\delta_1$, the source effect for data source $1$, can be extracted as follows:
 ```{r getMCMCsamples}
 chains = attr(estimates, "traces")
 source1chain = chains[,"source1"]
