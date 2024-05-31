@@ -43,7 +43,7 @@ public class NewRegressionJNIWrapper {
 
     public native double getBeta(int instance, int index);
 
-    public native void getBeta(int instance, double[] beta);
+//    public native void getBeta(int instance, double[] beta); // TODO Not yet implemented
 
     public native int getBetaSize(int instance);
 

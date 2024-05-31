@@ -67,7 +67,10 @@ public class RegressionInCyclops {
 
     public void getBeta(double[] beta) {
         assert beta.length == dim;
-        wrapper.getBeta(instance, beta);
+//        wrapper.getBeta(instance, beta);
+        for (int i = 0; i < dim; ++i) {
+            beta[i] = wrapper.getBeta(instance, i);
+        }
     }
 
     public int getBetaSize() {
