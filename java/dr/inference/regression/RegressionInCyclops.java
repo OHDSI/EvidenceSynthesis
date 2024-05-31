@@ -25,6 +25,8 @@
 
 package dr.inference.regression;
 
+import dr.inference.model.AbstractModelLikelihood;
+
 /**
  * @author Marc A. Suchard
  */
