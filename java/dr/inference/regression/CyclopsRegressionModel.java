@@ -143,6 +143,8 @@ public class CyclopsRegressionModel extends AbstractModelLikelihood {
         return this;
     }
 
+    public Parameter getParameter() { return beta; }
+
     @Override
     public double getLogLikelihood() {
         if (!likelihoodKnown) {
@@ -165,6 +167,7 @@ public class CyclopsRegressionModel extends AbstractModelLikelihood {
     private void setBetaInCyclops() {
         if (updateAllBeta || betaDimChanged.isEmpty()) {
             cyclops.setBeta(beta.getParameterValues());
+            betaDimChanged.clear();
         } else {
             while (!betaDimChanged.isEmpty()) {
                 final int index = betaDimChanged.remove();
@@ -186,43 +189,59 @@ public class CyclopsRegressionModel extends AbstractModelLikelihood {
         return gradient;
     }
 
+    public static class MockCyclops {
+
+        private final Rengine rEngine;
+        private final CyclopsRegressionModel model;
+
+        public MockCyclops() {
+            rEngine = new Rengine(new String[]{"--no-save"}, false, null);
+
+            rEngine.eval("library(Cyclops)");
+            rEngine.eval("" +
+                    "dobson <- data.frame( " +
+                    "  counts = c(18,17,15,20,10,20,25,13,12)," +
+                    "  outcome = gl(3,1,9)," +
+                    "  treatment = gl(3,3))"
+            );
+            rEngine.eval("" +
+                    "data <- createCyclopsData(counts ~ outcome + treatment, data = dobson," +
+                    "  modelType = \"pr\")"
+            );
+            rEngine.eval("" +
+                    "fit <- fitCyclopsModel(data," +
+                    "  prior = createPrior(\"none\")," +
+                    "  control = createControl(noiseLevel = \"silent\"))"
+            );
+            rEngine.eval("" +
+                    "instance <- cacheCyclopsModelForJava(fit)");
+            rEngine.eval("" +
+                    "libraryFileName <- system.file(\"libs\", \"Cyclops.so\", package = \"Cyclops\")");
+
+            double[] mode = rEngine.eval("coef(fit)").asDoubleArray();
+            int instance = rEngine.eval("instance").asInt();
+            String libraryFileName = rEngine.eval("libraryFileName").asString();
+
+            System.err.println(new WrappedVector.Raw(mode));
+            System.err.println(instance);
+            System.err.println(libraryFileName);
+
+            model = new CyclopsRegressionModel("name",
+                    libraryFileName, instance, new Parameter.Default(mode.length), true);
+        }
+
+        public CyclopsRegressionModel getModel() { return model; }
+
+        public void close() {
+            rEngine.end();
+        }
+    }
+
     public static void main(String[] args) {
 
-        Rengine rEngine = new Rengine(new String[]{"--no-save"}, false, null);
-
-        rEngine.eval("library(Cyclops)");
-        rEngine.eval("" +
-                "dobson <- data.frame( " +
-                "  counts = c(18,17,15,20,10,20,25,13,12)," +
-                "  outcome = gl(3,1,9)," +
-                "  treatment = gl(3,3))"
-        );
-        rEngine.eval("" +
-                "data <- createCyclopsData(counts ~ outcome + treatment, data = dobson," +
-                "  modelType = \"pr\")"
-        );
-        rEngine.eval("" +
-                "fit <- fitCyclopsModel(data," +
-                "  prior = createPrior(\"none\")," +
-                "  control = createControl(noiseLevel = \"silent\"))"
-        );
-        rEngine.eval("" +
-                "instance <- cacheCyclopsModelForJava(fit)");
-        rEngine.eval("" +
-                "libraryFileName <- system.file(\"libs\", \"Cyclops.so\", package = \"Cyclops\")");
-
-        double[] mode = rEngine.eval("coef(fit)").asDoubleArray();
-        int instance = rEngine.eval("instance").asInt();
-        String libraryFileName = rEngine.eval("libraryFileName").asString();
-
-        System.err.println(new WrappedVector.Raw(mode));
-        System.err.println(instance);
-        System.err.println(libraryFileName);
-
-        Parameter beta = new Parameter.Default(mode.length);
-
-        CyclopsRegressionModel model = new CyclopsRegressionModel("name",
-                libraryFileName, instance, beta, true);
+        MockCyclops mock = new MockCyclops();
+        CyclopsRegressionModel model = mock.getModel();
+        Parameter beta = model.getParameter();
 
         System.err.println(new WrappedVector.Raw(beta.getParameterValues()));
         System.err.println(model.getLogLikelihood());
@@ -239,6 +258,6 @@ public class CyclopsRegressionModel extends AbstractModelLikelihood {
         double[] gradient = modelGradient.getGradientLogDensity();
         System.err.println(new WrappedVector.Raw(gradient));
 
-        rEngine.stop();
+        mock.close();
     }
 }
