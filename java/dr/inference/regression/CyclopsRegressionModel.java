@@ -235,5 +235,10 @@ public class CyclopsRegressionModel extends AbstractModelLikelihood {
         System.err.println(new WrappedVector.Raw(beta.getParameterValues()));
         System.err.println(model.getLogLikelihood());
 
+        CyclopsRegressionModelGradient modelGradient = new CyclopsRegressionModelGradient(model, beta);
+        double[] gradient = modelGradient.getGradientLogDensity();
+        System.err.println(new WrappedVector.Raw(gradient));
+
+        rEngine.stop();
     }
 }
