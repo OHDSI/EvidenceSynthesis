@@ -71,8 +71,8 @@ public class NewRegressionJNIWrapper {
             throws UnsatisfiedLinkError {
 
         if (INSTANCE == null) {
-            System.err.println("Trying to load the Cyclops library...");
-            System.load(libraryFileName);
+            System.err.println("Trying to load the Cyclops library: + " + libraryFileName + " ...");
+            System.load(libraryFileName); // TODO Not found in Windows
             INSTANCE = new NewRegressionJNIWrapper();
             System.err.println("Cyclops library loaded.");
         }

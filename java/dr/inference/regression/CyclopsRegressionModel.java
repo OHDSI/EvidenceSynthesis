@@ -29,8 +29,6 @@ import dr.inference.model.AbstractModelLikelihood;
 import dr.inference.model.Model;
 import dr.inference.model.Parameter;
 import dr.inference.model.Variable;
-import dr.math.matrixAlgebra.WrappedVector;
-import org.rosuda.JRI.*;
 
 import java.util.LinkedList;
 import java.util.Queue;
@@ -53,7 +51,7 @@ public class CyclopsRegressionModel extends AbstractModelLikelihood {
     private boolean storedLikelihoodKnown;
 
     private boolean betaKnown;
-//    private boolean storedBetaKnown;
+    //    private boolean storedBetaKnown;
     private boolean updateAllBeta;
 
     private final Queue<Integer> betaDimChanged = new LinkedList<>();
@@ -136,14 +134,17 @@ public class CyclopsRegressionModel extends AbstractModelLikelihood {
     }
 
     @Override
-    protected void acceptState() { }
+    protected void acceptState() {
+    }
 
     @Override
     public Model getModel() {
         return this;
     }
 
-    public Parameter getParameter() { return beta; }
+    public Parameter getParameter() {
+        return beta;
+    }
 
     @Override
     public double getLogLikelihood() {
@@ -187,77 +188,5 @@ public class CyclopsRegressionModel extends AbstractModelLikelihood {
         double[] gradient = new double[dim];
         cyclops.getLogLikelihoodGradient(gradient);
         return gradient;
-    }
-
-    public static class MockCyclops {
-
-        private final Rengine rEngine;
-        private final CyclopsRegressionModel model;
-
-        public MockCyclops() {
-            rEngine = new Rengine(new String[]{"--no-save"}, false, null);
-
-            rEngine.eval("library(Cyclops)");
-            rEngine.eval("" +
-                    "dobson <- data.frame( " +
-                    "  counts = c(18,17,15,20,10,20,25,13,12)," +
-                    "  outcome = gl(3,1,9)," +
-                    "  treatment = gl(3,3))"
-            );
-            rEngine.eval("" +
-                    "data <- createCyclopsData(counts ~ outcome + treatment, data = dobson," +
-                    "  modelType = \"pr\")"
-            );
-            rEngine.eval("" +
-                    "fit <- fitCyclopsModel(data," +
-                    "  prior = createPrior(\"none\")," +
-                    "  control = createControl(noiseLevel = \"silent\"))"
-            );
-            rEngine.eval("" +
-                    "instance <- cacheCyclopsModelForJava(fit)");
-            rEngine.eval("" +
-                    "libraryFileName <- system.file(\"libs\", \"Cyclops.so\", package = \"Cyclops\")");
-
-            double[] mode = rEngine.eval("coef(fit)").asDoubleArray();
-            int instance = rEngine.eval("instance").asInt();
-            String libraryFileName = rEngine.eval("libraryFileName").asString();
-
-            System.err.println(new WrappedVector.Raw(mode));
-            System.err.println(instance);
-            System.err.println(libraryFileName);
-
-            model = new CyclopsRegressionModel("name",
-                    libraryFileName, instance, new Parameter.Default(mode.length), true);
-        }
-
-        public CyclopsRegressionModel getModel() { return model; }
-
-        public void close() {
-            rEngine.end();
-        }
-    }
-
-    public static void main(String[] args) {
-
-        MockCyclops mock = new MockCyclops();
-        CyclopsRegressionModel model = mock.getModel();
-        Parameter beta = model.getParameter();
-
-        System.err.println(new WrappedVector.Raw(beta.getParameterValues()));
-        System.err.println(model.getLogLikelihood());
-
-        beta.setParameterValue(0, -1.0);
-        System.err.println(new WrappedVector.Raw(beta.getParameterValues()));
-        System.err.println(model.getLogLikelihood());
-
-        model.findMode();
-        System.err.println(new WrappedVector.Raw(beta.getParameterValues()));
-        System.err.println(model.getLogLikelihood());
-
-        CyclopsRegressionModelGradient modelGradient = new CyclopsRegressionModelGradient(model, beta);
-        double[] gradient = modelGradient.getGradientLogDensity();
-        System.err.println(new WrappedVector.Raw(gradient));
-
-        mock.close();
     }
 }

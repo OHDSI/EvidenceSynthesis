@@ -50,6 +50,7 @@
             <include name="org/ohdsi/**"/>
             <include name="test/org/ohdsi/**"/>
             <include name="dr/inference/**"/>
+            <exclude name="org/ohdsi/mock/**"/>
         </javac>
         <echo message="Successfully compiled."/>
     </target>
