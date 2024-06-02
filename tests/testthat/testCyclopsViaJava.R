@@ -20,7 +20,10 @@ test_that("Simple Cyclops example", {
                          control = createControl(noiseLevel = "silent"))
 
   instance <- cacheCyclopsModelForJava(fit)
-  libraryFileName <- system.file("libs", "Cyclops.so", package = "Cyclops")
+
+  libraryFileName <- normalizePath(system.file("libs", .Platform$r_arch,
+                                               paste0("Cyclops", .Platform$dynlib.ext),
+                                               package = "Cyclops"))
 
   obj <- rJava::.jnew("dr.inference.regression.RegressionInCyclops",
                       libraryFileName, instance)
