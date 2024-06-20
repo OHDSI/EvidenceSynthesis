@@ -72,8 +72,6 @@ public class CoxPartialLikelihood extends AbstractModelLikelihood {
 			denominatorTotal += FastMath.exp(x[i] * b);
 			double increment =  weight[i] * FastMath.log(denominatorTotal);
 			sum += increment;
-
-			//            System.err.println("\t\t" + i + " " + denominatorTotal + ":" + increment);
 		}
 
 		return sum;
