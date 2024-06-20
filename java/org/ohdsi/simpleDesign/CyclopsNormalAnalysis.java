@@ -29,16 +29,12 @@ public class CyclopsNormalAnalysis implements Analysis {
     private final OperatorSchedule schedule;
 
     @SuppressWarnings("unused")
-    public CyclopsNormalAnalysis(CyclopsRegressionModel cyclops, double priorMean, double priorSd,
-                                 double startingValue) {
+    public CyclopsNormalAnalysis(CyclopsRegressionModel cyclops, double priorMean, double priorSd) {
 
         // Build likelihood
         int threadCount = 1;
         likelihood = new CompoundLikelihood(threadCount, Collections.singleton(cyclops));
         beta = cyclops.getParameter();
-        for (int i = 0; i < beta.getDimension(); ++i) {
-            beta.setParameterValue(i, startingValue);
-        }
 
         // Build prior
         DistributionLikelihood betaPrior = new DistributionLikelihood(new NormalDistribution(priorMean, priorSd));

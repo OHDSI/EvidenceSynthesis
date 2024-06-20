@@ -29,7 +29,9 @@ import dr.inference.model.AbstractModelLikelihood;
 import dr.inference.model.Model;
 import dr.inference.model.Parameter;
 import dr.inference.model.Variable;
+import org.ohdsi.mcmc.Analysis;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Queue;
 
@@ -55,6 +57,11 @@ public class CyclopsRegressionModel extends AbstractModelLikelihood {
     private boolean updateAllBeta;
 
     private final Queue<Integer> betaDimChanged = new LinkedList<>();
+
+    public CyclopsRegressionModel(String name, String libraryFileName, int instance,
+                                  int dim, boolean useCyclopsStartingValue) {
+        this(name, libraryFileName, instance, makeParameter(name + ".beta", dim), useCyclopsStartingValue);
+    }
 
     public CyclopsRegressionModel(String name, String libraryFileName, int instance,
                                   Parameter beta, boolean useCyclopsStartingValues) {
@@ -188,5 +195,17 @@ public class CyclopsRegressionModel extends AbstractModelLikelihood {
         double[] gradient = new double[dim];
         cyclops.getLogLikelihoodGradient(gradient);
         return gradient;
+    }
+
+    private static Parameter makeParameter(String name, int dim) {
+        Parameter param = new Parameter.Default(name, dim, 0.0);
+
+        double[] uppers = new double[dim];
+        double[] lowers = new double[dim];
+        Arrays.fill(uppers, Double.POSITIVE_INFINITY);
+        Arrays.fill(lowers, Double.NEGATIVE_INFINITY);
+
+        param.addBounds(new Parameter.DefaultBounds(uppers, lowers));
+        return param;
     }
 }

@@ -36,7 +36,7 @@ Suggests:
   testthat,
   sn
 Remotes:
-  OHDSI/Cyclops@55623ac
+  OHDSI/Cyclops@55623ac0
 License: Apache License 2.0
 URL: https://ohdsi.github.io/EvidenceSynthesis/, https://github.com/OHDSI/EvidenceSynthesis
 BugReports: https://github.com/OHDSI/EvidenceSynthesis/issues

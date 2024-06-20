@@ -14,7 +14,7 @@ public class CyclopsNormalAnalysisMock {
 
         MockCyclops mock = new MockCyclops();
 
-        Analysis analysis = new CyclopsNormalAnalysis(mock.getModel(), 0, 10, 0);
+        Analysis analysis = new CyclopsNormalAnalysis(mock.getModel(), 0, 10);
 
         Runner runner = new Runner(analysis, chainLength, burnIn, subSampleFrequency, 666);
         runner.run();
