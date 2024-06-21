@@ -17,8 +17,10 @@ package org.ohdsi.mcmc;
 
 import dr.inference.loggers.Loggable;
 import dr.inference.model.Likelihood;
+import dr.inference.model.Parameter;
 import dr.inference.operators.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public interface Analysis {
@@ -26,4 +28,37 @@ public interface Analysis {
 	Likelihood getJoint();
 	OperatorSchedule getSchedule();
 	List<Loggable> getLoggerColumns();
+
+	abstract class Base implements Analysis {
+
+		protected Likelihood likelihood;
+		protected Likelihood prior;
+		protected Likelihood joint;
+		protected OperatorSchedule schedule;
+		protected Parameter beta;
+
+		@Override
+		public List<Loggable> getLoggerColumns() {
+
+			likelihood.setId("likelihood");
+			prior.setId("prior");
+
+			List<Loggable> columns = new ArrayList<>();
+			columns.add(likelihood);
+			columns.add(prior);
+			columns.add(beta);
+
+			return columns;
+		}
+
+		@Override
+		public Likelihood getJoint() {
+			return joint;
+		}
+
+		@Override
+		public OperatorSchedule getSchedule() {
+			return schedule;
+		}
+	}
 }

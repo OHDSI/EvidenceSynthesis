@@ -119,7 +119,7 @@ public class Runner {
 	public void run() {
 		MCMC mcmc = new MCMC("mcmc1");
 		mcmc.setShowOperatorAnalysis(false);
-		mcmc.init(getOptions(chainLength), joint, schedule,logger);
+		mcmc.init(getOptions(chainLength), joint, schedule, logger);
 		mcmc.run();
 	}
 
