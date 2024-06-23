@@ -16,6 +16,7 @@
 package org.ohdsi.likelihood;
 
 import dr.inference.model.*;
+import org.apache.commons.math.util.FastMath;
 import org.ohdsi.data.ColumnMajorSortedCoxData;
 import org.ohdsi.data.CoxData;
 import org.ohdsi.data.SortedCoxData;
@@ -56,8 +57,8 @@ public class MultivariableCoxPartialLikelihood extends ConditionalPoissonLikelih
 				rowXBeta += x[i * J + j] * beta[j];
 			}
 
-			denominator += Math.exp(rowXBeta); // TODO Implement weights
-			logLikelihood +=  y[i] * rowXBeta - n[i] * Math.log(denominator); // TODO Could pre-compute total numerator as function of beta
+			denominator += FastMath.exp(rowXBeta); // TODO Implement weights
+			logLikelihood +=  y[i] * rowXBeta - n[i] * FastMath.log(denominator); // TODO Could pre-compute total numerator as function of beta
 		}
 
 		return logLikelihood;
