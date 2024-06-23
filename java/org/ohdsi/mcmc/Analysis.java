@@ -21,6 +21,7 @@ import dr.inference.model.Parameter;
 import dr.inference.operators.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public interface Analysis {
@@ -60,5 +61,17 @@ public interface Analysis {
 		public OperatorSchedule getSchedule() {
 			return schedule;
 		}
+	}
+
+	static Parameter makeParameter(String name, int dim) {
+		Parameter param = new Parameter.Default(name, dim, 0.0);
+
+		double[] uppers = new double[dim];
+		double[] lowers = new double[dim];
+		Arrays.fill(uppers, Double.POSITIVE_INFINITY);
+		Arrays.fill(lowers, Double.NEGATIVE_INFINITY);
+
+		param.addBounds(new Parameter.DefaultBounds(uppers, lowers));
+		return param;
 	}
 }

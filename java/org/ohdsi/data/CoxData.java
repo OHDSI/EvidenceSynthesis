@@ -23,6 +23,7 @@ import java.util.*;
 
 /**
  * @author Marc A. Suchard
+ * @author Martijn J. Schuemie
  */
 public class CoxData {
 
@@ -34,9 +35,10 @@ public class CoxData {
 
     public CoxData(int[] id, int[] outcome, double[] time, double[] covariate) {
 
-        if (outcome.length != time.length || outcome.length != covariate.length ||
+        if (outcome.length != time.length ||
+                covariate.length % outcome.length != 0 ||
                 (id != null && id.length != outcome.length)) {
-            throw new IllegalArgumentException("All dimensions must be equal");
+            throw new IllegalArgumentException("All dimensions must be compatible");
         }
 
         List<Integer> indices = new ArrayList<>();
@@ -54,9 +56,14 @@ public class CoxData {
         double[] x = getDouble(indices, covariate);
         int[] p = getInt(indices, id);
         double[] t = getDouble(indices, time);
-        double[] w = getWeights(y, p, t);
+        int[] w = getYTimesTiesCount(y, p, t);
+        int[] s = getStrata(p, y.length);
 
-        this.data = new SortedCoxData(y, x, getStrata(p, y.length), w);
+        if (y.length != x.length) {
+            x = ColumnMajorSortedCoxData.transpose(x, y.length, x.length / y.length);
+        }
+
+        this.data = new SortedCoxData(y, x, s, w, null);
     }
 
     @SuppressWarnings("WeakerAccess")
@@ -70,20 +77,20 @@ public class CoxData {
         return failureTie;
     }
 
-    private double[] getWeights(int[] y, int[] id, double[] t) {
-        double[] weights = new double[y.length];
+    private int[] getYTimesTiesCount(int[] y, int[] id, double[] t) {
+        int[] weights = new int[y.length];
 
-        double w = 1.0;
+        int w = 1;
         for (int i = 0; i < y.length - 1; ++i) {
             if (isFailureTie(y, t, id, i)) {
-                w += 1.0; // Breslow approximation for failure ties
-                weights[i] = 0.0;
+                w += 1; // Breslow approximation for failure ties
+                weights[i] = 0;
             } else {
-                weights[i] = y[i] == 1 ? w : 0.0;
-                w = 1.0;
+                weights[i] = y[i] == 1 ? w : 0;
+                w = 1;
             }
         }
-        weights[y.length - 1] = y[y.length - 1] == 1 ? w : 0.0;
+        weights[y.length - 1] = y[y.length - 1] == 1 ? w : 0;
 
         return weights;
     }
@@ -102,8 +109,12 @@ public class CoxData {
 
     private double[] getDouble(List<Integer> indices, double[] covariate) {
         double[] x = new double[covariate.length];
-        for (int i = 0; i < x.length; ++i) {
-            x[i] = covariate[indices.get(i)];
+        final int N = indices.size();
+        int numColumns = covariate.length / N;
+        for (int j = 0; j < numColumns; ++j) {
+            for (int i = 0; i < N; ++i) {
+                x[j * N + i] = covariate[j * N + indices.get(i)];
+            }
         }
         return x;
     }

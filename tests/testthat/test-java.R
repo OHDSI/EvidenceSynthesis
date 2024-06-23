@@ -1,4 +1,5 @@
 library(survival)
+library(testthat)
 
 test_that("AML example", {
   skip_if_not(supportsJava8())
@@ -15,6 +16,30 @@ test_that("AML example", {
 
   likelihood <- rJava::.jnew(
     "org.ohdsi.likelihood.CoxPartialLikelihood",
+    rJava::.jcast(parameter, "dr.inference.model.Parameter"),
+    data$getSortedData()
+  )
+
+  tolerance <- 1e-10
+
+  expect_equal(likelihood$getLogLikelihood(), as.numeric(logLik(gold)), tolerance = tolerance)
+})
+
+test_that("Multivariable bladder example", {
+  skip_if_not(supportsJava8())
+  gold <- coxph(Surv(stop, event) ~ (rx - 1) + size, data = bladder, ties = "breslow")
+
+  data <- rJava::.jnew(
+    "org.ohdsi.data.CoxData",
+    as.integer(bladder$event),
+    as.double(bladder$stop),
+    as.double(c(bladder$rx, bladder$size))
+  )
+
+  parameter <- rJava::.jnew("dr.inference.model.Parameter$Default", coef(gold))
+
+  likelihood <- rJava::.jnew(
+    "org.ohdsi.likelihood.MultivariableCoxPartialLikelihood",
     rJava::.jcast(parameter, "dr.inference.model.Parameter"),
     data$getSortedData()
   )

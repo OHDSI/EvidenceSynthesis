@@ -35,6 +35,8 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Queue;
 
+import static org.ohdsi.mcmc.Analysis.makeParameter;
+
 // TODO: Do we want to include the Cyclops regularization? (may be helpful for `findMode()`)
 
 /**
@@ -195,17 +197,5 @@ public class CyclopsRegressionModel extends AbstractModelLikelihood {
         double[] gradient = new double[dim];
         cyclops.getLogLikelihoodGradient(gradient);
         return gradient;
-    }
-
-    private static Parameter makeParameter(String name, int dim) {
-        Parameter param = new Parameter.Default(name, dim, 0.0);
-
-        double[] uppers = new double[dim];
-        double[] lowers = new double[dim];
-        Arrays.fill(uppers, Double.POSITIVE_INFINITY);
-        Arrays.fill(lowers, Double.NEGATIVE_INFINITY);
-
-        param.addBounds(new Parameter.DefaultBounds(uppers, lowers));
-        return param;
     }
 }

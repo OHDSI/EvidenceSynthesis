@@ -18,23 +18,22 @@ package org.ohdsi.data;
 /**
  * @author Marc A. Suchard
  */
-public class SortedCoxData {
+public class ColumnMajorSortedCoxData extends SortedCoxData {
 
-    public int[] y;
-    public double[] x; // Assumes row-major
-    public int[] strata;
-    public int[] n;
-    public double[] weight;
-
-    public SortedCoxData(int[] y, double[] x, int[] strata, int[] n, double[] weight) {
-        this.y = y;
-        this.x = x;
-        this.strata = strata;
-        this.n = n;
-        this.weight = weight;
+    public ColumnMajorSortedCoxData(int[] y, double[] x, int[] strata, int[] n, double[] weight) {
+        super(y, transpose(x, y.length, x.length / y.length), strata, n, weight);
     }
 
-    public int getCovariateDimension() {
-        return x.length / y.length;
+    public static double[] transpose(double[] in, int nRows, int nCols) {
+        double[] out = new double[in.length];
+
+        int destination = 0;
+        for (int i = 0; i < nRows; ++i) {
+            for (int j = 0; j < nCols; ++j) {
+                out[destination++] = in[j * nRows + i];
+            }
+        }
+
+        return out;
     }
 }

@@ -41,11 +41,10 @@ public class CoxPartialLikelihood extends AbstractModelLikelihood {
 
 		final int[] y = data.y;
 		final double[] x = data.x;
-		final double[] weight = data.weight;
 
 		double sum = 0.0;
 		for (int i = 0; i < N; ++i) {
-			sum += y[i] * weight[i] * x[i];
+			sum += y[i] * x[i];
 		}
 		numeratorConstant = sum;
 	}
@@ -56,7 +55,7 @@ public class CoxPartialLikelihood extends AbstractModelLikelihood {
 
 	private double denominatorContribution() {
 
-		final double[] weight = data.weight;
+		final int[] n = data.n;
 		final double[] x = data.x;
 		final int[] y = data.y;
 		final int[] strata = data.strata;
@@ -71,8 +70,8 @@ public class CoxPartialLikelihood extends AbstractModelLikelihood {
 				denominatorTotal = 0.0;
 				++resetIndex;
 			}
-			denominatorTotal += weight[i] * Math.exp(x[i] * b);
-			sum += y[i] * weight[i] * Math.log(denominatorTotal);
+			denominatorTotal += FastMath.exp(x[i] * b);
+			sum += n[i] * FastMath.log(denominatorTotal);
 		}
 
 		return sum;
@@ -138,7 +137,7 @@ public class CoxPartialLikelihood extends AbstractModelLikelihood {
 
 		int[] y;
 		double[] x;
-		double[] weight;
+		int[] yTimesTieCount;
 		int[] strata;
 		double beta;
 
@@ -149,22 +148,12 @@ public class CoxPartialLikelihood extends AbstractModelLikelihood {
 		// No ties, no strata, no weights
 		y = new int[] { 1, 1, 0, 1, 1, 0, 1 };
 		x = new double[] { 0, 2, 0, 0, 1, 1, 1 };
-		weight = new double[] { 1, 1, 1, 1, 1, 1, 1 };
+		yTimesTieCount = new int[] { 1, 1, 0, 1, 1, 0, 1 };
 		strata = new int[] { 7 };
 		beta = 0.3883064;
 		// logLik = -5.401371
 
-		data = new SortedCoxData(y, x, strata, weight);
-		parameter = new Parameter.Default(beta);
-		cox = new CoxPartialLikelihood(parameter, data);
-		System.err.println("C " + cox.getLogLikelihood());
-
-		// No ties, no strata, with weights
-		weight = new double[] { 1, 1, 1, 1, 0, 1, 1 };
-		beta = 0.3443102;
-		// logLik = -3.726085
-
-		data = new SortedCoxData(y, x, strata, weight);
+		data = new SortedCoxData(y, x, strata, yTimesTieCount, null);
 		parameter = new Parameter.Default(beta);
 		cox = new CoxPartialLikelihood(parameter, data);
 		System.err.println("C " + cox.getLogLikelihood());
