@@ -26,6 +26,10 @@ public class SortedCoxData {
     public int[] n;
     public double[] weight;
 
+    public SortedCoxData(int[] y, double[] x, int[] strata, double[] weight) {
+        this(y, x, strata, null, weight);
+    }
+
     public SortedCoxData(int[] y, double[] x, int[] strata, int[] n, double[] weight) {
         this.y = y;
         this.x = x;

@@ -4,6 +4,7 @@ library(Cyclops)
 library(dplyr)
 library(survival)
 
+
 data <- readRDS("extras/data/InteractionDataForMarc.rds") %>% filter(siteId == 1)
 
 outcomeOfInterest <- 77
@@ -48,9 +49,9 @@ cyclopsLibraryFileName <- normalizePath(system.file("libs", .Platform$r_arch, # 
 
 # Run a single site (silly example -- just uses Metropolis-Hastings and iid prior)
 
-chainLength <- 110000
-burnIn <- 10000
-subSampleFrequency <- 100
+chainLength <- 11000
+burnIn <- 1000
+subSampleFrequency <- 10
 seed <- 666
 showProgressBar <- TRUE
 
@@ -106,4 +107,76 @@ for (i in 4:length(parameterNames)) {
 
 plot(coda::as.mcmc(traces))
 coda::effectiveSize(traces)
+
+# Using pure java
+
+demo <- readRDS("extras/data/InteractionDataForMarc.rds") %>%
+  filter(siteId == 1,
+         outcomeId == 77)
+
+
+mode <- coxph(Surv(survivalTime, y) ~ treatment + subgroup + subgroup * treatment + strata(stratumId),
+              data = demo, ties = "breslow")
+
+javaData <- rJava::.jnew(
+  "org.ohdsi.data.CoxData",
+  as.integer(demo$y),
+  as.double(demo$survivalTime),
+  as.double(c(demo$treatment, demo$subgroup, demo$subgroup * demo$treatment))
+)
+
+parameter <- rJava::.jnew("dr.inference.model.Parameter$Default", coef(mode))
+
+likelihood <- rJava::.jnew(
+  "org.ohdsi.likelihood.MultivariableCoxPartialLikelihood",
+  rJava::.jcast(parameter, "dr.inference.model.Parameter"),
+  javaData$getSortedData()
+)
+
+logLik(mode) - likelihood$getLogLikelihood() # TODO Why not == 0?
+
+# CoxAnalysis analysis = new CoxAnalysis(data, 0, 1);
+
+javaObject <- rJava::.jnew(
+  "org.ohdsi.simpleDesign.CoxAnalysis",
+  javaData,
+  as.numeric(priorMean),
+  as.numeric(priorSd)
+)
+
+# Runner runner = new Runner(analysis, chainLength, burnIn, subSampleFrequency, 666);
+
+javaAnalysis <- rJava::.jnew(
+  "org.ohdsi.mcmc.Runner",
+  rJava::.jcast(javaObject,
+                "org.ohdsi.mcmc.Analysis"),
+  as.integer(chainLength),
+  as.integer(burnIn),
+  as.integer(subSampleFrequency),
+  as.numeric(seed),
+  as.logical(showProgressBar)
+)
+
+javaAnalysis$setConsoleWidth(getOption("width"))
+
+system.time(
+  javaAnalysis$run()
+)
+
+javaAnalysis$processSamples()
+
+parameterNames <- javaAnalysis$getParameterNames()
+trace <- javaAnalysis$getTrace(as.integer(3))
+traces <- matrix(ncol = length(parameterNames) - 2, nrow = length(trace))
+colnames(traces) <- parameterNames[-c(1:2)]
+traces[, 1] <- trace
+for (i in 4:length(parameterNames)) {
+  trace <- javaAnalysis$getTrace(as.integer(i))
+  traces[, i - 2] <- trace
+}
+
+plot(coda::as.mcmc(traces))
+coda::effectiveSize(traces)
+
+
 
