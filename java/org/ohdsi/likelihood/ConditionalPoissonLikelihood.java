@@ -72,6 +72,10 @@ public class ConditionalPoissonLikelihood extends AbstractModelLikelihood {
 		countByStratum = computeCount(data.y, data.strata);
 	}
 
+	public Parameter getParameter() {
+		return beta;
+	}
+
 	protected double calculateLogLikelihood() {
 
 		final int[] strata = data.strata;

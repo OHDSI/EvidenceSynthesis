@@ -26,7 +26,7 @@ import org.ohdsi.data.SortedCoxData;
  */
 public class MultivariableCoxPartialLikelihood extends ConditionalPoissonLikelihood {
 
-	// Currently assumes that data.x is row-major
+	// Currently, assumes that data.x is row-major
 
 	public MultivariableCoxPartialLikelihood(Parameter beta, SortedCoxData data) {
 		super("multivariableCoxPartialLikelihood", beta, null, data);
