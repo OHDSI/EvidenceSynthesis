@@ -15,6 +15,7 @@
  ******************************************************************************/
 package org.ohdsi.metaAnalysis;
 
+import dr.evomodel.operators.PrecisionMatrixGibbsOperator;
 import dr.inference.distribution.DistributionLikelihood;
 import dr.inference.distribution.MultivariateDistributionLikelihood;
 import dr.inference.distribution.MultivariateNormalDistributionModel;
@@ -23,9 +24,7 @@ import dr.inference.loggers.Loggable;
 import dr.inference.model.*;
 import dr.inference.operators.*;
 import dr.math.MathUtils;
-import dr.math.distributions.GammaDistribution;
-import dr.math.distributions.MultivariateNormalDistribution;
-import dr.math.distributions.NormalDistribution;
+import dr.math.distributions.*;
 import dr.math.matrixAlgebra.IllegalDimension;
 import org.ohdsi.likelihood.ConditionalPoissonLikelihood;
 import org.ohdsi.likelihood.MultivariableCoxPartialLikelihood;
@@ -78,11 +77,15 @@ public class MultivariableHierarchicalMetaAnalysis implements Analysis {
 		Parameter mu = new Parameter.Default("mean", analysisDim, cg.startingMu);
 		mu.addBounds(new Parameter.DefaultBounds(Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY, analysisDim));
 
-		Parameter tau = new Parameter.Default("tau", analysisDim, cg.startingTau);
-		tau.addBounds(new Parameter.DefaultBounds(Double.POSITIVE_INFINITY, 0.0, analysisDim));
+//		Parameter tau = new Parameter.Default("tau", analysisDim, cg.startingTau);
+//		tau.addBounds(new Parameter.DefaultBounds(Double.POSITIVE_INFINITY, 0.0, analysisDim));
+		MatrixParameter tau2 = diagonalMatrixParameter("tau", analysisDim, cg.startingTau);
 
 		MultivariateDistributionLikelihood hierarchy = new MultivariateDistributionLikelihood(
-			new MultivariateNormalDistributionModel(mu, new DiagonalMatrix(tau)));
+			new MultivariateNormalDistributionModel(mu,
+//					new DiagonalMatrix(tau)
+					tau2
+			));
 
 		for (Parameter beta : allParameters) {
 			hierarchy.addData(beta);
@@ -96,14 +99,22 @@ public class MultivariableHierarchicalMetaAnalysis implements Analysis {
 			new MultivariateNormalDistribution(muPriorMean,muPriorPrecision));
 		meanPrior.addData(mu);
 
-		DistributionLikelihood tauPrior = new DistributionLikelihood(
-				new GammaDistribution(cg.tauShape, cg.tauScale));
-		tauPrior.addData(tau);
+//		DistributionLikelihood tauPrior = new DistributionLikelihood(
+//				new GammaDistribution(cg.tauShape, cg.tauScale));
+//		tauPrior.addData(tau);
 
-		List<Likelihood> allPriors = Arrays.asList(hierarchy, meanPrior, tauPrior);
+		MultivariateDistributionLikelihood tau2Prior = new MultivariateDistributionLikelihood(
+				new WishartDistribution(cg.tauDf, diagonalScaleMatrix(analysisDim, cg.tauScale))
+		);
+		tau2Prior.addData(tau2);
+
+//		List<Likelihood> allPriors = Arrays.asList(hierarchy, meanPrior, tauPrior);
+		List<Likelihood> allPriors = Arrays.asList(hierarchy, meanPrior, tau2Prior);
 
 		allParameters.add(mu);
-		allParameters.add(tau);
+//		allParameters.add(tau);
+		allParameters.add(tau2);
+
 
 		MCMCOperator meanOperator = null;
 		try {
@@ -111,10 +122,15 @@ public class MultivariableHierarchicalMetaAnalysis implements Analysis {
 		} catch (IllegalDimension e) {
 			e.printStackTrace();
 		}
-		MCMCOperator tauOperator = new ScaleOperator(tau, 0.75, cg.mode, 1.0);
+
+//		MCMCOperator tauOperator = new ScaleOperator(tau, 0.75, cg.mode, 1.0);
+		MCMCOperator tau2Operator = new PrecisionMatrixGibbsOperator(hierarchy,
+				(WishartStatistics) tau2Prior.getDistribution(), 1.0);
 
 		allOperators.add(meanOperator);
-		allOperators.add(tauOperator);
+//		allOperators.add(tauOperator);
+		allOperators.add(tau2Operator);
+
 
 		// Finalize
 		this.prior = new CompoundLikelihood(allPriors);
@@ -156,6 +172,7 @@ public class MultivariableHierarchicalMetaAnalysis implements Analysis {
 		// gamma prior for hierarchy precision
 		public double tauShape = 1;
 		public double tauScale = 1;
+		public double tauDf = 3;
 
 		// normal prior for hierarchy mean
 		public double muMean = 0;
@@ -202,5 +219,23 @@ public class MultivariableHierarchicalMetaAnalysis implements Analysis {
 		runner.run();
 
 		runner.processSamples();
+	}
+
+	public static double[][] diagonalScaleMatrix(int dim, double diagonal) {
+		double[][] scale = new double[dim][];
+		for (int i = 0; i < dim; ++i) {
+			scale[i] = new double[dim];
+			scale[i][i] = diagonal;
+		}
+		return scale;
+	}
+
+	public static MatrixParameter diagonalMatrixParameter(String name, int dim, double diagonal) {
+		Parameter[] columns = new Parameter[dim];
+		for (int i = 0; i < dim; ++i) {
+			columns[i] = new Parameter.Default(dim, 0.0);
+			columns[i].setParameterValue(i, diagonal);
+		}
+		return new MatrixParameter(name, columns);
 	}
 }
