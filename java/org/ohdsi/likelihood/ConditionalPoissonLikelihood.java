@@ -20,7 +20,7 @@ import org.ohdsi.data.SortedCoxData;
 
 /**
  * @author Marc A. Suchard
- * @author Martinn J. Schuemie
+ * @author Martijn J. Schuemie
  */
 public class ConditionalPoissonLikelihood extends AbstractModelLikelihood {
 
@@ -70,6 +70,9 @@ public class ConditionalPoissonLikelihood extends AbstractModelLikelihood {
 
 //		oddsLabeledExposedByStratum = computeOddsLabeledExposed(data.x, data.strata);
 		countByStratum = computeCount(data.y, data.strata);
+
+		beta.addBounds(new Parameter.DefaultBounds(Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY,
+				beta.getDimension()));
 	}
 
 	public Parameter getParameter() {

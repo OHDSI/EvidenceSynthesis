@@ -18,19 +18,25 @@ package org.ohdsi.metaAnalysis;
 import dr.inference.distribution.DistributionLikelihood;
 import dr.inference.distribution.MultivariateDistributionLikelihood;
 import dr.inference.distribution.MultivariateNormalDistributionModel;
+import dr.inference.distribution.NormalDistributionModel;
 import dr.inference.loggers.Loggable;
 import dr.inference.model.*;
 import dr.inference.operators.*;
 import dr.math.MathUtils;
 import dr.math.distributions.GammaDistribution;
+import dr.math.distributions.MultivariateNormalDistribution;
 import dr.math.distributions.NormalDistribution;
+import dr.math.matrixAlgebra.IllegalDimension;
 import org.ohdsi.likelihood.ConditionalPoissonLikelihood;
+import org.ohdsi.likelihood.MultivariableCoxPartialLikelihood;
 import org.ohdsi.mcmc.Analysis;
 import org.ohdsi.mcmc.Runner;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import static org.ohdsi.likelihood.MultivariableCoxPartialLikelihood.exampleBladder;
 
 public class MultivariableHierarchicalMetaAnalysis implements Analysis {
 
@@ -43,7 +49,7 @@ public class MultivariableHierarchicalMetaAnalysis implements Analysis {
 	public MultivariableHierarchicalMetaAnalysis(List<ConditionalPoissonLikelihood> likelihoods,
 												 HierarchicalMetaAnalysisConfiguration cg) {
 
-		MathUtils.setSeed(666);
+		MathUtils.setSeed(cg.seed);
 
 		// Build data likelihood, main-effect parameters and their operators
 		List<Likelihood> allDataLikelihoods = new ArrayList<>();
@@ -63,13 +69,15 @@ public class MultivariableHierarchicalMetaAnalysis implements Analysis {
 			Parameter beta = singleAnalysis.getParameter();
 			allParameters.add(beta);
 
-			allOperators.add(new RandomWalkOperator(beta, null, 0.75, // TODO HMC will be way faster!!!
-					RandomWalkOperator.BoundaryCondition.reflecting, cg.operatorWeight * beta.getDimension(), cg.mode)); // TODO Use HMC
+			allOperators.add(new RandomWalkOperator(beta, null, 0.1, // TODO HMC will be way faster!!!
+					RandomWalkOperator.BoundaryCondition.reflecting, cg.operatorWeight * beta.getDimension(), cg.mode));
 		}
 		// End of data likelihood
 
 		// Build hierarchical priors and operators
 		Parameter mu = new Parameter.Default("mean", analysisDim, cg.startingMu);
+		mu.addBounds(new Parameter.DefaultBounds(Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY, analysisDim));
+
 		Parameter tau = new Parameter.Default("tau", analysisDim, cg.startingTau);
 		tau.addBounds(new Parameter.DefaultBounds(Double.POSITIVE_INFINITY, 0.0, analysisDim));
 
@@ -80,19 +88,31 @@ public class MultivariableHierarchicalMetaAnalysis implements Analysis {
 			hierarchy.addData(beta);
 		}
 
-		DistributionLikelihood meanPrior = new DistributionLikelihood(
-				new NormalDistribution(cg.muMean, cg.muSd));
+		double[] muPriorMean = new double[analysisDim];
+		Arrays.fill(muPriorMean, cg.muMean);
+		double muPriorPrecision = 1 / (cg.muSd * cg.muSd);
+
+		MultivariateDistributionLikelihood meanPrior = new MultivariateDistributionLikelihood(
+			new MultivariateNormalDistribution(muPriorMean,muPriorPrecision));
+		meanPrior.addData(mu);
 
 		DistributionLikelihood tauPrior = new DistributionLikelihood(
 				new GammaDistribution(cg.tauShape, cg.tauScale));
+		tauPrior.addData(tau);
 
 		List<Likelihood> allPriors = Arrays.asList(hierarchy, meanPrior, tauPrior);
+
 		allParameters.add(mu);
 		allParameters.add(tau);
 
-		MCMCOperator meanOperator = new RandomWalkOperator(mu, null, 0.75,
-				RandomWalkOperator.BoundaryCondition.reflecting, cg.operatorWeight, cg.mode);
-		MCMCOperator tauOperator = new ScaleOperator(tau, 0.75, cg.mode, cg.operatorWeight);
+		MCMCOperator meanOperator = null;
+		try {
+			meanOperator = new MultivariateNormalGibbsOperator(hierarchy, meanPrior, 1.0);
+		} catch (IllegalDimension e) {
+			e.printStackTrace();
+		}
+		MCMCOperator tauOperator = new ScaleOperator(tau, 0.75, cg.mode, 1.0);
+
 		allOperators.add(meanOperator);
 		allOperators.add(tauOperator);
 
@@ -133,34 +153,49 @@ public class MultivariableHierarchicalMetaAnalysis implements Analysis {
 		// make all fields public to allow rJava interface
 		// alternatively, can also do: (a) turn into constructor (but no default allowed); (b). write a setter for each field (too much trouble)
 
-		// gamma prior for std of the random error
-		public double tauShape = 1.0;
-		public double tauScale = 1.0;
+		// gamma prior for hierarchy precision
+		public double tauShape = 1;
+		public double tauScale = 1;
 
-		public double startingMu = 0.0;
-		public double startingTau = 1.0;
+		// normal prior for hierarchy mean
+		public double muMean = 0;
+		public double muSd = 2;
+
+		public double startingMu = 0;
+		public double startingTau = 1;
 
 		AdaptationMode mode = AdaptationMode.ADAPTATION_ON;
-		public double operatorWeight = 1.0;
-
+		public double operatorWeight = 10.0;
 		public long seed = 666;
 
 		public int threads = 1;
-
-		public double muMean = 0;
-		public double muSd = 10;
 	}
 
 
 	public static void main(String[] args) {
 
-		int chainLength = 1100000;
-		int burnIn = 100000;
-		int subSampleFrequency = 1000;
+		int chainLength = 110000;
+		int burnIn = 10000;
+		int subSampleFrequency = 10;
 
 		HierarchicalMetaAnalysisConfiguration cg = new HierarchicalMetaAnalysisConfiguration();
 
-		MultivariableHierarchicalMetaAnalysis analysis = new MultivariableHierarchicalMetaAnalysis(null, cg);
+		List<ConditionalPoissonLikelihood> likelihoods = Arrays.asList(
+				new MultivariableCoxPartialLikelihood(
+						new Parameter.Default(new double[] { -0.4608773, -0.1012988 }),
+						exampleBladder()),
+				new MultivariableCoxPartialLikelihood(
+						new Parameter.Default(new double[] { -0.4608773, -0.1012988 }),
+						exampleBladder()),
+				new MultivariableCoxPartialLikelihood(
+						new Parameter.Default(new double[] { -0.4608773, -0.1012988 }),
+						exampleBladder()),
+				new MultivariableCoxPartialLikelihood(
+						new Parameter.Default(new double[] { -0.4608773, -0.1012988 }),
+						exampleBladder())
+		);
+
+		MultivariableHierarchicalMetaAnalysis analysis = new MultivariableHierarchicalMetaAnalysis(likelihoods, cg);
 
 		Runner runner = new Runner(analysis, chainLength, burnIn, subSampleFrequency, cg.seed);
 
