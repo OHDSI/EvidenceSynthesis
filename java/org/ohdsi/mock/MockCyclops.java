@@ -36,11 +36,21 @@ import org.rosuda.JRI.Rengine;
  */
 public class MockCyclops {
 
-    private final Rengine rEngine;
     private final CyclopsRegressionModel model;
 
+    private static Rengine singleEngine;
+
+    private static Rengine getEngine() {
+        if (singleEngine == null) {
+            singleEngine = new Rengine(new String[]{"--no-save"}, false, null);
+        }
+        return singleEngine;
+    }
+
     public MockCyclops() {
-        rEngine = new Rengine(new String[]{"--no-save"}, false, null);
+
+        Rengine rEngine = getEngine();
+//        rEngine = new Rengine(new String[]{"--no-save"}, false, null);
 
         rEngine.eval("library(Cyclops)");
         rEngine.eval("" +
@@ -80,7 +90,10 @@ public class MockCyclops {
     }
 
     public void close() {
-        rEngine.end();
+        if (singleEngine != null) {
+            singleEngine.end();
+        }
+        singleEngine = null;
     }
 
     public static void main(String[] args) {

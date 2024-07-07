@@ -17,12 +17,16 @@ package org.ohdsi.likelihood;
 
 import dr.inference.model.*;
 import org.ohdsi.data.SortedCoxData;
+import org.ohdsi.metaAnalysis.DataModel;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author Marc A. Suchard
  * @author Martijn J. Schuemie
  */
-public class ConditionalPoissonLikelihood extends AbstractModelLikelihood {
+public class ConditionalPoissonLikelihood extends AbstractModelLikelihood implements DataModel {
 
 	protected final Parameter beta;
 	protected final Parameter nuisance;
@@ -248,5 +252,25 @@ public class ConditionalPoissonLikelihood extends AbstractModelLikelihood {
 		Likelihood cox = new ConditionalPoissonLikelihood(parameter, nuisance, data);
 
 		System.err.println(cox.getLogLikelihood());
+	}
+
+	@Override
+	public Likelihood getLikelihood() {
+		return this;
+	}
+
+	@Override
+	public Parameter getCompoundParameter() {
+		return beta;
+	}
+
+	@Override
+	public List<Parameter> getIndividualParameters() {
+		return Arrays.asList(beta);
+	}
+
+	@Override
+	public List<Integer> getIdentifiers() {
+		return null;
 	}
 }

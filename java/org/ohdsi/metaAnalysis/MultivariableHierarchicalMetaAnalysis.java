@@ -45,7 +45,8 @@ public class MultivariableHierarchicalMetaAnalysis implements Analysis {
 	private final List<Parameter> parameters;
 	private final OperatorSchedule schedule;
 
-	public MultivariableHierarchicalMetaAnalysis(List<ConditionalPoissonLikelihood> likelihoods,
+	public MultivariableHierarchicalMetaAnalysis(//List<ConditionalPoissonLikelihood> likelihoods,
+												 List<DataModel> dataModels,
 												 HierarchicalMetaAnalysisConfiguration cg) {
 
 		MathUtils.setSeed(cg.seed);
@@ -55,17 +56,17 @@ public class MultivariableHierarchicalMetaAnalysis implements Analysis {
 		List<MCMCOperator> allOperators = new ArrayList<>();
 		List<Parameter> allParameters = new ArrayList<>();
 
-		final int analysisDim = likelihoods.get(0).getParameter().getDimension();
+		final int analysisDim = dataModels.get(0).getCompoundParameter().getDimension();
 
 		// Build data likelihood
-		for (ConditionalPoissonLikelihood singleAnalysis : likelihoods) {
+		for (DataModel singleAnalysis : dataModels) {
 
-			if (analysisDim != singleAnalysis.getParameter().getDimension()) {
+			if (analysisDim != singleAnalysis.getCompoundParameter().getDimension()) {
 				throw new IllegalArgumentException("Mismatched regression dimensions");
 			}
 
-			allDataLikelihoods.add(singleAnalysis);
-			Parameter beta = singleAnalysis.getParameter();
+			allDataLikelihoods.add(singleAnalysis.getLikelihood());
+			Parameter beta = singleAnalysis.getCompoundParameter();
 			allParameters.add(beta);
 
 			allOperators.add(new RandomWalkOperator(beta, null, 0.1, // TODO HMC will be way faster!!!
@@ -197,7 +198,7 @@ public class MultivariableHierarchicalMetaAnalysis implements Analysis {
 
 		HierarchicalMetaAnalysisConfiguration cg = new HierarchicalMetaAnalysisConfiguration();
 
-		List<ConditionalPoissonLikelihood> likelihoods = Arrays.asList(
+		List<DataModel> likelihoods = Arrays.asList(
 				new MultivariableCoxPartialLikelihood(
 						new Parameter.Default(new double[] { -0.4608773, -0.1012988 }),
 						exampleBladder()),
@@ -219,6 +220,8 @@ public class MultivariableHierarchicalMetaAnalysis implements Analysis {
 		runner.run();
 
 		runner.processSamples();
+
+		System.exit(0); // Close threads
 	}
 
 	public static double[][] diagonalScaleMatrix(int dim, double diagonal) {

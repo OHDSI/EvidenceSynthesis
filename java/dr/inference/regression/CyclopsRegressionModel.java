@@ -25,14 +25,13 @@
 
 package dr.inference.regression;
 
-import dr.inference.model.AbstractModelLikelihood;
-import dr.inference.model.Model;
-import dr.inference.model.Parameter;
-import dr.inference.model.Variable;
+import dr.inference.model.*;
 import org.ohdsi.mcmc.Analysis;
+import org.ohdsi.metaAnalysis.DataModel;
 
 import java.util.Arrays;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 
 import static org.ohdsi.mcmc.Analysis.makeParameter;
@@ -42,7 +41,7 @@ import static org.ohdsi.mcmc.Analysis.makeParameter;
 /**
  * @author Marc A. Suchard
  */
-public class CyclopsRegressionModel extends AbstractModelLikelihood {
+public class CyclopsRegressionModel extends AbstractModelLikelihood implements DataModel {
 
     private final RegressionInCyclops cyclops;
     private final Parameter beta;
@@ -86,6 +85,9 @@ public class CyclopsRegressionModel extends AbstractModelLikelihood {
         this.updateAllBeta = false;
 
         addVariable(beta);
+
+        beta.addBounds(new Parameter.DefaultBounds(Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY,
+                beta.getDimension()));
     }
 
     @SuppressWarnings("unused")
@@ -197,5 +199,25 @@ public class CyclopsRegressionModel extends AbstractModelLikelihood {
         double[] gradient = new double[dim];
         cyclops.getLogLikelihoodGradient(gradient);
         return gradient;
+    }
+
+    @Override
+    public Likelihood getLikelihood() {
+        return this;
+    }
+
+    @Override
+    public Parameter getCompoundParameter() {
+        return beta;
+    }
+
+    @Override
+    public List<Parameter> getIndividualParameters() {
+        return Arrays.asList(beta);
+    }
+
+    @Override
+    public List<Integer> getIdentifiers() {
+        return null;
     }
 }
