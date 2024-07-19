@@ -15,18 +15,10 @@
  ******************************************************************************/
 package org.ohdsi.metaAnalysis;
 
-import dr.evomodel.operators.PrecisionMatrixGibbsOperator;
-import dr.inference.distribution.DistributionLikelihood;
-import dr.inference.distribution.MultivariateDistributionLikelihood;
-import dr.inference.distribution.MultivariateNormalDistributionModel;
-import dr.inference.distribution.NormalDistributionModel;
 import dr.inference.loggers.Loggable;
 import dr.inference.model.*;
 import dr.inference.operators.*;
 import dr.math.MathUtils;
-import dr.math.distributions.*;
-import dr.math.matrixAlgebra.IllegalDimension;
-import org.ohdsi.likelihood.ConditionalPoissonLikelihood;
 import org.ohdsi.likelihood.MultivariableCoxPartialLikelihood;
 import org.ohdsi.mcmc.Analysis;
 import org.ohdsi.mcmc.Runner;
@@ -45,8 +37,8 @@ public class MultivariableHierarchicalMetaAnalysis implements Analysis {
 	private final List<Parameter> parameters;
 	private final OperatorSchedule schedule;
 
-	public MultivariableHierarchicalMetaAnalysis(//List<ConditionalPoissonLikelihood> likelihoods,
-												 List<DataModel> dataModels,
+	public MultivariableHierarchicalMetaAnalysis(List<DataModel> dataModels,
+												 MultivariatePrior multivariatePrior,
 												 HierarchicalMetaAnalysisConfiguration cg) {
 
 		MathUtils.setSeed(cg.seed);
@@ -75,66 +67,69 @@ public class MultivariableHierarchicalMetaAnalysis implements Analysis {
 		// End of data likelihood
 
 		// Build hierarchical priors and operators
-		Parameter mu = new Parameter.Default("mean", analysisDim, cg.startingMu);
-		mu.addBounds(new Parameter.DefaultBounds(Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY, analysisDim));
+//		Parameter mu = new Parameter.Default("mean", analysisDim, cg.startingMu);
+//		mu.addBounds(new Parameter.DefaultBounds(Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY, analysisDim));
+//
+////		Parameter tau = new Parameter.Default("tau", analysisDim, cg.startingTau);
+////		tau.addBounds(new Parameter.DefaultBounds(Double.POSITIVE_INFINITY, 0.0, analysisDim));
+//		MatrixParameter tau2 = diagonalMatrixParameter("tau", analysisDim, cg.startingTau);
+//
+//		MultivariateDistributionLikelihood hierarchy = new MultivariateDistributionLikelihood(
+//			new MultivariateNormalDistributionModel(mu,
+////					new DiagonalMatrix(tau)
+//					tau2
+//			));
+//
+//		for (Parameter beta : allParameters) {
+//			hierarchy.addData(beta);
+//		}
+//
+//		double[] muPriorMean = new double[analysisDim];
+//		Arrays.fill(muPriorMean, cg.muMean);
+//		double muPriorPrecision = 1 / (cg.muSd * cg.muSd);
+//
+//		MultivariateDistributionLikelihood meanPrior = new MultivariateDistributionLikelihood(
+//			new MultivariateNormalDistribution(muPriorMean,muPriorPrecision));
+//		meanPrior.addData(mu);
+//
+////		DistributionLikelihood tauPrior = new DistributionLikelihood(
+////				new GammaDistribution(cg.tauShape, cg.tauScale));
+////		tauPrior.addData(tau);
+//
+//		MultivariateDistributionLikelihood tau2Prior = new MultivariateDistributionLikelihood(
+//				new WishartDistribution(cg.tauDf, diagonalScaleMatrix(analysisDim, cg.tauScale))
+//		);
+//		tau2Prior.addData(tau2);
+//
+////		List<Likelihood> allPriors = Arrays.asList(hierarchy, meanPrior, tauPrior);
+//		List<Likelihood> allPriors = Arrays.asList(hierarchy, meanPrior, tau2Prior);
+//
+//		allParameters.add(mu);
+////		allParameters.add(tau);
+//		allParameters.add(tau2);
+//
+//
+//		MCMCOperator meanOperator = null;
+//		try {
+//			meanOperator = new MultivariateNormalGibbsOperator(hierarchy, meanPrior, 1.0);
+//		} catch (IllegalDimension e) {
+//			e.printStackTrace();
+//		}
+//
+////		MCMCOperator tauOperator = new ScaleOperator(tau, 0.75, cg.mode, 1.0);
+//		MCMCOperator tau2Operator = new PrecisionMatrixGibbsOperator(hierarchy,
+//				(WishartStatistics) tau2Prior.getDistribution(), 1.0);
+//
+//		allOperators.add(meanOperator);
+////		allOperators.add(tauOperator);
+//		allOperators.add(tau2Operator);
 
-//		Parameter tau = new Parameter.Default("tau", analysisDim, cg.startingTau);
-//		tau.addBounds(new Parameter.DefaultBounds(Double.POSITIVE_INFINITY, 0.0, analysisDim));
-		MatrixParameter tau2 = diagonalMatrixParameter("tau", analysisDim, cg.startingTau);
-
-		MultivariateDistributionLikelihood hierarchy = new MultivariateDistributionLikelihood(
-			new MultivariateNormalDistributionModel(mu,
-//					new DiagonalMatrix(tau)
-					tau2
-			));
-
-		for (Parameter beta : allParameters) {
-			hierarchy.addData(beta);
-		}
-
-		double[] muPriorMean = new double[analysisDim];
-		Arrays.fill(muPriorMean, cg.muMean);
-		double muPriorPrecision = 1 / (cg.muSd * cg.muSd);
-
-		MultivariateDistributionLikelihood meanPrior = new MultivariateDistributionLikelihood(
-			new MultivariateNormalDistribution(muPriorMean,muPriorPrecision));
-		meanPrior.addData(mu);
-
-//		DistributionLikelihood tauPrior = new DistributionLikelihood(
-//				new GammaDistribution(cg.tauShape, cg.tauScale));
-//		tauPrior.addData(tau);
-
-		MultivariateDistributionLikelihood tau2Prior = new MultivariateDistributionLikelihood(
-				new WishartDistribution(cg.tauDf, diagonalScaleMatrix(analysisDim, cg.tauScale))
-		);
-		tau2Prior.addData(tau2);
-
-//		List<Likelihood> allPriors = Arrays.asList(hierarchy, meanPrior, tauPrior);
-		List<Likelihood> allPriors = Arrays.asList(hierarchy, meanPrior, tau2Prior);
-
-		allParameters.add(mu);
-//		allParameters.add(tau);
-		allParameters.add(tau2);
-
-
-		MCMCOperator meanOperator = null;
-		try {
-			meanOperator = new MultivariateNormalGibbsOperator(hierarchy, meanPrior, 1.0);
-		} catch (IllegalDimension e) {
-			e.printStackTrace();
-		}
-
-//		MCMCOperator tauOperator = new ScaleOperator(tau, 0.75, cg.mode, 1.0);
-		MCMCOperator tau2Operator = new PrecisionMatrixGibbsOperator(hierarchy,
-				(WishartStatistics) tau2Prior.getDistribution(), 1.0);
-
-		allOperators.add(meanOperator);
-//		allOperators.add(tauOperator);
-		allOperators.add(tau2Operator);
-
+		allParameters.addAll(multivariatePrior.getParameters());
+		allOperators.addAll(multivariatePrior.getOperators(cg.operatorWeight, cg.mode));
 
 		// Finalize
-		this.prior = new CompoundLikelihood(allPriors);
+//		this.prior = new CompoundLikelihood(allPriors);
+		this.prior = multivariatePrior.getPrior();
 		this.likelihood = new CompoundLikelihood(cg.threads, allDataLikelihoods);
 		this.joint = new CompoundLikelihood(Arrays.asList(likelihood, prior));
 		this.joint.setId("joint");
@@ -213,7 +208,8 @@ public class MultivariableHierarchicalMetaAnalysis implements Analysis {
 						exampleBladder())
 		);
 
-		MultivariableHierarchicalMetaAnalysis analysis = new MultivariableHierarchicalMetaAnalysis(likelihoods, cg);
+		MultivariableHierarchicalMetaAnalysis analysis = new MultivariableHierarchicalMetaAnalysis(likelihoods,
+				new MultivariatePrior.MultivariateNormal(likelihoods, cg), cg);
 
 		Runner runner = new Runner(analysis, chainLength, burnIn, subSampleFrequency, cg.seed);
 

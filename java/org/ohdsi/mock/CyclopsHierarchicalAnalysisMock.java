@@ -4,7 +4,7 @@ import org.ohdsi.mcmc.Analysis;
 import org.ohdsi.mcmc.Runner;
 import org.ohdsi.metaAnalysis.DataModel;
 import org.ohdsi.metaAnalysis.MultivariableHierarchicalMetaAnalysis;
-import org.ohdsi.simpleDesign.CyclopsNormalAnalysis;
+import org.ohdsi.metaAnalysis.MultivariatePrior;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,11 +29,22 @@ public class CyclopsHierarchicalAnalysisMock {
                 new MultivariableHierarchicalMetaAnalysis.HierarchicalMetaAnalysisConfiguration();
         cg.tauDf = 10;
 
-        Analysis analysis = new MultivariableHierarchicalMetaAnalysis(dataModels, cg);
+        Analysis analysis = new MultivariableHierarchicalMetaAnalysis(dataModels,
+                new MultivariatePrior.MultivariateNormal(dataModels, cg), cg);
 
+        System.err.println("Running hierarchical model");
         Runner runner = new Runner(analysis, chainLength, burnIn, subSampleFrequency, 666);
         runner.run();
         runner.processSamples();
+        
+        Analysis analysis2 = new MultivariableHierarchicalMetaAnalysis(dataModels,
+                new MultivariatePrior.IndependentNormal(dataModels, cg), cg);
+        System.err.println("Running independent model");
+
+        Runner runner2 = new Runner(analysis2, chainLength, burnIn, subSampleFrequency, 666);
+        runner2.run();
+        runner2.processSamples();
+
 
         for (MockCyclops mock : mocks) {
             mock.close();

@@ -26,13 +26,9 @@
 package dr.inference.regression;
 
 import dr.inference.model.*;
-import org.ohdsi.mcmc.Analysis;
 import org.ohdsi.metaAnalysis.DataModel;
 
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
 
 import static org.ohdsi.mcmc.Analysis.makeParameter;
 
@@ -45,7 +41,8 @@ public class CyclopsRegressionModel extends AbstractModelLikelihood implements D
 
     private final RegressionInCyclops cyclops;
     private final Parameter beta;
-    private final int dim;
+    private final int cyclopsDim;
+    private final int cyclopsOffset;
 
     private double logLikelihood;
     private double storedLogLikelihood;
@@ -70,8 +67,9 @@ public class CyclopsRegressionModel extends AbstractModelLikelihood implements D
         this.cyclops = new RegressionInCyclops(libraryFileName, instance);
 
         this.beta = beta;
-        this.dim = cyclops.getBetaSize();
-        if (beta.getDimension() != dim) {
+        this.cyclopsOffset = cyclops.hasOffset();
+        this.cyclopsDim = cyclops.getBetaSize();
+        if (beta.getDimension() != cyclopsDim - cyclopsOffset) {
             throw new IllegalArgumentException("Invalid beta parameter");
         }
 
@@ -100,11 +98,12 @@ public class CyclopsRegressionModel extends AbstractModelLikelihood implements D
     }
 
     private void setBetaParameterFromCyclops() {
-        double[] values = new double[dim];
+        double[] values = new double[cyclopsDim];
+
         cyclops.getBeta(values);
 
-        for (int i = 0; i < dim; ++i) {
-            beta.setParameterValueQuietly(i, values[i]);
+        for (int i = 0; i < cyclopsDim - cyclopsOffset; ++i) {
+            beta.setParameterValueQuietly(i, values[i + cyclopsOffset]);
         }
         beta.fireParameterChangedEvent();
     }
@@ -178,12 +177,23 @@ public class CyclopsRegressionModel extends AbstractModelLikelihood implements D
 
     private void setBetaInCyclops() {
         if (updateAllBeta || betaDimChanged.isEmpty()) {
-            cyclops.setBeta(beta.getParameterValues());
+            double[] values = beta.getParameterValues();
+
+            if (cyclopsOffset > 0) {
+                double[] augmented = new double[cyclopsDim];
+                for (int i = 0; i < cyclopsOffset; ++i) {
+                    augmented[i] = cyclops.getBeta(i);
+                }
+                System.arraycopy(values, 0, augmented, cyclopsOffset, cyclopsDim - cyclopsOffset);
+                values = augmented;
+            }
+
+            cyclops.setBeta(values);
             betaDimChanged.clear();
         } else {
             while (!betaDimChanged.isEmpty()) {
                 final int index = betaDimChanged.remove();
-                cyclops.setBeta(index, beta.getParameterValue(index));
+                cyclops.setBeta(index + cyclopsOffset, beta.getParameterValue(index));
             }
         }
     }
@@ -196,7 +206,7 @@ public class CyclopsRegressionModel extends AbstractModelLikelihood implements D
     }
 
     protected double[] getGradientWrtBeta() {
-        double[] gradient = new double[dim];
+        double[] gradient = new double[cyclopsDim];
         cyclops.getLogLikelihoodGradient(gradient);
         return gradient;
     }
@@ -213,7 +223,7 @@ public class CyclopsRegressionModel extends AbstractModelLikelihood implements D
 
     @Override
     public List<Parameter> getIndividualParameters() {
-        return Arrays.asList(beta);
+        return Collections.singletonList(beta);
     }
 
     @Override

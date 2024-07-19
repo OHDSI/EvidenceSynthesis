@@ -25,8 +25,6 @@
 
 package dr.inference.regression;
 
-import dr.inference.model.AbstractModelLikelihood;
-
 /**
  * @author Marc A. Suchard
  */
@@ -75,6 +73,10 @@ public class RegressionInCyclops {
 
     public int getBetaSize() {
         return wrapper.getBetaSize(instance);
+    }
+
+    public int hasOffset() {
+        return wrapper.hasOffset(instance);
     }
 
     public double getHessian(int index1, int index2) {

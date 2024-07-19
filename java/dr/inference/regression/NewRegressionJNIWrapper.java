@@ -47,6 +47,8 @@ public class NewRegressionJNIWrapper {
 
     public native int getBetaSize(int instance);
 
+    public native int hasOffset(int instance);
+
     public native double getHessian(int instance, int index1, int index2);
 
     public native void setBeta(int instance, int index, double value);
