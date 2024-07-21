@@ -68,13 +68,25 @@ lapply(cyclopsFits, function(object) {
 
 config <- rJava::.jnew("org.ohdsi.metaAnalysis.MultivariableHierarchicalMetaAnalysis$HierarchicalMetaAnalysisConfiguration")
 
+# config$muMean <- 0
+# config$muSd <- 10
+
+prior <- rJava::.jnew("org.ohdsi.metaAnalysis.MultivariatePrior$MultivariateNormal",
+                      rJava::.jcast(dataModelList, "java.util.List"),
+                      config)
+
+# prior <- rJava::.jnew("org.ohdsi.metaAnalysis.MultivariatePrior$IndependentNormal",
+#                       rJava::.jcast(dataModelList, "java.util.List"),
+#                       config)
+
 analysis <- rJava::.jnew("org.ohdsi.metaAnalysis.MultivariableHierarchicalMetaAnalysis",
                          rJava::.jcast(dataModelList, "java.util.List"),
+                         rJava::.jcast(prior, "org.ohdsi.metaAnalysis.MultivariatePrior"),
                          config)
 
-chainLength <- 110000
-burnIn <- 10000
-subSampleFrequency <- 100
+chainLength <- 1100000
+burnIn <- 100000
+subSampleFrequency <- 10
 seed <- 666
 showProgressBar <- TRUE
 

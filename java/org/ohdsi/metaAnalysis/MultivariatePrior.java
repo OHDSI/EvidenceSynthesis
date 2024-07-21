@@ -88,7 +88,7 @@ public interface MultivariatePrior {
 	}
 
 	@SuppressWarnings("unused")
-	class MultivariateNormal extends  Base {
+	class MultivariateNormal extends Base {
 
 		public MultivariateNormal(List<DataModel> dataModels,
 								  MultivariableHierarchicalMetaAnalysis.HierarchicalMetaAnalysisConfiguration cg) {

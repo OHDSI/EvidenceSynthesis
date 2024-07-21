@@ -36,7 +36,7 @@ public class CyclopsHierarchicalAnalysisMock {
         Runner runner = new Runner(analysis, chainLength, burnIn, subSampleFrequency, 666);
         runner.run();
         runner.processSamples();
-        
+
         Analysis analysis2 = new MultivariableHierarchicalMetaAnalysis(dataModels,
                 new MultivariatePrior.IndependentNormal(dataModels, cg), cg);
         System.err.println("Running independent model");
