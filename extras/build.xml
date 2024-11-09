@@ -20,12 +20,8 @@
     <!-- set global properties for this build -->
     <property name="src" location="${repodir}/java"/>
     <property name="build" location="build"/>
-    <property name="beastjar" location="${repodir}/../BeastJar/java"/>
+    <property name="beastjar" location="${repodir}/../BeastJar/inst/java"/>
     <property name="dist" location="${repodir}/inst/java"/>
-
-     <path id="classpath">
-        <fileset dir="${beastjar}" includes="beast.jar"/>
-    </path>
 
     <!-- start -->
     <target name="init">
@@ -41,15 +37,18 @@
         <mkdir dir="${build}"/>
 
         <!-- Compile the java code from ${src} into ${build} /bin -->
-        <javac source="${JDK_SOURCE_VERSION}" target="${JDK_TARGET_VERSION}" sourcepath="" srcdir="${src}" destdir="${build}"
-               classpathref="classpath"
+        <javac source="${JDK_SOURCE_VERSION}" target="${JDK_TARGET_VERSION}" sourcepath="" srcdir="${src}" destdir="${build}"               
                fork="true"
                includeantruntime="false"
                memoryinitialsize="256m"
                memorymaximumsize="1024m">
+            <classpath>
+            	<pathelement location="${beastjar}/beast.jar"/>
+            </classpath>
+
             <include name="org/ohdsi/**"/>
             <include name="test/org/ohdsi/**"/>
-            <include name="dr/inference/**"/>
+         <!--    <include name="dr/inference/**"/> -->
         </javac>
         <echo message="Successfully compiled."/>
     </target>
@@ -67,9 +66,11 @@
             <fileset dir="${build}">
             	<include name="org/ohdsi/**/*.class"/>
             	<include name="test/org/ohdsi/**/*.class"/>
+<!-- 
             	<include name="dr/inference/**/*.class"/>
             	<include name="dr/inference/**/**/*.class"/>
             	<include name="dr/inference/**/**/**/*.class"/>
+ -->
             </fileset>
         </jar>
     </target>

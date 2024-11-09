@@ -203,7 +203,7 @@ public class HierarchicalMetaAnalysis implements Analysis {
 		System.err.println(gradientDataModel.getReport());
 
 		GradientWrtParameterProvider subGradientEffects1 = new SimpleLinearModelGradientWrtEffects(allEffectDistribution);
-		CompoundGradient subGradientEffects2 = new CompoundDerivative(allEffectsGradient);
+		CompoundGradient subGradientEffects2 = new CompoundGradient(allEffectsGradient);
 		JointGradient gradientEffects = new JointGradient(List.of(subGradientEffects1, subGradientEffects2));
 
 		System.err.println(gradientEffects.getReport());

@@ -24,7 +24,7 @@ Imports:
   meta,
   EmpiricalCalibration,
   rJava,
-  BeastJar,
+  BeastJar (>= 10.4.99),
   Cyclops (>= 3.1.0),
   HDInterval,
   coda,
