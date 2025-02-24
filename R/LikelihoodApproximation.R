@@ -25,7 +25,7 @@
 #' @param cyclopsFit      A model fitted using the [Cyclops::fitCyclopsModel()] function.
 #' @param parameter       The parameter in the `cyclopsFit` object to profile.
 #' @param approximation   The type of approximation. Valid options are `'normal'`, `'skew normal'`,
-#'                        `'custom'`, `'grid'`, or `'adaptive grid'`.
+#'                        `'custom'`, `'grid'`, `'adaptive grid'`, or `'grid with gradients'`.
 #' @param bounds          The bounds on the effect size used to fit the approximation.
 #'
 #' @seealso
@@ -53,14 +53,34 @@ approximateLikelihood <- function(cyclopsFit,
                                   parameter = 1,
                                   approximation = "custom",
                                   bounds = c(log(0.1), log(10))) {
-  if (!approximation %in% c("normal", "skew normal", "custom", "grid", "adaptive grid")) {
-    stop("'approximation' argument should be 'normal', 'skew normal', 'custom', 'grid', or 'adaptive grid'.")
+  if (!approximation %in% c("normal", "skew normal", "custom", "grid", "adaptive grid", "grid with gradients")) {
+    stop("'approximation' argument should be 'normal', 'skew normal', 'custom', 'grid', 'adaptive grid', or 'grid with gradients'.")
   }
   if (!is(cyclopsFit, "cyclopsFit")) {
     stop("'cyclopsFit' argument should be of type 'cyclopsFit'")
   }
 
-  if (approximation == "grid") {
+  if (approximation == "grid with gradients") {
+    x <- seq(bounds[1], bounds[2], length.out = 8)
+    profile <- getCyclopsProfileLogLikelihood(object = cyclopsFit,
+                                              parm = parameter,
+                                              x = x,
+                                              returnDerivatives = TRUE)
+    profile$derivative <- -profile$derivative # Bug in current Cyclops version
+    if (cyclopsFit$return_flag == "SUCCESS" &&
+        coef(cyclopsFit)[parameter] > bounds[1] &&
+        coef(cyclopsFit)[parameter] < bounds[2]) {
+      profile <- profile %>%
+        bind_rows(data.frame(
+          point = coef(cyclopsFit)[parameter],
+          value = cyclopsFit$log_likelihood,
+          derivative = 0
+        ))
+    }
+    profile <- profile %>%
+      arrange(.data$point)
+    return(profile)
+  } else if (approximation == "grid") {
     x <- seq(bounds[1], bounds[2], length.out = 1000)
     result <- getLikelihoodProfile(cyclopsFit, parameter, x)
     names(result) <- x
@@ -148,6 +168,63 @@ skewNormal <- function(x, mu, sigma, alpha) {
     return(rep(0, length(x)))
   }
   return(log(2) + dnorm(x, mu, sigma, log = TRUE) + pnorm(alpha * (x - mu), 0, sigma, log.p = TRUE))
+}
+
+
+#' Cubic Hermite interpolation using both values and gradients to approximate a log likelihood function
+#'
+#' @param x       The log(hazard ratio) for which to approximate the log likelihood.
+#' @param profile A profile as created with `approximateLikelihood()` with
+#'                `approximation = "grid with gradients"`. This is a data frame
+#'                with 3 columns: `point`, `value`, and `derivative`, sorted by
+#'                `point`.
+#'
+#' @details
+#' Performs spline interpolation using cubic Hermite polynomials (Catmull et al.  1974)
+#' between the points specified in the profile. We use linear extrapolation
+#' outside the points.
+#'
+#' @examples
+#' profile <- data.frame(point = c(1, 2), value = c(1, 1), derivative = c(0.1, -0.1))
+#' hermiteInterpolation(x = 0:3, profile = profile)
+#'
+#' @return
+#' The approximate log likelihood for the given x.
+#'
+#' @references
+#' Catmull, Edwin; Rom, Raphael (1974), "A class of local interpolating splines",
+#' in Barnhill, R. E.; Riesenfeld, R. F. (eds.), Computer Aided Geometric Design,
+#' New York: Academic Press, pp. 317–326
+#'
+#' @export
+hermiteInterpolation <- function(x, profile) {
+  n <- length(profile$point)
+  result <- numeric(length(x))
+
+  # Hermite interpolation for points within the range of profile$point:
+  for (i in seq_len(n - 1)) {
+    t <- (x - profile$point[i]) / (profile$point[i+1] - profile$point[i])
+    h00 <- 2 * t^3 - 3 * t^2 + 1
+    h10 <- t^3 - 2 * t^2 + t
+    h01 <- -2 * t^3 + 3 * t^2
+    h11 <- t^3 - t^2
+
+    idx <- which(x >= profile$point[i] & x <= profile$point[i+1])
+    result[idx] <- h00[idx] * profile$value[i] +
+      h10[idx] * (profile$point[i+1] - profile$point[i]) * profile$derivative[i] +
+      h01[idx] * profile$value[i+1] +
+      h11[idx] * (profile$point[i+1] - profile$point[i]) * profile$derivative[i+1]
+  }
+
+  # Extrapolate to the left (linear):
+  leftIdx <- which(x < profile$point[1])
+  result[leftIdx] <- profile$value[1] + (x[leftIdx] - profile$point[1]) * profile$derivative[1]
+
+  # Extrapolate to the right (linear):
+  rightIdx <- which(x > profile$point[n])
+  result[rightIdx] <- profile$value[n] + (x[rightIdx] - profile$point[n]) * profile$derivative[n]
+
+  return(result)
 }
 
 fitLogLikelihoodFunction <- function(beta, ll, weighByLikelihood = TRUE, fun = customFunction) {
@@ -310,6 +387,13 @@ computeConfidenceInterval <- function(approximation, alpha = 0.05) {
   } else if (type == "grid") {
     estimate <- computeEstimateFromGrid(approximation, alpha = alpha)
     return(estimate)
+  } else if (type == "grid with gradients") {
+    estimate <- computeEstimateFromApproximation(
+      approximationFuntion = hermiteInterpolation,
+      a = alpha,
+      profile = approximation
+    )
+    return(estimate)
   } else {
     abort(sprintf("Approximation type '%s' not supported by this function", type))
   }
@@ -363,6 +447,11 @@ detectApproximationType <- function(data, verbose = TRUE) {
       }
       return("pooled")
     }
+  } else if ("derivative" %in% columnNames) {
+    if (verbose) {
+      inform("Detected data following grid with gradients distribution")
+    }
+    return("grid with gradients")
   } else if ("point" %in% columnNames) {
     if (verbose) {
       inform("Detected data following adaptive grid distribution")
@@ -398,6 +487,17 @@ cleanApproximations <- function(data) {
       cleanedData$value <- cleanedData$value - max(cleanedData$value)
       cleanedData <- cleanData(cleanedData,
                                c("point", "value"),
+                               minValues = c(-100, -1e6),
+                               maxValues = c(100, 0)
+      )
+      data[[i]] <- cleanedData
+    }
+  } else if (type == "grid with gradients") {
+    for (i in 1:length(data)) {
+      cleanedData <- as.data.frame(data[[i]])
+      cleanedData$value <- cleanedData$value - max(cleanedData$value)
+      cleanedData <- cleanData(cleanedData,
+                               c("point", "value", "derivative"),
                                minValues = c(-100, -1e6),
                                maxValues = c(100, 0)
       )
@@ -578,7 +678,7 @@ constructDataModel <- function(data, labelReferences = NULL){
       )
       if(!is.null(labelReferences) && !is.null(names(data))){
         id = labelReferences[[names(data)[i]]]
-        cat(sprintf("ata source %s, with label %s ...\n",
+        cat(sprintf("Data source %s, with label %s ...\n",
                     names(data)[i], id))
       }else{
         id = i
@@ -613,7 +713,7 @@ constructDataModel <- function(data, labelReferences = NULL){
 #' Build a list of references that map likelihood names to integer labels for later use
 #'
 #' @param data             The likelihood data. Can be a single approximation, approximations
-#'                         from multiple sites, or (adaptive) gride profile likelihoods.
+#'                         from multiple sites, or (adaptive) grid profile likelihoods.
 #'
 #' @examples
 #' data("likelihoodProfileLists")

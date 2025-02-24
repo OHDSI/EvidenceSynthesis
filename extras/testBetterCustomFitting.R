@@ -1,6 +1,8 @@
 library(EvidenceSynthesis)
 library(Cyclops)
 library(survival)
+library(dplyr)
+library(ggplot2)
 # Cox -------------------------
 # settings <- createSimulationSettings(nSites = 1, n = 3000)
 # population <- simulatePopulations(settings)[[1]]
@@ -60,8 +62,8 @@ if (fit$return_flag == "SUCCESS" && coef(fit)[param] > log(0.1) && coef(fit)[par
       derivative = 0
     ))
 }
-
-library(dplyr)
+profile <- profile |>
+  arrange(point)
 
 isConvex <- function(df) {
   df <- df %>% arrange(point)  # Ensure points are ordered
@@ -106,6 +108,6 @@ ggplot(vizData, aes(x = x, y = trueY)) +
 print(sprintf("MSE: %0.4f", mean(sum((vizData$approxY - vizData$trueY)^2))))
 
 
-
+hermiteInterpolation(profile$point, profile$value, profile$derivative, log(11))
 
 
