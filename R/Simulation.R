@@ -292,14 +292,14 @@ createApproximations.simulation <- function(populations, approximation) {
                                               modelType = "cox"
     )
     cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData,
-                                           fixedCoefficients = c(approximation != "normal")
+                                           fixedCoefficients = c(!approximation %in% c("normal", "grid with gradients"))
     )
     res <- approximateLikelihood(cyclopsFit, "x",
                                  approximation = approximation)
     return(res)
   }
   data <- lapply(populations, fitModelInDatabase, approximation = approximation)
-  if (approximation != "adaptive grid") {
+  if (!approximation %in% c("adaptive grid", "grid with gradients")) {
     data <- do.call("rbind", data)
   }
   return(data)
@@ -315,12 +315,12 @@ createApproximations.sccsSimulation <- function(populations, approximation) {
     xColnames <- colnames(population)[grep("x[0-9]+", colnames(population))]
     formula <- as.formula(paste("y ~ a +", paste0(xColnames, collapse = " + "), " + strata(stratumId) + offset(log(time))"))
     cyclopsData <- Cyclops::createCyclopsData(formula, data = population, modelType = "cpr")
-    cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData, fixedCoefficients = rep(approximation != "normal", 1 + length(xColnames)))
+    cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData, fixedCoefficients = rep(!approximation %in% c("normal", "grid with gradients"), 1 + length(xColnames)))
     res <- EvidenceSynthesis::approximateLikelihood(cyclopsFit, "a", approximation = approximation)
     return(res)
   }
   data <- lapply(populations, fitModelInDatabase, approximation = approximation)
-  if (approximation == "adaptive grid") {
+  if (approximation %in% c("adaptive grid", "grid with gradients")) {
     data <- data[!sapply(data, is.null)]
   } else {
     data <- do.call("rbind", data)

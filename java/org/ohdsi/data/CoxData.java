@@ -59,7 +59,6 @@ public class CoxData {
         this.data = new SortedCoxData(y, x, getStrata(p, y.length), w);
     }
 
-    @SuppressWarnings("WeakerAccess")
     public SortedCoxData getSortedData() { return data; }
 
     private boolean isFailureTie(int[] y, double[] t, int[] id, int i) {

@@ -26,7 +26,7 @@ between the points specified in the profile. We use linear extrapolation
 outside the points.
 }
 \examples{
-profile <- data.frame(point = c(1, 2), value = c(1, 1), derivative = c(0.1, -0.1))
+profile <- data.frame(point = c(1.1, 2.1), value = c(1, 1), derivative = c(0.1, -0.1))
 hermiteInterpolation(x = 0:3, profile = profile)
 
 }

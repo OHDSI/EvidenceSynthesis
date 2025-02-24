@@ -62,10 +62,10 @@ approximateLikelihood <- function(cyclopsFit,
 
   if (approximation == "grid with gradients") {
     x <- seq(bounds[1], bounds[2], length.out = 8)
-    profile <- getCyclopsProfileLogLikelihood(object = cyclopsFit,
-                                              parm = parameter,
-                                              x = x,
-                                              returnDerivatives = TRUE)
+    profile <- Cyclops::getCyclopsProfileLogLikelihood(object = cyclopsFit,
+                                                       parm = parameter,
+                                                       x = x,
+                                                       returnDerivatives = TRUE)
     profile$derivative <- -profile$derivative # Bug in current Cyclops version
     if (cyclopsFit$return_flag == "SUCCESS" &&
         coef(cyclopsFit)[parameter] > bounds[1] &&
@@ -185,7 +185,7 @@ skewNormal <- function(x, mu, sigma, alpha) {
 #' outside the points.
 #'
 #' @examples
-#' profile <- data.frame(point = c(1, 2), value = c(1, 1), derivative = c(0.1, -0.1))
+#' profile <- data.frame(point = c(1.1, 2.1), value = c(1, 1), derivative = c(0.1, -0.1))
 #' hermiteInterpolation(x = 0:3, profile = profile)
 #'
 #' @return
@@ -498,8 +498,8 @@ cleanApproximations <- function(data) {
       cleanedData$value <- cleanedData$value - max(cleanedData$value)
       cleanedData <- cleanData(cleanedData,
                                c("point", "value", "derivative"),
-                               minValues = c(-100, -1e6),
-                               maxValues = c(100, 0)
+                               minValues = c(-100, -1e6, -1e6),
+                               maxValues = c(100, 0, 1e6)
       )
       data[[i]] <- cleanedData
     }
@@ -669,13 +669,6 @@ constructDataModel <- function(data, labelReferences = NULL){
   } else if (type == "adaptive grid") {
     dataModel <- rJava::.jnew("org.ohdsi.metaAnalysis.ExtendingEmpiricalDataModel")
     for (i in 1:length(data)) {
-      cleanedData <- as.data.frame(data[[i]])
-      cleanedData$value <- cleanedData$value - max(cleanedData$value)
-      cleanedData <- cleanData(cleanedData,
-                               c("point", "value"),
-                               minValues = c(-100, -1e6),
-                               maxValues = c(100, 0)
-      )
       if(!is.null(labelReferences) && !is.null(names(data))){
         id = labelReferences[[names(data)[i]]]
         cat(sprintf("Data source %s, with label %s ...\n",
@@ -683,7 +676,7 @@ constructDataModel <- function(data, labelReferences = NULL){
       }else{
         id = i
       }
-      dataModel$addLikelihoodParameters(cleanedData$point, cleanedData$value, id) # specify identifier
+      dataModel$addLikelihoodParameters(data[[i]]$point, data[[i]]$value, id) # specify identifier
     }
     dataModel$finish()
   } else if (type == "grid") {
@@ -702,10 +695,15 @@ constructDataModel <- function(data, labelReferences = NULL){
       dataModel$addLikelihoodParameters(x, data[i, ], id) # specify identifier
     }
     dataModel$finish()
-  } else {
+  } else if (type == "grid with gradients") {
+    dataModel <- rJava::.jnew("org.ohdsi.metaAnalysis.GridWithGradientsDataModel")
+    for (i in 1:length(data)) {
+      dataModel$addLikelihoodData(data[[i]]$point, data[[i]]$value, data[[i]]$derivative)
+    }
+    dataModel$finish()
+  }else {
     abort(sprintf("Approximation type '%s' not supported by this function", type))
   }
-
   return(dataModel)
 }
 

@@ -133,6 +133,7 @@ public class SccsPartialLikelihood extends AbstractModelLikelihood {
 		minimizer.minimize(function); 
 	}
 
+	@SuppressWarnings("rawtypes")
 	@Override
 	protected void handleVariableChangedEvent(Variable variable, int i, Variable.ChangeType changeType) {
 		if (variable == beta) {

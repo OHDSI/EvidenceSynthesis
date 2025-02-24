@@ -137,6 +137,14 @@ computeFixedEffectMetaAnalysis <- function(data, alpha = 0.05) {
     grid <- apply(data, 2, sum)
     estimate <- computeEstimateFromGrid(grid, alpha = alpha)
     return(estimate)
+  } else if (type == "grid with gradients") {
+    estimate <- computeEstimateFromApproximation(
+      approximationFuntion = combineLogLikelihoodFunctionsList,
+      a = alpha,
+      fits = data,
+      fun = hermiteInterpolation
+    )
+    return(estimate)
   } else {
     abort(sprintf("Approximation type '%s' not supported by this function", type))
   }
@@ -186,6 +194,12 @@ estimate <- computeFixedEffectAdaptiveGrid <- function(data, alpha) {
 
 combineLogLikelihoodFunctions <- function(x, fits, fun = customFunction) {
   ll <- apply(fits, 1, function(fit) fun(x, fit[1], fit[2], fit[3]))
+  ll <- sum(ll)
+  return(ll)
+}
+
+combineLogLikelihoodFunctionsList <- function(x, fits, fun = customFunction) {
+  ll <- sapply(fits, function(fit) fun(x, fit))
   ll <- sum(ll)
   return(ll)
 }

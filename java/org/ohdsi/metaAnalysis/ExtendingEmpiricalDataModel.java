@@ -77,10 +77,6 @@ public class ExtendingEmpiricalDataModel extends EmpiricalDataModel {
 				//				}
 			}
 
-			public final double sqr(double x) {
-				return x * x;
-			}
-
 			@Override
 			public double gradientLogPdf(double x, EmpiricalDistributionData data) {
 				final int end = data.values.length - 1;
