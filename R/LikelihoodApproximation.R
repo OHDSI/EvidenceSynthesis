@@ -61,24 +61,7 @@ approximateLikelihood <- function(cyclopsFit,
   }
 
   if (approximation == "grid with gradients") {
-    x <- seq(bounds[1], bounds[2], length.out = 8)
-    profile <- Cyclops::getCyclopsProfileLogLikelihood(object = cyclopsFit,
-                                                       parm = parameter,
-                                                       x = x,
-                                                       returnDerivatives = TRUE)
-    profile$derivative <- -profile$derivative # Bug in current Cyclops version
-    if (cyclopsFit$return_flag == "SUCCESS" &&
-        coef(cyclopsFit)[parameter] > bounds[1] &&
-        coef(cyclopsFit)[parameter] < bounds[2]) {
-      profile <- profile %>%
-        bind_rows(data.frame(
-          point = coef(cyclopsFit)[parameter],
-          value = cyclopsFit$log_likelihood,
-          derivative = 0
-        ))
-    }
-    profile <- profile %>%
-      arrange(.data$point)
+    profile <- getGridWithGradients(cyclopsFit, parameter, bounds)
     return(profile)
   } else if (approximation == "grid") {
     x <- seq(bounds[1], bounds[2], length.out = 1000)
@@ -116,6 +99,62 @@ approximateLikelihood <- function(cyclopsFit,
     }
     return(result)
   }
+}
+
+getGridWithGradients <- function(cyclopsFit, parameter, bounds) {
+  # Should probably move this code to Cyclops at some point:
+  mleProfile <- data.frame()
+  if (cyclopsFit$return_flag == "SUCCESS") {
+    mle <- coef(cyclopsFit)[parameter]
+    if (mle > bounds[1] && mle < bounds[2] && mle != 0) {
+      # There appears to be a MLE, so save that. Note: if the model was fitted
+      # with the parameter fixed the coefficient may not actually be the MLE.
+      mleProfile <- Cyclops::getCyclopsProfileLogLikelihood(object = cyclopsFit,
+                                                         parm = parameter,
+                                                         x = mle,
+                                                         returnDerivatives = TRUE)
+    }
+  } else {
+    # If fit was not successful, CyclopsData object may be in bad state. Fit
+    # again with all covariates fixed to reset object:
+    cyclopsFit <- Cyclops::fitCyclopsModel(
+      cyclopsFit$cyclopsData,
+      fixedCoefficients = rep(TRUE, Cyclops::getNumberOfCovariates(cyclopsFit$cyclopsData))
+    )
+  }
+  x <- seq(bounds[1], bounds[2], length.out = 8)
+  profile <- Cyclops::getCyclopsProfileLogLikelihood(object = cyclopsFit,
+                                                     parm = parameter,
+                                                     x = x,
+                                                     returnDerivatives = TRUE)
+  profile <- bind_rows(mleProfile, profile) |>
+    arrange(.data$point)
+  profile$derivative <- -profile$derivative # Bug in current Cyclops version
+  invalid <- is.nan(profile$value) |
+    is.infinite(profile$value) |
+    is.nan(profile$derivative) |
+    is.infinite(profile$derivative)
+  if (any(invalid)) {
+    if (all(invalid)) {
+      warning("Failing to compute likelihood at entire grid.")
+      return(NULL)
+    }
+
+    start <- min(which(!invalid))
+    end <- max(which(!invalid))
+    if (start == end) {
+      warning("Failing to compute likelihood at entire grid except one. Giving up")
+      return(NULL)
+    }
+    profile <- profile[start:end, ]
+    invalid <- invalid[start:end]
+    if (any(invalid)) {
+      warning("Failing to compute likelihood in non-extreme regions. Giving up.")
+      return(NULL)
+    }
+    warning("Failing to compute likelihood at extremes. Truncating bounds.")
+  }
+  return(profile)
 }
 
 #' A custom function to approximate a log likelihood function
