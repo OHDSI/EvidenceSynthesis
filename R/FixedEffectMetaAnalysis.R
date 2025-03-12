@@ -210,11 +210,13 @@ computeEstimateFromApproximation <- function(approximationFuntion, a = 0.05, ...
   threshold <- -fit$value - qchisq(1 - a, df = 1) / 2
 
   precision <- 1e-07
+  maxIterations <- 100
 
   # Binary search for upper bound
   L <- logRr
   H <- 10
   ub <- Inf
+  i <- 0
   while (H >= L) {
     M <- L + (H - L) / 2
     llM <- approximationFuntion(M, ...)
@@ -234,12 +236,19 @@ computeEstimateFromApproximation <- function(approximationFuntion, a = 0.05, ...
       warn("Confidence interval upper bound out of range")
       break
     }
+    i <- i + 1
+    if (i > maxIterations) {
+      warn("Reached max iterations when searching for upper bound. Only approximately correct")
+      ub <- H
+      break
+    }
   }
 
   # Binary search for lower bound
   L <- -10
   H <- logRr
   lb <- -Inf
+  i <- 100
   while (H >= L) {
     M <- L + (H - L) / 2
     llM <- approximationFuntion(M, ...)
@@ -257,6 +266,12 @@ computeEstimateFromApproximation <- function(approximationFuntion, a = 0.05, ...
       break
     } else if (M == -10) {
       warn("Confidence interval lower bound out of range")
+      break
+    }
+    i <- i + 1
+    if (i > maxIterations) {
+      warn("Reached max iterations when searching for lower bound. Only approximately correct")
+      lb <- L
       break
     }
   }
