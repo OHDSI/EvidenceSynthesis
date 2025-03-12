@@ -248,7 +248,7 @@ computeEstimateFromApproximation <- function(approximationFuntion, a = 0.05, ...
   L <- -10
   H <- logRr
   lb <- -Inf
-  i <- 100
+  i <- 0
   while (H >= L) {
     M <- L + (H - L) / 2
     llM <- approximationFuntion(M, ...)
