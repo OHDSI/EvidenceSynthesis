@@ -114,13 +114,6 @@ getGridWithGradients <- function(cyclopsFit, parameter, bounds) {
                                                          x = mle,
                                                          returnDerivatives = TRUE)
     }
-  } else {
-    # If fit was not successful, CyclopsData object may be in bad state. Fit
-    # again with all covariates fixed to reset object:
-    cyclopsFit <- Cyclops::fitCyclopsModel(
-      cyclopsFit$cyclopsData,
-      fixedCoefficients = rep(TRUE, Cyclops::getNumberOfCovariates(cyclopsFit$cyclopsData))
-    )
   }
   x <- seq(bounds[1], bounds[2], length.out = 8)
   profile <- Cyclops::getCyclopsProfileLogLikelihood(object = cyclopsFit,
@@ -281,9 +274,12 @@ fitLogLikelihoodFunction <- function(beta, ll, weighByLikelihood = TRUE, fun = c
     }
     return(result)
   }
-
-  beta <- beta[!is.nan(ll)]
-  ll <- ll[!is.nan(ll)]
+  idx <- !is.nan(ll)
+  if (!any(idx)) {
+    return(data.frame(mu = as.numeric(NA), sigma = as.numeric(NA), gamma = as.numeric(NA)))
+  }
+  beta <- beta[idx]
+  ll <- ll[idx]
 
   # Scale to standard (translate in log space so max at 0):
   ll <- ll - max(ll)
