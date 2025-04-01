@@ -80,12 +80,12 @@ public class GridWithGradientsLikelihood extends AbstractModelLikelihood {
 
 		// Extrapolate to the left (linear)
 		if (x < data.point[0]) {
-			return data.value[0] + (x - data.point[0]) * data.derivative[0];
+			return data.value[0] + (x - data.point[0]) * Math.min(data.derivative[0], 0);
 		}
 
 		// Extrapolate to the right (linear)
 		if (x > data.point[n - 1]) {
-			return data.value[n - 1] + (x - data.point[n - 1]) * data.derivative[n - 1];
+			return data.value[n - 1] + (x - data.point[n - 1]) * Math.max(data.derivative[n - 1], 0);
 		}
 
 		// Find the interval containing x
