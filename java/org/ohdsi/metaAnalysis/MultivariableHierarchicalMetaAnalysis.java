@@ -15,14 +15,21 @@
  ******************************************************************************/
 package org.ohdsi.metaAnalysis;
 
+import dr.inference.distribution.MultivariateDistributionLikelihood;
+import dr.inference.hmc.CompoundGradient;
+import dr.inference.hmc.GradientWrtParameterProvider;
+import dr.inference.hmc.JointGradient;
 import dr.inference.loggers.Loggable;
 import dr.inference.model.*;
 import dr.inference.operators.*;
+import dr.inference.operators.hmc.*;
+import dr.inference.regression.CyclopsRegressionModelGradient;
 import dr.math.MathUtils;
 import org.ohdsi.likelihood.MultivariableCoxPartialLikelihood;
 import org.ohdsi.mcmc.Analysis;
 import org.ohdsi.mcmc.Runner;
 
+import java.sql.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -50,6 +57,12 @@ public class MultivariableHierarchicalMetaAnalysis implements Analysis {
 
 		final int analysisDim = dataModels.get(0).getCompoundParameter().getDimension();
 
+		List<GradientWrtParameterProvider> likelihoodDerivativeList = new ArrayList<>();
+		List<GradientWrtParameterProvider> priorDerivativeList = new ArrayList<>();
+		final MultivariateDistributionLikelihood mdl = (MultivariateDistributionLikelihood) multivariatePrior.getLikelihood(0);
+		final GradientProvider provider = (GradientProvider) mdl.getDistribution();
+//		List<Parameter> allBetas = new ArrayList<>();
+
 		// Build data likelihood
 		for (DataModel singleAnalysis : dataModels) {
 
@@ -59,11 +72,44 @@ public class MultivariableHierarchicalMetaAnalysis implements Analysis {
 
 			allDataLikelihoods.add(singleAnalysis.getLikelihood());
 			Parameter beta = singleAnalysis.getCompoundParameter();
-			allParameters.add(beta);
+//			allBetas.add(beta);
+//			allParameters.add(beta);
 
-			allOperators.add(new RandomWalkOperator(beta, null, 0.1, // TODO HMC will be way faster!!!
-					RandomWalkOperator.BoundaryCondition.reflecting, cg.operatorWeight * beta.getDimension(), cg.mode));
+//			allOperators.add(new RandomWalkOperator(beta, null, 0.1, // TODO HMC will be way faster!!!
+//					RandomWalkOperator.BoundaryCondition.reflecting, cg.operatorWeight * beta.getDimension(), cg.mode));
+			likelihoodDerivativeList.add((GradientWrtParameterProvider) singleAnalysis.getLikelihood());
+			priorDerivativeList.add(new GradientWrtParameterProvider.ParameterWrapper(provider, beta, mdl));
+//			allOperators.add(new HamiltonianMonteCarloOperator(AdaptationMode.ADAPTATION_OFF, 0.1, ))
+
 		}
+
+		final CompoundGradient priorGradient = new CompoundGradient(priorDerivativeList);
+		final CompoundGradient likelihoodGradient = new CompoundGradient(likelihoodDerivativeList);
+
+		allParameters.add(priorGradient.getParameter());
+
+		List<GradientWrtParameterProvider> jointGradientList = Arrays.asList(priorGradient, likelihoodGradient);
+		JointGradient jointGradient = new JointGradient(jointGradientList);
+		jointGradient.getGradientLogDensity();
+
+		final double stepSize = 1.8;
+		final int nSteps = 10;
+		final double randomStepFraction = 0;
+		final MassPreconditioningOptions preconditioningOptions =
+				new MassPreconditioningOptions.Default(10, 0, 0, 0, false, new Parameter.Default(1E-2), new Parameter.Default(1E2));
+		final MassPreconditioner.Type preconditionerType = MassPreconditioner.Type.DIAGONAL;
+		final MassPreconditioner preconditioner = preconditionerType.factory(jointGradient, null, preconditioningOptions);
+
+		HamiltonianMonteCarloOperator.Options runtimeOptions = new HamiltonianMonteCarloOperator.Options(
+				stepSize, nSteps, randomStepFraction,
+				preconditioningOptions,
+				0, 0,
+				10, 0.1,
+				0.8,
+				HamiltonianMonteCarloOperator.InstabilityHandler.factory("reject"));
+
+		allOperators.add(new HamiltonianMonteCarloOperator(AdaptationMode.ADAPTATION_ON, 0.5, jointGradient, jointGradient.getParameter(), null, null, runtimeOptions, preconditioner));
+
 		// End of data likelihood
 
 		// Build hierarchical priors and operators
@@ -198,13 +244,13 @@ public class MultivariableHierarchicalMetaAnalysis implements Analysis {
 						new Parameter.Default(new double[] { -0.4608773, -0.1012988 }),
 						exampleBladder()),
 				new MultivariableCoxPartialLikelihood(
-						new Parameter.Default(new double[] { -0.4608773, -0.1012988 }),
+						new Parameter.Default(new double[] { -0.5608773, -0.2012988 }),
 						exampleBladder()),
 				new MultivariableCoxPartialLikelihood(
-						new Parameter.Default(new double[] { -0.4608773, -0.1012988 }),
+						new Parameter.Default(new double[] { -0.6608773, -0.3012988 }),
 						exampleBladder()),
 				new MultivariableCoxPartialLikelihood(
-						new Parameter.Default(new double[] { -0.4608773, -0.1012988 }),
+						new Parameter.Default(new double[] { -0.7608773, -0.4012988 }),
 						exampleBladder())
 		);
 

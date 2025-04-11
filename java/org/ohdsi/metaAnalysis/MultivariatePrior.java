@@ -19,10 +19,7 @@ import dr.evomodel.operators.PrecisionMatrixGibbsOperator;
 import dr.inference.distribution.DistributionLikelihood;
 import dr.inference.distribution.MultivariateDistributionLikelihood;
 import dr.inference.distribution.MultivariateNormalDistributionModel;
-import dr.inference.model.CompoundLikelihood;
-import dr.inference.model.Likelihood;
-import dr.inference.model.MatrixParameter;
-import dr.inference.model.Parameter;
+import dr.inference.model.*;
 import dr.inference.operators.AdaptationMode;
 import dr.inference.operators.MCMCOperator;
 import dr.inference.operators.MultivariateNormalGibbsOperator;
@@ -45,6 +42,8 @@ public interface MultivariatePrior {
 	List<Parameter> getParameters();
 
 	Likelihood getPrior();
+
+	Likelihood getLikelihood(int dim);
 
 	List<MCMCOperator> getOperators(double weight, AdaptationMode mode);
 
@@ -84,6 +83,10 @@ public interface MultivariatePrior {
 				prior = new CompoundLikelihood(distributions);
 			}
 			return prior;
+		}
+
+		public Likelihood getLikelihood(int dim) {
+			return distributions.get(dim);
 		}
 	}
 
