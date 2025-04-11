@@ -15,6 +15,7 @@
  ******************************************************************************/
 package org.ohdsi.metaAnalysis;
 
+import dr.inference.distribution.GammaStatisticsProvider;
 import org.ohdsi.metaAnalysis.ScalePrior.Base;
 
 import dr.inference.distribution.DistributionLikelihood;
@@ -38,6 +39,6 @@ public class GammaOnPrecisionPrior extends Base implements ScalePrior {
 	@Override
 	public MCMCOperator getOperator(DistributionLikelihood hierarchicalLikelihood, double weight, AdaptationMode mode) {
 		return new NormalGammaPrecisionGibbsOperator(new GammaGibbsProvider.Default(hierarchicalLikelihood),
-				tauPrior.getDistribution(), null, weight);
+				(GammaStatisticsProvider) tauPrior.getDistribution(), null, weight);
 	}
 }
