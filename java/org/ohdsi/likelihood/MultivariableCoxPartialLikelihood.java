@@ -15,6 +15,8 @@
  ******************************************************************************/
 package org.ohdsi.likelihood;
 
+import dr.inference.hmc.GradientWrtParameterProvider;
+import dr.inference.hmc.HessianWrtParameterProvider;
 import dr.inference.model.*;
 import org.apache.commons.math.util.FastMath;
 import org.ohdsi.data.ColumnMajorSortedCoxData;
@@ -24,7 +26,7 @@ import org.ohdsi.data.SortedCoxData;
 /**
  * @author Marc A. Suchard
  */
-public class MultivariableCoxPartialLikelihood extends ConditionalPoissonLikelihood {
+public class MultivariableCoxPartialLikelihood extends ConditionalPoissonLikelihood implements GradientWrtParameterProvider, HessianWrtParameterProvider {
 
 	// Currently, assumes that data.x is row-major
 
@@ -140,6 +142,7 @@ public class MultivariableCoxPartialLikelihood extends ConditionalPoissonLikelih
 		parameter = new Parameter.Default(betas);
 		cox = new MultivariableCoxPartialLikelihood(parameter, data);
 		System.err.println("M " + cox.getLogLikelihood());
+		System.err.println(HessianWrtParameterProvider.getReportAndCheckForError((HessianWrtParameterProvider) cox, null));
 
 		// Larger `survival::bladder` example
 		cox = new MultivariableCoxPartialLikelihood(
@@ -147,6 +150,101 @@ public class MultivariableCoxPartialLikelihood extends ConditionalPoissonLikelih
 				exampleBladder());
 		System.err.println("M " + cox.getLogLikelihood());
 		// logLike = -596.3328
+		System.err.println(GradientWrtParameterProvider.getReportAndCheckForError((GradientWrtParameterProvider) cox, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, null));
+	}
+
+	@Override
+	public int getDimension() {
+		return this.beta.getDimension();
+	}
+
+	@Override
+	public double[] getGradientLogDensity() {
+		final int[] y = data.y;
+		final double[] x = data.x;
+		final int[] n = data.n;
+		final int[] strata = data.strata;
+
+		double[] gradient = new double[this.beta.getDimension()];
+		double[] xExpXBetaSum = new double[this.beta.getDimension()];
+
+		final double[] beta = this.beta.getParameterValues(); // TODO Faster as copy or direct access?
+
+		double logLikelihood = 0.0;
+		int resetIndex = 0;
+		double denominator = 0.0;
+
+		for (int i = 0; i < N; ++i) {
+			if (i == strata[resetIndex]) {
+				denominator = 0.0;
+				++resetIndex;
+			}
+
+			double rowXBeta = 0.0;
+			for (int j = 0; j < J; ++j) {
+				rowXBeta += x[i * J + j] * beta[j];
+				gradient[j] += y[i] * x[i * J + j];
+			}
+
+			final double expXBeta = FastMath.exp(rowXBeta);
+			denominator += expXBeta; // TODO Implement weights
+			for (int j = 0; j < J; ++j) {
+				xExpXBetaSum[j] += expXBeta * x[i * J + j];
+			}
+//			logLikelihood +=  y[i] * rowXBeta - n[i] * FastMath.log(denominator); // TODO Could pre-compute total numerator as function of beta
+			for (int j = 0; j < J; ++j) {
+				gradient[j] -= n[i] / denominator * xExpXBetaSum[j];
+			}
+		}
+
+		return gradient;
+	}
+
+	@Override
+	public double[] getDiagonalHessianLogDensity() {
+		final int[] y = data.y;
+		final double[] x = data.x;
+		final int[] n = data.n;
+		final int[] strata = data.strata;
+
+		double[] diagonalHessian = new double[this.beta.getDimension()];
+		double[] xExpXBetaSum = new double[this.beta.getDimension()];
+		double[] xSquaredExpXBetaSum = new double[this.beta.getDimension()];
+
+		final double[] beta = this.beta.getParameterValues(); // TODO Faster as copy or direct access?
+
+		int resetIndex = 0;
+		double denominator = 0.0;
+
+		for (int i = 0; i < N; ++i) {
+			if (i == strata[resetIndex]) {
+				denominator = 0.0;
+				++resetIndex;
+			}
+
+			double rowXBeta = 0.0;
+			for (int j = 0; j < J; ++j) {
+				rowXBeta += x[i * J + j] * beta[j];
+			}
+
+			final double expXBeta = FastMath.exp(rowXBeta);
+			denominator += expXBeta; // TODO Implement weights
+			for (int j = 0; j < J; ++j) {
+				final double xExpXBeta = expXBeta * x[i * J + j];
+				xExpXBetaSum[j] += xExpXBeta;
+				xSquaredExpXBetaSum[j] += xExpXBeta * x[i * J + j];
+			}
+			for (int j = 0; j < J; ++j) {
+				diagonalHessian[j] -= n[i] / denominator * (xSquaredExpXBetaSum[j] - xExpXBetaSum[j] * xExpXBetaSum[j] / denominator);
+			}
+		}
+
+		return diagonalHessian;
+	}
+
+	@Override
+	public double[][] getHessianLogDensity() {
+		throw new RuntimeException("Not implemented yet");
 	}
 
 //	test <- read.table(header=T, sep = ",", text = "
