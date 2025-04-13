@@ -170,7 +170,7 @@ public class Runner {
 		boolean useAdaptation = true;
 		long adaptationDelay = chainLength / 100;
 		double adaptationTarget = 0.234;
-		boolean useSmoothAcceptanceRatio = false;
+		boolean useSmoothAcceptanceRatio = true;
 		double temperature = 1.0;
 		long fullEvaluationCount = 0; // TODO make an option -- 1000;
 		double evaluationTestThreshold = MarkovChain.EVALUATION_TEST_THRESHOLD;
