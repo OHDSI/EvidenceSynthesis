@@ -57,10 +57,10 @@ public class MultivariableHierarchicalMetaAnalysis implements Analysis {
 
 		final int analysisDim = dataModels.get(0).getCompoundParameter().getDimension();
 
-		List<GradientWrtParameterProvider> likelihoodDerivativeList = new ArrayList<>();
-		List<GradientWrtParameterProvider> priorDerivativeList = new ArrayList<>();
+		List<GradientWrtParameterProvider> likelihoodDerivativeList = cg.useHMC ? new ArrayList<>() : null;
+		List<GradientWrtParameterProvider> priorDerivativeList = cg.useHMC ? new ArrayList<>() : null;
 		final MultivariateDistributionLikelihood mdl = (MultivariateDistributionLikelihood) multivariatePrior.getLikelihood(0);
-		final GradientProvider provider = (GradientProvider) mdl.getDistribution();
+		final GradientProvider provider = cg.useHMC ? (GradientProvider) mdl.getDistribution() : null;
 //		List<Parameter> allBetas = new ArrayList<>();
 
 		// Build data likelihood
@@ -72,43 +72,45 @@ public class MultivariableHierarchicalMetaAnalysis implements Analysis {
 
 			allDataLikelihoods.add(singleAnalysis.getLikelihood());
 			Parameter beta = singleAnalysis.getCompoundParameter();
-//			allBetas.add(beta);
-//			allParameters.add(beta);
+			if (cg.useHMC) {
+				likelihoodDerivativeList.add((GradientWrtParameterProvider) singleAnalysis.getLikelihood());
+				priorDerivativeList.add(new GradientWrtParameterProvider.ParameterWrapper(provider, beta, mdl));
+			} else {
+				allParameters.add(beta);
 
-//			allOperators.add(new RandomWalkOperator(beta, null, 0.1, // TODO HMC will be way faster!!!
-//					RandomWalkOperator.BoundaryCondition.reflecting, cg.operatorWeight * beta.getDimension(), cg.mode));
-			likelihoodDerivativeList.add((GradientWrtParameterProvider) singleAnalysis.getLikelihood());
-			priorDerivativeList.add(new GradientWrtParameterProvider.ParameterWrapper(provider, beta, mdl));
-//			allOperators.add(new HamiltonianMonteCarloOperator(AdaptationMode.ADAPTATION_OFF, 0.1, ))
-
+				allOperators.add(new RandomWalkOperator(beta, null, 0.1, // TODO HMC will be way faster!!!
+						RandomWalkOperator.BoundaryCondition.reflecting, cg.operatorWeight * beta.getDimension(), cg.mode));
+			}
 		}
 
-		final CompoundGradient priorGradient = new CompoundGradient(priorDerivativeList);
-		final CompoundGradient likelihoodGradient = new CompoundGradient(likelihoodDerivativeList);
+		if (cg.useHMC) {
+			final CompoundGradient priorGradient = new CompoundGradient(priorDerivativeList);
+			final CompoundGradient likelihoodGradient = new CompoundGradient(likelihoodDerivativeList);
 
-		allParameters.add(priorGradient.getParameter());
+			allParameters.add(priorGradient.getParameter());
 
-		List<GradientWrtParameterProvider> jointGradientList = Arrays.asList(priorGradient, likelihoodGradient);
-		JointGradient jointGradient = new JointGradient(jointGradientList);
-		jointGradient.getGradientLogDensity();
+			List<GradientWrtParameterProvider> jointGradientList = Arrays.asList(priorGradient, likelihoodGradient);
+			JointGradient jointGradient = new JointGradient(jointGradientList);
+			jointGradient.getGradientLogDensity();
 
-		final double stepSize = 1.8;
-		final int nSteps = 10;
-		final double randomStepFraction = 0;
-		final MassPreconditioningOptions preconditioningOptions =
-				new MassPreconditioningOptions.Default(10, 0, 0, 0, false, new Parameter.Default(1E-2), new Parameter.Default(1E2));
-		final MassPreconditioner.Type preconditionerType = MassPreconditioner.Type.DIAGONAL;
-		final MassPreconditioner preconditioner = preconditionerType.factory(jointGradient, null, preconditioningOptions);
+			final double stepSize = 1.8;
+			final int nSteps = 10;
+			final double randomStepFraction = 0;
+			final MassPreconditioningOptions preconditioningOptions =
+					new MassPreconditioningOptions.Default(10, 0, 0, 0, false, new Parameter.Default(1E-2), new Parameter.Default(1E2));
+			final MassPreconditioner.Type preconditionerType = MassPreconditioner.Type.DIAGONAL;
+			final MassPreconditioner preconditioner = preconditionerType.factory(jointGradient, null, preconditioningOptions);
 
-		HamiltonianMonteCarloOperator.Options runtimeOptions = new HamiltonianMonteCarloOperator.Options(
-				stepSize, nSteps, randomStepFraction,
-				preconditioningOptions,
-				0, 0,
-				10, 0.1,
-				0.8,
-				HamiltonianMonteCarloOperator.InstabilityHandler.factory("reject"));
+			HamiltonianMonteCarloOperator.Options runtimeOptions = new HamiltonianMonteCarloOperator.Options(
+					stepSize, nSteps, randomStepFraction,
+					preconditioningOptions,
+					0, 0,
+					10, 0.1,
+					0.8,
+					HamiltonianMonteCarloOperator.InstabilityHandler.factory("reject"));
 
-		allOperators.add(new HamiltonianMonteCarloOperator(AdaptationMode.ADAPTATION_ON, 0.5, jointGradient, jointGradient.getParameter(), null, null, runtimeOptions, preconditioner));
+			allOperators.add(new HamiltonianMonteCarloOperator(AdaptationMode.ADAPTATION_ON, 0.2 * priorDerivativeList.size(), jointGradient, jointGradient.getParameter(), null, null, runtimeOptions, preconditioner));
+		}
 
 		// End of data likelihood
 
@@ -228,6 +230,8 @@ public class MultivariableHierarchicalMetaAnalysis implements Analysis {
 		public long seed = 666;
 
 		public int threads = 1;
+
+		public boolean useHMC = false;
 	}
 
 
