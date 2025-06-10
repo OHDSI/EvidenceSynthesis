@@ -18,12 +18,15 @@ package org.ohdsi.simpleDesign;
 import dr.inference.model.*;
 import dr.math.distributions.NormalDistribution;
 
+import java.util.List;
+
 public class SimpleLinearModel extends AbstractModelLikelihood {
 
     private final Parameter argument;
     private final DesignMatrix designMatrix;
     private final Parameter effects;
     private final Parameter precision;
+    private final List<Integer> betaToTauIndexMap; // For heteroscedastic model
 
     private boolean likelihoodKnown;
     private boolean storedLikelihoodKnown;
@@ -37,24 +40,53 @@ public class SimpleLinearModel extends AbstractModelLikelihood {
     private double[] innerProduct;
     private double[] storedInnerProduct;
 
+    /**
+     * Original constructor for a homoscedastic linear model.
+     */
     public SimpleLinearModel(String name,
                              Parameter argument,
                              DesignMatrix designMatrix,
                              Parameter effects,
                              Parameter precision) {
+        // Call the main constructor with a null map for backward compatibility
+        this(name, argument, designMatrix, effects, precision, null);
+    }
+
+    /**
+     * Main constructor supporting both homoscedastic and heteroscedastic models.
+     *
+     * @param name               The model name.
+     * @param argument           The parameter representing the data points (e.g., betas).
+     * @param designMatrix       The design matrix.
+     * @param effects            The parameter representing the effects.
+     * @param precision          A parameter (or compound parameter) of precisions.
+     * @param betaToTauIndexMap  A map from each argument to a precision index. If null, model is homoscedastic.
+     */
+    public SimpleLinearModel(String name,
+                             Parameter argument,
+                             DesignMatrix designMatrix,
+                             Parameter effects,
+                             Parameter precision,
+                             List<Integer> betaToTauIndexMap) {
         super(name);
 
         this.argument = argument;
         this.designMatrix = designMatrix;
         this.effects = effects;
         this.precision = precision;
+        this.betaToTauIndexMap = betaToTauIndexMap;
 
         if (designMatrix.getRowDimension() != argument.getDimension()) {
-            throw new IllegalArgumentException("Invalid parameter dimensions");
+            throw new IllegalArgumentException("Invalid parameter dimensions: design matrix rows must match argument dimension");
         }
 
         if (designMatrix.getColumnDimension() != effects.getDimension()) {
-            throw new IllegalArgumentException("Invalid parameter dimensions");
+            throw new IllegalArgumentException("Invalid parameter dimensions: design matrix columns must match effects dimension");
+        }
+
+        // If the map is provided, validate its size
+        if (betaToTauIndexMap != null && betaToTauIndexMap.size() != argument.getDimension()) {
+            throw new IllegalArgumentException("Invalid parameter dimensions: betaToTauIndexMap size must match argument dimension");
         }
 
         addVariable(argument);
@@ -85,14 +117,24 @@ public class SimpleLinearModel extends AbstractModelLikelihood {
             innerProductKnown = true;
         }
 
-        double tau = precision.getParameterValue(0);  // TODO Can generalize
-        double sd = 1.0 / Math.sqrt(tau);
-
         double logLikelihood = 0.0;
-        for (int i = 0; i < argument.getDimension(); ++i) {
-            logLikelihood += NormalDistribution.logPdf(argument.getParameterValue(i), innerProduct[i], sd);
-        }
 
+        if (betaToTauIndexMap != null) {
+            // Heteroscedastic case: Use the map to find the correct precision for each argument
+            for (int i = 0; i < argument.getDimension(); ++i) {
+                int precisionIndex = betaToTauIndexMap.get(i);
+                double tau = precision.getParameterValue(precisionIndex);
+                double sd = 1.0 / Math.sqrt(tau);
+                logLikelihood += NormalDistribution.logPdf(argument.getParameterValue(i), innerProduct[i], sd);
+            }
+        } else {
+            // Homoscedastic case: Use a single precision for all arguments
+            double tau = precision.getParameterValue(0);
+            double sd = 1.0 / Math.sqrt(tau);
+            for (int i = 0; i < argument.getDimension(); ++i) {
+                logLikelihood += NormalDistribution.logPdf(argument.getParameterValue(i), innerProduct[i], sd);
+            }
+        }
         return logLikelihood;
     }
 
@@ -178,5 +220,9 @@ public class SimpleLinearModel extends AbstractModelLikelihood {
             innerProductKnown = true;
         }
         return innerProduct;
+    }
+
+    public final List<Integer> getBetaToTauIndexMap() {
+        return betaToTauIndexMap;
     }
 }

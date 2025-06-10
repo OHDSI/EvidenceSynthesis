@@ -62,6 +62,9 @@ public class HierarchicalMetaAnalysis implements Analysis {
 		List<MCMCOperator> allOperators = new ArrayList<>();
 		List<Parameter> allParameters = new ArrayList<>();
 
+		// Keep track of MH-only operators; to remove if using HMC
+		List<MCMCOperator> operatorsToReplaceWithHMC = new ArrayList<>();
+
 		// Build data likelihood
 		int metaAnalysisCount = 0;
 		for (DataModel metaAnalysis : allMetaAnalysisDataModels) {
@@ -74,8 +77,15 @@ public class HierarchicalMetaAnalysis implements Analysis {
 			Parameter beta = metaAnalysis.getCompoundParameter();
 			allParameters.add(beta);
 
-			allOperators.add(new RandomWalkOperator(beta, null, 0.75,
-					RandomWalkOperator.BoundaryCondition.reflecting, cg.operatorWeight * beta.getDimension(), cg.mode)); // TODO Use HMC
+//			allOperators.add(new RandomWalkOperator(beta, null, 0.75,
+//					RandomWalkOperator.BoundaryCondition.reflecting, cg.operatorWeight * beta.getDimension(), cg.mode)); // TODO Use HMC
+
+			// capture beta operators
+			MCMCOperator betaOperator = new RandomWalkOperator(beta, null, 0.75,
+					RandomWalkOperator.BoundaryCondition.reflecting, cg.operatorWeight * beta.getDimension(), cg.mode);
+			allOperators.add(betaOperator);
+			// ...and add it to list of operators that HMC will replace.
+			operatorsToReplaceWithHMC.add(betaOperator);
 
 			++metaAnalysisCount;
 		}
@@ -92,15 +102,51 @@ public class HierarchicalMetaAnalysis implements Analysis {
 		List<Likelihood> allPriors = new ArrayList<>();
 		List<GradientWrtParameterProvider> allEffectsGradient = new ArrayList<>();
 
-		Parameter tau = new Parameter.Default("tau", cg.startingTau, 0.0, Double.POSITIVE_INFINITY);
-		DistributionLikelihood tauPrior = new DistributionLikelihood(
-				new GammaDistribution(cg.tauShape, cg.tauScale));
-		tauPrior.addData(tau);
-		MCMCOperator tauOperator = new ScaleOperator(tau, 0.75, cg.mode, cg.operatorWeight);
-		allPriors.add(tauPrior);
-		allParameters.add(tau);
-		allOperators.add(tauOperator);
+		// Variance term: enable a heteroscedastic model where variance depends on the secondary (data source) effect
+		Parameter taus;
+		List<Integer> betaToTauIndexMap = null; // map each beta to a tau (secondary/source level) index
 
+        if (cg.includeSecondary && cg.useHeteroscedasticModel) {
+			// Heteroscedastic model: one tau per secondary/source level
+			int secondaryCount = getMaxIdentifier(allMetaAnalysisDataModels);
+			CompoundParameter allTaus = new CompoundParameter("taus");
+
+			for (int i = 0; i < secondaryCount; ++i) {
+				Parameter tau_i = new Parameter.Default("tau_" + (i + 1), cg.startingTau, 0.0, Double.POSITIVE_INFINITY);
+				allTaus.addParameter(tau_i);
+
+				DistributionLikelihood tauPrior = new DistributionLikelihood(
+						new GammaDistribution(cg.tauShape, cg.tauScale));
+				tauPrior.addData(tau_i);
+				MCMCOperator tauOperator_i = new ScaleOperator(tau_i, 0.75, cg.mode, cg.operatorWeight);
+				allPriors.add(tauPrior);
+				allParameters.add(tau_i);
+				allOperators.add(tauOperator_i);
+			}
+			taus = allTaus;
+
+			// Create a mapping from each beta coefficient to its secondary effect index.
+			betaToTauIndexMap = new ArrayList<>();
+			for (DataModel dataModel : allMetaAnalysisDataModels) {
+				// The identifiers are 1-based, so subtract 1 for 0-based index.
+				for (Integer id : dataModel.getIdentifiers()) {
+					betaToTauIndexMap.add(id - 1);
+				}
+			}
+		} else {
+			// Homoscedastic model: one tau for all beta coefficients
+			Parameter tau = new Parameter.Default("tau", cg.startingTau, 0.0, Double.POSITIVE_INFINITY);
+			DistributionLikelihood tauPrior = new DistributionLikelihood(
+					new GammaDistribution(cg.tauShape, cg.tauScale));
+			tauPrior.addData(tau);
+			MCMCOperator tauOperator = new ScaleOperator(tau, 0.75, cg.mode, cg.operatorWeight);
+			allPriors.add(tauPrior);
+			allParameters.add(tau);
+			allOperators.add(tauOperator);
+			taus = tau;
+		}
+
+		// Primary (outcome) effects
 		int primaryCount = addPrimaryDesign(designMatrix, allMetaAnalysisDataModels, cg.primaryEffectName,
 				cg.separateEffectPrior, cg.effectCount);
 		Parameter primaryEffect = randomize(cg.primaryEffectName, primaryCount, 0, 1); // TODO Scale for over-dispersed noise
@@ -116,6 +162,10 @@ public class HierarchicalMetaAnalysis implements Analysis {
 		allPriors.addAll(primaryComponents.likelihoods);
 		allEffectsGradient.addAll(primaryComponents.gradients);
 
+		// capture primary effect operators
+		operatorsToReplaceWithHMC.add(primaryComponents.effectOperator);
+
+		// Secondary (data source) effects
 		if (cg.includeSecondary) {
 
 			int secondaryCount = addSecondaryDesign(designMatrix, allMetaAnalysisDataModels,
@@ -132,8 +182,12 @@ public class HierarchicalMetaAnalysis implements Analysis {
 			allOperators.addAll(secondaryComponents.operators);
 			allPriors.addAll(secondaryComponents.likelihoods);
 			allEffectsGradient.addAll(secondaryComponents.gradients);
+
+			// capture secondary effect operators
+			operatorsToReplaceWithHMC.add(secondaryComponents.effectOperator);
 		}
 
+		// Exposure effects (outcome of interest)
 		if (cg.includeExposure) {
 			int effectCount = addEffectDesign(designMatrix, allMetaAnalysisDataModels, cg.exposureEffectName, cg.effectCount);
 
@@ -152,6 +206,10 @@ public class HierarchicalMetaAnalysis implements Analysis {
 
 				allParameters.add(exposureEffect);
 				allOperators.add(exposureOperator);
+
+				// capture exposure effect operators
+				operatorsToReplaceWithHMC.add(exposureOperator);
+
 				allPriors.add(exposureDistribution);
 				if (exposureDistribution.getDistribution() instanceof GradientProvider) {
 					allEffectsGradient.add(new GradientWrtParameterProvider.ParameterWrapper(
@@ -184,75 +242,62 @@ public class HierarchicalMetaAnalysis implements Analysis {
 			throw new RuntimeException("Invalid parameter dimensions");
 		}
 
-		SimpleLinearModel allEffectDistribution = new SimpleLinearModel("linearModel",
-				allBetas, designMatrix, allEffects, tau);
+		// Assemble pieces for the linear model
+		SimpleLinearModel allEffectDistribution;
+		if (cg.includeSecondary && cg.useHeteroscedasticModel) {
+			// Assumes a new constructor in SimpleLinearModel for heteroscedasticity
+			allEffectDistribution = new SimpleLinearModel("linearModel",
+					allBetas, designMatrix, allEffects, taus, betaToTauIndexMap);
+		} else {
+			// Uses the original constructor for the homoscedastic case
+			allEffectDistribution = new SimpleLinearModel("linearModel",
+					allBetas, designMatrix, allEffects, taus);
+		}
 		allPriors.add(allEffectDistribution);
+
 
 		// Finalize
 		this.prior = new CompoundLikelihood(allPriors); // TODO Use multiple threads?
 		this.likelihood = new CompoundLikelihood(allDataLikelihoods); // TODO Use multiple threads?
 		this.joint = new CompoundLikelihood(Arrays.asList(likelihood, prior));
 		this.joint.setId("joint");
-
 		this.parameters = allParameters;
 
-		GradientWrtParameterProvider subGradientDataModel1 = makeDataModelCompoundGradient(allMetaAnalysisDataModels);
-		GradientWrtParameterProvider subGradientDataModel2 = new SimpleLinearModelGradientWrtArgument(allEffectDistribution);
-		JointGradient gradientDataModel = new JointGradient(List.of(subGradientDataModel1, subGradientDataModel2));
+		// Whole block to handle HMC vs regular MH sampling
+		if (cg.useHMC) {
+			System.out.println("Using Hamiltonian Monte Carlo (HMC) sampler.");
+			// 1. Set up gradients required for HMC
+			GradientWrtParameterProvider subGradientDataModel1 = makeDataModelCompoundGradient(allMetaAnalysisDataModels);
+			GradientWrtParameterProvider subGradientDataModel2 = new SimpleLinearModelGradientWrtArgument(allEffectDistribution);
+			JointGradient gradientDataModel = new JointGradient(List.of(subGradientDataModel1, subGradientDataModel2));
+			System.err.println(gradientDataModel.getReport());
 
-		System.err.println(gradientDataModel.getReport());
+			GradientWrtParameterProvider subGradientEffects1 = new SimpleLinearModelGradientWrtEffects(allEffectDistribution);
+			// CompoundGradient subGradientEffects2 = new CompoundGradient(allEffectsGradient);
+			CompoundGradient subGradientEffects2 = new CompoundDerivative(allEffectsGradient);
+			JointGradient gradientEffects = new JointGradient(List.of(subGradientEffects1, subGradientEffects2));
+			System.err.println(gradientEffects.getReport());
 
-		GradientWrtParameterProvider subGradientEffects1 = new SimpleLinearModelGradientWrtEffects(allEffectDistribution);
-		CompoundGradient subGradientEffects2 = new CompoundGradient(allEffectsGradient);
-		JointGradient gradientEffects = new JointGradient(List.of(subGradientEffects1, subGradientEffects2));
+			CompoundGradient totalGradient = new CompoundDerivative(List.of(gradientDataModel, gradientEffects));
+			System.err.println(totalGradient.getReport());
 
-		System.err.println(gradientEffects.getReport());
+			// 2. Create HMC operator
+			HmcOptions options = new HmcOptions(totalGradient);
+			HamiltonianMonteCarloOperator hmc = new HamiltonianMonteCarloOperator(
+					AdaptationMode.ADAPTATION_ON, 1.0,
+					totalGradient,
+					totalGradient.getParameter(), null, null,
+					options.getHmcOptions(), options.getPreconditioner());
 
-		CompoundGradient totalGradient = new CompoundDerivative(List.of(gradientDataModel, gradientEffects));
+			// 3. Remove all operators that are now superseded by HMC.
+			//    (Instead of removing by indices, like done before...)
+			allOperators.removeAll(operatorsToReplaceWithHMC);
 
-		System.err.println(totalGradient.getReport());
-
-		// Use HMC
-		HmcOptions options = new HmcOptions(totalGradient);
-		HamiltonianMonteCarloOperator hmc = new HamiltonianMonteCarloOperator(
-				AdaptationMode.ADAPTATION_ON, 1.0,
-				totalGradient,
-				totalGradient.getParameter(), null, null,
-				options.getHmcOptions(), options.getPreconditioner());
-
-		// Remove old MH operators
-//	    // ???? what should be removed??
-		// Need to remove: all theta's (local parameters), all outcome effects, source effects, and primary exposure effects
-//		allOperators.remove(0);
-//		allOperators.remove(0);
-//		allOperators.remove(0);
-//		allOperators.remove(1);
-//		allOperators.remove(3);
-//		allOperators.remove(5);
-
-		// remove local data model parameters (the theta's)
-		for(int i = 0; i < allMetaAnalysisDataModels.size(); i++) {
-			allOperators.remove(0);
-		}
-		allOperators.remove(1); // remove outcome effects
-		if(cg.includeSecondary) {
-			allOperators.remove(3);
-			if(cg.includeExposure) {
-				for(int i = 0; i < cg.effectCount; i++) {
-					allOperators.remove(5);
-				}
-			}
+			// 4. Add HMC operator to the schedule.
+			allOperators.add(hmc);
 		} else {
-			if(cg.includeExposure) {
-				for(int i = 0; i < cg.effectCount; i++) {
-					allOperators.remove(3);
-				}
-			}
+			System.out.println("Using Random Walk Metropolis-Hastings and Gibbs samplers.");
 		}
-
-
-		allOperators.add(hmc);
-
 
 		this.schedule = new SimpleOperatorSchedule(1000, 0.0);
 		this.schedule.addOperators(allOperators);
@@ -317,7 +362,6 @@ public class HierarchicalMetaAnalysis implements Analysis {
 		// gamma prior for std of the random error
 		public double tauShape = 1.0;
 		public double tauScale = 1.0;
-
 		public double startingTau = 1.0;
 
 		AdaptationMode mode = AdaptationMode.ADAPTATION_ON;
@@ -337,6 +381,12 @@ public class HierarchicalMetaAnalysis implements Analysis {
 
 		// if using a separate prior on the main effect (i.e., set prior on biased effect instead of true effect)?
 		public boolean separateEffectPrior = false;
+
+		// using a heteroscedastic model (for the variance tau)?
+		public boolean useHeteroscedasticModel = false;
+
+		// using HMC sampler?
+		public boolean useHMC = false;
 	}
 
 	static class HierarchicalNormalComponents {
@@ -345,15 +395,18 @@ public class HierarchicalMetaAnalysis implements Analysis {
 		final List<MCMCOperator> operators;
 		final List<Likelihood> likelihoods;
 		final List<GradientWrtParameterProvider> gradients;
+		final MCMCOperator effectOperator; //
 
 		HierarchicalNormalComponents(List<Parameter> parameters,
 									 List<MCMCOperator> operators,
 									 List<Likelihood> likelihoods,
-									 List<GradientWrtParameterProvider> gradients) {
+									 List<GradientWrtParameterProvider> gradients,
+									 MCMCOperator effectOperator) {
 			this.parameters = parameters;
 			this.operators = operators;
 			this.likelihoods = likelihoods;
 			this.gradients = gradients;
+			this.effectOperator = effectOperator;
 		}
 	}
 
@@ -380,8 +433,9 @@ public class HierarchicalMetaAnalysis implements Analysis {
 		parameters.add(scale);
 
 		List<MCMCOperator> operators = new ArrayList<>();
-		operators.add(new RandomWalkOperator(effects, null, 0.75,
-				RandomWalkOperator.BoundaryCondition.reflecting, weight * effects.getDimension(), mode)); // TODO Gibbs sample
+		MCMCOperator effectsOperator = new RandomWalkOperator(effects, null, 0.75,
+				RandomWalkOperator.BoundaryCondition.reflecting, weight * effects.getDimension(), mode); // caputure operators on the effects
+		operators.add(effectsOperator);
 		operators.add(new RandomWalkOperator(mean, null, 0.75,
 				RandomWalkOperator.BoundaryCondition.reflecting, weight, mode)); // TODO Gibbs sample
 		operators.add(scalePrior.getOperator(distribution, weight, mode));
@@ -398,7 +452,7 @@ public class HierarchicalMetaAnalysis implements Analysis {
 					effects, distribution));
 		}
 
-		return new HierarchicalNormalComponents(parameters, operators, likelihood, gradients);
+		return new HierarchicalNormalComponents(parameters, operators, likelihood, gradients, effectsOperator);
 	}
 
 	private int addPrimaryDesign(DesignMatrix designMatrix,
@@ -581,6 +635,10 @@ public class HierarchicalMetaAnalysis implements Analysis {
 		cg.effectCount = 2; // try a fake example with 2 main outcomes
 		//cg.exposureHyperLocation.add(2.0);
 		cg.exposureHyperStdDev.add(10.0);
+
+		cg.useHeteroscedasticModel = true; // try using heteroscedastic variances
+
+		cg.useHMC = true; // set to `false` to use HMC; `false` to use regular MH
 
 		HierarchicalMetaAnalysis analysis = new HierarchicalMetaAnalysis(allDataModels,
 				cg);
