@@ -112,7 +112,7 @@ public class HierarchicalMetaAnalysis implements Analysis {
 			CompoundParameter allTaus = new CompoundParameter("taus");
 
 			for (int i = 0; i < secondaryCount; ++i) {
-				Parameter tau_i = new Parameter.Default("tau_" + (i + 1), cg.startingTau, 0.0, Double.POSITIVE_INFINITY);
+				Parameter tau_i = new Parameter.Default("tau" + (i + 1), cg.startingTau, 0.0, Double.POSITIVE_INFINITY);
 				allTaus.addParameter(tau_i);
 
 				DistributionLikelihood tauPrior = new DistributionLikelihood(
@@ -296,7 +296,7 @@ public class HierarchicalMetaAnalysis implements Analysis {
 			// 4. Add HMC operator to the schedule.
 			allOperators.add(hmc);
 		} else {
-			System.out.println("Using Random Walk Metropolis-Hastings and Gibbs samplers.");
+			System.out.println("Using Random Walk Metropolis-Hastings.");
 		}
 
 		this.schedule = new SimpleOperatorSchedule(1000, 0.0);
@@ -638,7 +638,7 @@ public class HierarchicalMetaAnalysis implements Analysis {
 
 		cg.useHeteroscedasticModel = true; // try using heteroscedastic variances
 
-		cg.useHMC = true; // set to `false` to use HMC; `false` to use regular MH
+		cg.useHMC = true; // set to `true` to use HMC; `false` to use regular MH
 
 		HierarchicalMetaAnalysis analysis = new HierarchicalMetaAnalysis(allDataModels,
 				cg);

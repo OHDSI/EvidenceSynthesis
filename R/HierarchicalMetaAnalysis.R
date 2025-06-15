@@ -39,26 +39,28 @@ summarizeChain <- function(chain, alpha = 0.05){
 #' This function generates a settings list for fitting a Bayesian hierarchical meta-analysis model.
 #' See `computeHierarchicalMetaAnalysis()` for more details.
 #'
-#' @param primaryEffectPriorStd   Standard deviation for the average outcome effect.
-#' @param secondaryEffectPriorStd Standard deviation for the average data-source effect.
+#' @param primaryEffectPriorStd          Standard deviation for the average outcome effect.
+#' @param secondaryEffectPriorStd        Standard deviation for the average data-source effect.
 #' @param globalExposureEffectPriorMean  Prior mean for the global main exposure effect;
 #'                                       can be a multiple entry vector if there are multiple outcomes of interest
 #' @param globalExposureEffectPriorStd   Prior standard deviation for the global main exposure effect;
 #'                                       can be a multiple entry vector if there are multiple outcomes of interest
-#' @param primaryEffectPrecisionPrior  Shape and scale for the gamma prior of the precision term in the
-#'                             random effects model (normal) for individual outcome effects.
-#' @param secondaryEffectPrecisionPrior Shape and scale for the gamma prior of the precision term in the
-#'                             random effects model (normal) for individual data-source effects.
-#' @param errorPrecisionPrior  Shape and scale for the gamma prior of the precision term in the
-#'                             normal model for random errors.
-#' @param errorPrecisionStartValue Initial value for the error distribution's precision term.
-#' @param includeSourceEffect   Whether or not to consider the data-source-specific (secondary) random effects. Default is TRUE.
-#' @param includeExposureEffect Whether or not to estimate the main effect of interest. Default is TRUE.
-#' @param exposureEffectCount   Number of main outcomes of interest to estimate effect for? Default = 1
-#' @param separateExposurePrior Use a separable prior on the main exposure effect? Default is FALSE.
-#' @param chainLength          Number of MCMC iterations.
-#' @param burnIn               Number of MCMC iterations to consider as burn in.
-#' @param subSampleFrequency   Subsample ("thinning") frequency for the MCMC.
+#' @param primaryEffectPrecisionPrior    Shape and scale for the gamma prior of the precision term in the
+#'                                       random effects model (normal) for individual outcome effects.
+#' @param secondaryEffectPrecisionPrior  Shape and scale for the gamma prior of the precision term in the
+#'                                       random effects model (normal) for individual data-source effects.
+#' @param errorPrecisionPrior            Shape and scale for the gamma prior of the precision term in the
+#'                                       normal model for random errors.
+#' @param errorPrecisionStartValue       Initial value for the error distribution's precision term.
+#' @param includeSourceEffect            Whether or not to consider the data-source-specific (secondary) random effects. Default is TRUE.
+#' @param includeExposureEffect          Whether or not to estimate the main effect of interest. Default is TRUE.
+#' @param exposureEffectCount            Number of main outcomes of interest to estimate effect for? Default = 1
+#' @param separateExposurePrior          Use a separable prior on the main exposure effect? Default is FALSE.
+#' @param useHeteroscedasticModel        Heteroscedastic model with difference variances across sources? Default is FALSE.
+#' @param useHMC                         Use Hamiltonian Monte Carlo (HMC)? Default is FALSE.
+#' @param chainLength                    Number of MCMC iterations.
+#' @param burnIn                         Number of MCMC iterations to consider as burn in.
+#' @param subSampleFrequency             Subsample ("thinning") frequency for the MCMC.
 #'
 #' @return A list with all the settings to use in the `computeHierarchicalMetaAnalysis()` function.
 #'
@@ -78,6 +80,8 @@ generateBayesianHMAsettings <- function(primaryEffectPriorStd = 1.0,
                                         includeExposureEffect = TRUE,
                                         exposureEffectCount = 1,
                                         separateExposurePrior = FALSE,
+                                        useHeteroscedasticModel = FALSE,
+                                        useHMC = FALSE,
                                         chainLength = 1100000,
                                         burnIn = 1e+05,
                                         subSampleFrequency = 100){
@@ -93,6 +97,8 @@ generateBayesianHMAsettings <- function(primaryEffectPriorStd = 1.0,
     includeExposureEffect = includeExposureEffect,
     exposureEffectCount = exposureEffectCount,
     separateExposurePrior = separateExposurePrior,
+    useHeteroscedasticModel = useHeteroscedasticModel,
+    useHMC = useHMC,
     chainLength = chainLength,
     burnIn = burnIn,
     subSampleFrequency = subSampleFrequency
@@ -245,6 +251,8 @@ computeHierarchicalMetaAnalysis <- function(data,
   hmaConfiguration$includeExposure = as.logical(settings$includeExposureEffect)
   hmaConfiguration$separateEffectPrior = as.logical(settings$separateExposurePrior)
   hmaConfiguration$effectCount = as.integer(exposureEffectCount)
+  hmaConfiguration$useHeteroscedasticModel = as.logical(settings$useHeteroscedasticModel)
+  hmaConfiguration$useHMC = as.logical(settings$useHMC)
   hmaConfiguration$seed = rJava::.jlong(seed)
 
   ## deal with exposure prior mean: pop out the 0.0 entry first
@@ -302,7 +310,10 @@ computeHierarchicalMetaAnalysis <- function(data,
   # cat(sprintf("All parameter names: %s \n\n",
   #             paste(parameterNames, collapse = ",")))
 
-  mainParameters = c("tau", "outcome.mean", "outcome.scale")
+  mainParameters = c("outcome.mean", "outcome.scale")
+  if(!settings$useHeteroscedasticModel){
+    mainParameters = c("tau", mainParameters)
+  }
   if(settings$includeSourceEffect){
     mainParameters = c(mainParameters, c("source.mean", "source.scale"))
   }
@@ -336,10 +347,14 @@ computeHierarchicalMetaAnalysis <- function(data,
         if(settings$includeSourceEffect){
           if(exposureEffectCount > 1){
             for(i in 1:exposureEffectCount){
-              effectBiasSamps[,i] = effectBiasSamps[,i] + traces[,"source.mean"]
+              #effectBiasSamps[,i] = effectBiasSamps[,i] + traces[,"source.mean"]
+              # try sampling from the mean bias directly
+              effectBiasSamps[,i] = traces[,"outcome.mean"] + traces[,"source.mean"]
             }
           }else{
-            effectBiasSamps = effectBiasSamps + traces[,"source.mean"]
+            #effectBiasSamps = effectBiasSamps + traces[,"source.mean"]
+            # try sampling from the mean bias directly
+            effectBiasSamps = traces[,"outcome.mean"] + traces[,"source.mean"]
           }
         }
         traces[,exposureNames] = effectSamps - effectBiasSamps
@@ -352,8 +367,8 @@ computeHierarchicalMetaAnalysis <- function(data,
   estimates = data.frame(t(estimates), row.names = NULL)
   names(estimates) = c("mean", "median", "LB", "UB", "se")
 
-  # print(mainParameters)
-  # print(estimates)
+  #print(mainParameters)
+  #print(estimates)
 
   estimates$parameter = mainParameters
 
@@ -410,7 +425,8 @@ extractSourceSpecificEffects <- function(estimates, alpha = 0.05){
   newColumns = NULL
   for(e in effectColumnNames){
     for(s in sourceColumnNames){
-      this.source.effect = traces[,e] + (traces[,s] - traces[,"source.mean"])
+      #this.source.effect = traces[,e] + (traces[,s] - traces[,"source.mean"])
+      this.source.effect = traces[,e] - (traces[,s] - traces[,"source.mean"])
       newTraces = cbind(newTraces, this.source.effect)
       newColumns = c(newColumns, sprintf("%s.%s", e, s))
     }
@@ -422,6 +438,113 @@ extractSourceSpecificEffects <- function(estimates, alpha = 0.05){
   newEstimates = data.frame(t(newEstimates), row.names = NULL)
   names(newEstimates) = c("mean", "median", "LB", "UB", "se")
   newEstimates$parameter = newColumns
+
+  attr(newEstimates, "traces") = newTraces
+  attr(newEstimates, "ess") <- coda::effectiveSize(newTraces)
+  if("sourceLabels" %in% names(attributes(estimates))){
+    attr(newEstimates, "sourceLabels") <- attr(estimates, "sourceLabels")
+  }else{
+    attr(newEstimates, "sourceLabels") <- NULL
+  }
+
+  return(newEstimates)
+
+}
+
+
+#' Compute source-specific biases and bias-corrected estimates from hierarchical meta analysis results, version 2.0
+#'
+#' @description Compute source-specific biases and obtain bias-corrected estimates for each data source,
+#' given the results from `computeHierarchicalMetaAnalysis()`.
+#'
+#' @return A data frame with point estimates, (1-alpha) credible intervals and sample standard errors for the
+#' effect size after bias correction within each data source.
+#'
+#' @param estimates     A dataframe as output from the `computeHierarchicalMetaAnalysis()` function.
+#' @param ooiLPs        Profile likehoods of the outcome(s) of interest; either a list with `database_id` as name, or a list of such lists.
+#' @param useDatabaseName Use name of database (`database_id`) as source id in results dataframe? Default is FALSE.
+#' @param alpha         The alpha (expected type I error) used for the credible intervals.
+#'
+#'
+#' @seealso [computeHierarchicalMetaAnalysis]
+#'
+#' @export
+computeSourceSpecificEffects2 <- function(estimates,
+                                          ooiLPs,
+                                          useDatabaseName = FALSE,
+                                          alpha = 0.05){
+  if(!"source.mean" %in% estimates$parameter){
+    stop("Cannot find source.mean as a main parameter in the fitted model!")
+  }
+  if(!"traces" %in% names(attributes(estimates))){
+    stop("Cannot find MCMC samples from the input model object!")
+  }
+
+  # get source label references
+  if(!"sourceLabels" %in% names(attributes(estimates))){
+    stop("Must have `sourceLabels` available from `estimates`!")
+  }
+  labelReferences = attr(estimates, "sourceLabels")
+
+  # get MCMC samples and source columns
+  traces = attr(estimates, "traces")
+  #sourceColumns = which(stringr::str_detect(colnames(traces), "source[0-9]+"))
+  sourceColumns = which(grepl("source[0-9]+", colnames(traces)))
+  if(length(sourceColumns) < 1){
+    stop("Cannot find posterior samples for source-specific effects!")
+  }
+  sourceColumnNames = colnames(traces)[sourceColumns]
+
+  # get effect counts, and effect columns
+  effectColumns = which(grepl("^exposure*",estimates$parameter))
+  effectCount = length(effectColumns)
+  if(effectCount < 1){
+    stop("Cannot find main exposure effects in main parameters!")
+  }
+  effectColumnNames = estimates$parameter[effectColumns]
+
+  # get indices of OOIs
+  outcomeCount = sum(grepl("outcome[0-9]+", colnames(traces)))
+  effectIndices = c((outcomeCount-effectCount+1):outcomeCount)
+
+  # use raw effect estimates for OOIs to compute source-level adjusted effect
+  exposureParams = NULL
+  sourceParams = NULL
+  newTraces = NULL
+
+  ## message data structure
+  if(effectCount==1){
+    ooiLPs = list(ooiLps)
+  }
+  ## the mean bias samples
+  meanBias = traces[,"outcome.mean"]
+  ## indices of theta1's
+  heads = which(colnames(traces)=="theta1")
+  for(i in 1:effectCount){
+    id = effectIndices[i]
+    ## the data sources for this outcome
+    datanames_i = names(ooiLps[[i]])
+    dataIndices = sapply(datanames_i, function(d) labelReferences[[d]])
+    sourceNames = paste0("source",dataIndices)
+    ## find the theta's for this outcome
+    thetaColumns = c(heads[id]:(heads[id]+length(datanames_i)-1))
+    ## adjust for the global and source-level bias
+    newTraces = cbind(newTraces, traces[,thetaColumns]-traces[,sourceNames]-meanBias)
+    ## keep track of indices/labels
+    exposureParams = c(exposureParams, rep(effectColumnNames[i], length(dataIndices)))
+    if(useDatabaseName){
+      sourceParams = c(sourceParams, datanames_i)
+    }else{
+      sourceParams = c(sourceParams, sourceNames)
+    }
+  }
+
+  ## summarize estimates
+  newEstimates = apply(newTraces, 2, summarizeChain, alpha)
+  newEstimates = data.frame(t(newEstimates), row.names = NULL)
+  names(newEstimates) = c("mean", "median", "LB", "UB", "se")
+  newEstimates$effect = exposureParams
+  newEstimates$source = sourceParams
 
   attr(newEstimates, "traces") = newTraces
   attr(newEstimates, "ess") <- coda::effectiveSize(newTraces)

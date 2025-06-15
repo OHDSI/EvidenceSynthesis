@@ -17,6 +17,8 @@ generateBayesianHMAsettings(
   includeExposureEffect = TRUE,
   exposureEffectCount = 1,
   separateExposurePrior = FALSE,
+  useHeteroscedasticModel = FALSE,
+  useHMC = FALSE,
   chainLength = 1100000,
   burnIn = 1e+05,
   subSampleFrequency = 100
@@ -51,6 +53,10 @@ normal model for random errors.}
 \item{exposureEffectCount}{Number of main outcomes of interest to estimate effect for? Default = 1}
 
 \item{separateExposurePrior}{Use a separable prior on the main exposure effect? Default is FALSE.}
+
+\item{useHeteroscedasticModel}{Heteroscedastic model with difference variances across sources? Default is FALSE.}
+
+\item{useHMC}{Use Hamiltonian Monte Carlo (HMC)? Default is FALSE.}
 
 \item{chainLength}{Number of MCMC iterations.}
 
