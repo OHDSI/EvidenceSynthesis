@@ -1,35 +1,40 @@
 library(dplyr)
 library(Cyclops)
 
+# Simulation parameters ----------------------------------------------------------------------------
+
 nDatabases <- 40
 nAgeBins <- 3
 nPersonsPerDatabase <- round(runif(nDatabases, 100, 10000))
 pFemale <- runif(nDatabases)
-pAgeBin <- t(apply(matrix(runif(nDatabases * nAgeBins), ncol = nAgeBins), 1, function(x) x / sum(x)))
+pAge <- rep(1/100, 100) # Equal probability for every age
 baselineIr <- 0.001
 betaFemale <- rnorm(1, mean = 0, sd = 1)
-betaAgeBin <- rnorm(nAgeBins, mean = 0, sd = 1)
-betaDatabase <- c(rep(0, nDatabases - 1), 1)
+betaAge <- splinefun(c(1, 25, 50, 75, 100), c(2, 0, 1, 1.5, 3))
+betaDatabase <- rep(0, nDatabases)
 
-# Simulation
+# Create two outlier databases:
+betaDatabase[3] <- -1
+betaDatabase[40] <- 1
+
+# Simulate data ------------------------------------------------------------------------------------
 simulateDatabase <- function(i) {
   nPersons <- nPersonsPerDatabase[i]
   population <- tibble(
     female = rbinom(nPersons, 1, pFemale[i]),
-    ageBin = sample(seq_len(nAgeBins), nPersons, replace = TRUE, prob = pAgeBin[i, ]),
+    age = sample.int(100, nPersons, replace = TRUE, prob = pAge),
     daysObserved = round(rbeta(nPersons, 2, 3) * 365)
   ) |>
     mutate(
-      ir = exp(log(baselineIr) + betaFemale * female + betaAgeBin[ageBin] + betaDatabase[i])
+      ir = exp(log(baselineIr) + betaFemale * female + betaAge(age) + betaDatabase[i])
     ) |>
     mutate (
       events = rpois(nPersons, ir * daysObserved)
     )
-  #mean(population$female)
   summaryStats <- list(
     nPersons = nrow(population),
     nFemale = sum(population$female),
-    nAgeBin = population |> group_by(ageBin) |> summarise(count = n()) |> arrange(ageBin),
+    nAge = population |> group_by(age) |> summarise(count = n()) |> arrange(age),
     nDaysObserved = population |> mutate(daysBin = round(daysObserved / 30)) |> group_by(daysBin) |> summarise(count = n()) |> arrange(daysBin),
     nEvents = population |> summarise(sum(events)) |> pull(),
     nEventPersons = population |> filter(events > 0) |> count() |> pull(),
@@ -40,6 +45,26 @@ simulateDatabase <- function(i) {
 
 summaryStatsList <- lapply(seq_len(nDatabases), simulateDatabase)
 
+# Prepare data for model fitting -------------------------------------------------------------------
+
+# Define spline
+nInternalKnots <- 4
+nAge <- bind_rows(lapply(summaryStatsList, function(x) x$nAge)) |>
+  group_by(age) |>
+  summarise(count = sum(count)) |>
+  arrange(age) |>
+  mutate(cumCount = cumsum(count))
+nTotal <- sum(nAge$count)
+knotsAtCumCount <- (1:nInternalKnots / (nInternalKnots+1)) * nTotal
+internalKnots <- sapply(knotsAtCumCount, function(x) nAge$age[max(which(nAge$cumCount <= x))])
+boundaryKnots <- c(min(nAge$age), max(nAge$age))
+designMatrix <- splines::bs(x = boundaryKnots[1]:boundaryKnots[2],
+                            knots = internalKnots,
+                            Boundary.knots = boundaryKnots,
+                            degree = 3)
+# Drop one variable to avoid reduncancy:
+# designMatrix <- designMatrix[, -1]
+
 summaryStats <- summaryStatsList[[4]]
 prepareDatabaseData <- function(summaryStats) {
   # Length of observation is not in the model, and since we assume it is independent from age and sex
@@ -49,11 +74,13 @@ prepareDatabaseData <- function(summaryStats) {
     summarise(daysObserved = sum(daysObserved)) |>
     pull()
 
-  # Remove first age bin to avoid redundancy:
-  nAgeBins <- summaryStats$nAgeBin |>
-    filter(ageBin != 1)
-  ageVars <- t(nAgeBins$count) / summaryStats$nPersons
-  colnames(ageVars) <- paste0("age", nAgeBins$ageBin)
+  ageVars <- apply(summaryStats$nAge, 1, function(x) designMatrix[x[1], ] * x[2] / summaryStats$nPersons, simplify = FALSE) |>
+    bind_rows() |>
+    apply(2, sum) |>
+    t() |>
+    as_tibble()
+  ageVars <- ageVars[, -1]
+  colnames(ageVars) <- paste0("age", colnames(ageVars) )
   row <- bind_cols(
     ageVars,
     tibble(
@@ -69,48 +96,44 @@ data <- lapply(summaryStatsList, prepareDatabaseData)
 data <- bind_rows(data) |>
   mutate(across(starts_with("age"), ~ifelse(is.na(.), 0, .)))
 data$databaseId <- as.factor(data$databaseId)
+ageVarNames <- colnames(data)[grep("^age", colnames(data))]
+formula <- as.formula(sprintf("nEvents ~ %s + female + offset(log(daysObserved))",
+                              paste(ageVarNames, collapse = " + ")))
 
-# cyclopsData <- createCyclopsData(nEvents ~ age2 + age3 + female + databaseId + offset(log(daysObserved)), modelType = "pr", data = data)
-# fit <- fitCyclopsModel(cyclopsData)
-# coef(fit)
-# estimates <- coef(fit)[paste0("databaseId", 2:length(summaryStatsList))]
-# cis <- confint(fit, parm = paste0("databaseId", 2:length(summaryStatsList)))
-# ses <- (cis[, 3] - cis[, 2]) /  2*qnorm(0.975)
-# zs <- estimates / ses
-# ps <- 2 * pmin(pnorm(zs), 1 - pnorm(zs))
-# ps
-#
-cyclopsData <- createCyclopsData(nEvents ~ age2 + age3 + female + offset(log(daysObserved)), modelType = "pr", data = data)
-fit <- fitCyclopsModel(cyclopsData)
-coef(fit)
-confint(fit, parm = 2:4)
-betaAgeBin[2:length(betaAgeBin)] - betaAgeBin[1]
-betaFemale
-#
-# plot(data$female, data$nEvents / data$daysObserved)
+# cyclopsData <- createCyclopsData(formula, modelType = "pr", data = data)
+# fit <- fitCyclopsModel(cyclopsData, prior = createPrior("laplace", 0.1))
+# coefs <- coef(fit)
+# # confint(fit, parm = "female")
 # betaFemale
-# plot(data$age2, data$nEvents / data$daysObserved)
-# plot(data$age3, data$nEvents / data$daysObserved)
-# betaAgeBin[2:length(betaAgeBin)] - betaAgeBin[1]
-
+#
+# y <- apply(designMatrix[, -1] %*% coefs[ageVarNames], 1, sum)
+# plot(1:100, y)
+# plot(1:100, betaAge(1:100))
 
 # Create prediction intervals using bootstrap ------------------------------------------------------
-doPrediction <- function(dummy, data, doSample = FALSE) {
+doPrediction <- function(dummy, data) {
   sampledData <- data[sample.int(nrow(data), nrow(data), replace = TRUE), ]
-  cyclopsData <- createCyclopsData(nEvents ~ age2 + age3 + female + offset(log(daysObserved)), modelType = "pr", data = sampledData)
-  fit <- fitCyclopsModel(cyclopsData)
+  cyclopsData <- createCyclopsData(formula, modelType = "pr", data = sampledData)
+  fit <- fitCyclopsModel(cyclopsData, prior = createPrior("laplace", 0.1))
+  if (fit$return_flag != "SUCCESS") {
+    return()
+  }
   # Cyclops predict() does not support predicting for new data, except when using sparse representation,
   # so using own implementation instead:
   coefs <- coef(fit)
-  prediction <- exp(coefs[1] + coefs["age2"]*data$age2 + coefs["age3"]*data$age3 + coefs["female"]*data$female) * data$daysObserved
+  prediction <- exp(coefs[1] + apply(t((t(data[ageVarNames]) * coefs[ageVarNames])), 1, sum) + coefs["female"]*data$female) * data$daysObserved
   return(prediction)
 }
 
-bootstrap <- lapply(1:10000, doPrediction, data = data, doSample = TRUE)
+# t((t(data[ageVarNames]) * coefs[ageVarNames]))[2, 1]
+# data[ageVarNames][2, 1] * coefs[ageVarNames][1]
+
+
+bootstrap <- lapply(1:10000, doPrediction, data = data)
 bootstrap <- do.call(rbind, bootstrap)
 # predictions <- doPrediction(1, data)
 
-alpha <- 0.05 / nrow(data)
+alpha <- 0.01 / nrow(data)
 cis <- apply(bootstrap, 2, function(x) quantile(x, c(0.5, alpha/2, 1 - alpha/2)))
 rownames(cis) <- c("predictedEvents", "lb", "ub")
 dataWithPredictions <- data |>
@@ -121,4 +144,4 @@ dataWithPredictions <- dataWithPredictions |>
 
 which(dataWithPredictions$outlier)
 
-hist(bootstrap[, 10])
+# hist(bootstrap[, 10])
