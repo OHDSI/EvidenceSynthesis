@@ -122,7 +122,6 @@ getGridWithGradients <- function(cyclopsFit, parameter, bounds) {
                                                      returnDerivatives = TRUE)
   profile <- bind_rows(mleProfile, profile) |>
     arrange(.data$point)
-  profile$derivative <- -profile$derivative # Bug in current Cyclops version
   invalid <- is.nan(profile$value) |
     is.infinite(profile$value) |
     is.nan(profile$derivative) |
