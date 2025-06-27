@@ -3,7 +3,7 @@ library(Cyclops)
 
 # Simulation parameters ----------------------------------------------------------------------------
 
-nDatabases <- 40
+nDatabases <- 20
 nAgeBins <- 3
 nPersonsPerDatabase <- round(runif(nDatabases, 100, 10000))
 pFemale <- runif(nDatabases)
@@ -15,7 +15,7 @@ betaDatabase <- rep(0, nDatabases)
 
 # Create two outlier databases:
 betaDatabase[3] <- -1
-betaDatabase[40] <- 1
+betaDatabase[20] <- 1
 
 # Simulate data ------------------------------------------------------------------------------------
 simulateDatabase <- function(i) {
