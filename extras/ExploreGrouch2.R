@@ -121,8 +121,9 @@ doPrediction <- function(dummy, data) {
   # Cyclops predict() does not support predicting for new data, except when using sparse representation,
   # so using own implementation instead:
   coefs <- coef(fit)
-  prediction <- exp(coefs[1] + apply(t((t(data[ageVarNames]) * coefs[ageVarNames])), 1, sum) + coefs["female"]*data$female) * data$daysObserved
-  return(prediction)
+  predictedRates <- exp(coefs[1] + apply(t((t(data[ageVarNames]) * coefs[ageVarNames])), 1, sum) + coefs["female"]*data$female) * data$daysObserved
+  predictedEvents <- rpois(nrow(data), predictedRates)
+  return(predictedEvents)
 }
 
 # t((t(data[ageVarNames]) * coefs[ageVarNames]))[2, 1]
