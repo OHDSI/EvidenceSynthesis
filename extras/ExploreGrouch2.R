@@ -111,28 +111,18 @@ formula <- as.formula(sprintf("nEvents ~ %s + female + offset(log(daysObserved))
 # plot(1:100, betaAge(1:100))
 
 # Create prediction intervals using bootstrap ------------------------------------------------------
-doPrediction <- function(dummy, data) {
-  sampledData <- data[sample.int(nrow(data), nrow(data), replace = TRUE), ]
-  cyclopsData <- createCyclopsData(formula, modelType = "pr", data = sampledData)
-  fit <- fitCyclopsModel(cyclopsData, prior = createPrior("laplace", 0.1))
-  if (fit$return_flag != "SUCCESS") {
-    return()
-  }
-  # Cyclops predict() does not support predicting for new data, except when using sparse representation,
-  # so using own implementation instead:
-  coefs <- coef(fit)
+
+cyclopsData <- createCyclopsData(formula, modelType = "pr", data = data)
+fit <- fitCyclopsModel(cyclopsData, prior = createPrior("laplace", 0.1))
+bootstrap <- runBootstrap(fit, 10000)
+
+predictEvents <- function(coefs) {
   predictedRates <- exp(coefs[1] + apply(t((t(data[ageVarNames]) * coefs[ageVarNames])), 1, sum) + coefs["female"]*data$female) * data$daysObserved
   predictedEvents <- rpois(nrow(data), predictedRates)
   return(predictedEvents)
 }
-
-# t((t(data[ageVarNames]) * coefs[ageVarNames]))[2, 1]
-# data[ageVarNames][2, 1] * coefs[ageVarNames][1]
-
-
-bootstrap <- lapply(1:10000, doPrediction, data = data)
+bootstrap <- apply(as.matrix(bootstrap$samples), 1, predictEvents, simplify = FALSE)
 bootstrap <- do.call(rbind, bootstrap)
-# predictions <- doPrediction(1, data)
 
 alpha <- 0.01 / nrow(data)
 cis <- apply(bootstrap, 2, function(x) quantile(x, c(0.5, alpha/2, 1 - alpha/2)))
