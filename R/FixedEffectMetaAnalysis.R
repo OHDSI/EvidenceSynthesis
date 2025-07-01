@@ -58,13 +58,25 @@ computeFixedEffectMetaAnalysis <- function(data, alpha = 0.05) {
   type <- detectApproximationType(data)
   data <- cleanApproximations(data)
   if (type == "normal") {
+    if (nrow(data) == 0) {
+      warning("No valid approximation found")
+      return(data.frame(
+        rr = NA,
+        lb = NA,
+        ub = NA,
+        logRr = NA,
+        seLogRr = NA
+      ))
+    }
     m <- meta::metagen(
       TE = data$logRr,
       seTE = data$seLogRr,
       studlab = rep("", nrow(data)),
-      byvar = NULL,
+      subgroup = NULL,
       sm = "RR",
-      level.comb = 1 - alpha
+      level.ma = 1 - alpha,
+      random = FALSE,
+      control = list(maxiter = 1000)
     )
     ffx <- summary(m)$fixed
     estimate <- data.frame(

@@ -79,10 +79,10 @@ approximateLikelihood <- function(cyclopsFit,
       ci95 <- confint(cyclopsFit, parameter, level = 0.95)
       return(data.frame(
         rr = exp(mode),
-        ci95Lb = exp(ci95[2]),
-        ci95Ub = exp(ci95[3]),
+        ci95Lb = exp(as.numeric(ci95[2])),
+        ci95Ub = exp(as.numeric(ci95[3])),
         logRr = mode,
-        seLogRr = (ci95[3] - ci95[2]) / (2 * qnorm(0.975))
+        seLogRr = (as.numeric(ci95[3]) - as.numeric(ci95[2])) / (2 * qnorm(0.975))
       ))
     }
   } else {
