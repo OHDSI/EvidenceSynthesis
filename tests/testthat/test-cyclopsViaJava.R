@@ -5,7 +5,7 @@ library(testthat)
 
 test_that("Simple Cyclops example", {
 
-  skip("Requires Cyclops-jni")
+  # skip("Requires Cyclops-jni")
 
   dobson <- data.frame(
     counts = c(18,17,15,20,10,20,25,13,12),
