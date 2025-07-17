@@ -25,7 +25,7 @@ Imports:
   EmpiricalCalibration,
   rJava,
   BeastJar,
-  Cyclops (>= 3.1.0),
+  Cyclops (>= 3.6.0),
   HDInterval,
   coda,
   rlang,
@@ -36,6 +36,8 @@ Suggests:
   testthat,
   sn,
   tidyr
+Remotes:
+  ohdsi/Cyclops@develop
 License: Apache License 2.0
 URL: https://ohdsi.github.io/EvidenceSynthesis/, https://github.com/OHDSI/EvidenceSynthesis
 BugReports: https://github.com/OHDSI/EvidenceSynthesis/issues
