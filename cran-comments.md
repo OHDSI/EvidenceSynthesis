@@ -1,12 +1,12 @@
-Includes 3 changes (see NEWS.md), and modifies the System Requirements Java notation as requested by Prof. Ripley. 
+Includes 5 changes (see NEWS.md).
 
 ---
 
 ## Test environments
-* Ubuntu 20.03, R 4.2.3
-* Microsoft Windows Server 2019, R 4.2.3
-* MacOS, R 4.2.3
-* Windows 10, R 4.2.3
+* Ubuntu 22.04, R 4.5.1
+* MacOS, R 4.5.1
+* MacOS M3, 4.4.1
+* Windows 10, R 4.5.1
 
 ## R CMD check results
 

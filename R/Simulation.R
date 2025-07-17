@@ -32,7 +32,7 @@
 #' @param maxBackgroundHazard   Maximum background hazard. Either a single number, or a vector of
 #'                              length nSites.
 #' @param hazardRatio           Hazard ratio.
-#' @param randomEffectSd        Standard deviation of the log(hazardRatio). Fixed effect if equal to 0.
+#' @param randomEffectSd        Standard deviation of the `log(hazardRatio)`. Fixed effect if equal to 0.
 #' @param siteEffects           Fixed site effects (if assuming varying site-specific effects). Same effects if 0.
 #'
 #' @seealso
@@ -353,7 +353,7 @@ createApproximations.sccsSimulation <- function(populations, approximation) {
 #' @param maxBackgroundRate     Maximum background outcome rate. Either a single number, or a vector of
 #'                              length nSites.
 #' @param rateRatio             The incidence rate ratio.
-#' @param randomEffectSd        Standard deviation of the log(hazardRatio). Fixed effect if equal to 0.
+#' @param randomEffectSd        Standard deviation of the `log(hazardRatio)`. Fixed effect if equal to 0.
 #'
 #' @seealso
 #' [simulatePopulations]

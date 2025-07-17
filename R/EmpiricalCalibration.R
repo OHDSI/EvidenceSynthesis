@@ -25,7 +25,7 @@
 #'
 #' @param logRr      A numeric vector of effect estimates for the negative controls on the log scale.
 #' @param seLogRr    The standard error of the log of the effect estimates. Hint: often the standard
-#'                   error = (log(lower bound 95 percent confidence interval) - l og(effect
+#'                   error = (log(lower bound 95 percent confidence interval) - log(effect
 #'                   estimate))/qnorm(0.025).
 #' @param labels     A vector containing the labels for the various sources. Should be of equal length
 #'                   as `logRr` and `seLogRr`.

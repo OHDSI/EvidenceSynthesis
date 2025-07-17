@@ -629,7 +629,7 @@ cleanData <- function(data,
 #' Construct `DataModel` objects from approximate likelihood or profile likelihood data
 #'
 #' @param data             The likelihood data. Can be a single approximation, approximations
-#'                         from multiple sites, or (adaptive) gride profile likelihoods.
+#'                         from multiple sites, or (adaptive) grid profile likelihoods.
 #' @param labelReferences  Optional parameter that provides a reference list that
 #'                         maps string names to integer indices; only applies to
 #'                         "grid" or "adaptive grip" type of data.
@@ -795,7 +795,7 @@ buildLabelReferences <- function(data) {
 #' @param sccsIntervalData An object of type `SccsIntervalData` as created using the `createSccsIntervalData`
 #'                         function in the OHDSI `SelfControlledCaseSeries` package.
 #' @param covariateId      The ID of the covariate of interest, for which the estimate will be synthesized.
-#'                         All other coveriates will be considered nuisance variables.
+#'                         All other covariates will be considered nuisance variables.
 #'
 #' @return
 #' A tibble that can be used in the `computeBayesianMetaAnalysis()` function.
