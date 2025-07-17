@@ -21,14 +21,14 @@
 #' @param alpha Alpha level for the credible interval.
 #'
 #' @export
-summarizeChain <- function(chain, alpha = 0.05){
-  avg = mean(chain, na.rm = TRUE)
-  med = median(chain, na.rm = TRUE)
-  hdi = HDInterval::hdi(chain, credMass = 1 - alpha)
-  se = sqrt(mean((chain - avg)^2))
+summarizeChain <- function(chain, alpha = 0.05) {
+  avg <- mean(chain, na.rm = TRUE)
+  med <- median(chain, na.rm = TRUE)
+  hdi <- HDInterval::hdi(chain, credMass = 1 - alpha)
+  se <- sqrt(mean((chain - avg)^2))
 
-  res = c(avg, med, hdi, se)
-  names(res) = c("mean", "median", "LB", "UB", "se")
+  res <- c(avg, med, hdi, se)
+  names(res) <- c("mean", "median", "LB", "UB", "se")
 
   return(res)
 }
@@ -80,9 +80,8 @@ generateBayesianHMAsettings <- function(primaryEffectPriorStd = 1.0,
                                         separateExposurePrior = FALSE,
                                         chainLength = 1100000,
                                         burnIn = 1e+05,
-                                        subSampleFrequency = 100){
-
-  settings = list(
+                                        subSampleFrequency = 100) {
+  settings <- list(
     primaryEffectPriorStd = primaryEffectPriorStd,
     secondaryEffectPriorStd = secondaryEffectPriorStd,
     primaryEffectPrecisionPrior = primaryEffectPrecisionPrior,
@@ -98,35 +97,35 @@ generateBayesianHMAsettings <- function(primaryEffectPriorStd = 1.0,
     subSampleFrequency = subSampleFrequency
   )
 
-  dimExposurePriorMean = length(globalExposureEffectPriorMean)
-  dimExposurePriorStd = length(globalExposureEffectPriorStd)
+  dimExposurePriorMean <- length(globalExposureEffectPriorMean)
+  dimExposurePriorStd <- length(globalExposureEffectPriorStd)
 
-  if(exposureEffectCount == 1){
-    if(dimExposurePriorStd != 1 | dimExposurePriorMean != 1){
+  if (exposureEffectCount == 1) {
+    if (dimExposurePriorStd != 1 | dimExposurePriorMean != 1) {
       stop("Dimensions of `globalExposureEffectPriorMean` and `globalExposureEffectPriorStd` should either be 1 or match `exposureEffectCount`!")
     }
-    settings$globalExposureEffectPriorMean = globalExposureEffectPriorMean
-    settings$globalExposureEffectPriorStd = globalExposureEffectPriorStd
-  }else if(exposureEffectCount < 1){
-    settings$globalExposureEffectPriorMean = globalExposureEffectPriorMean
-    settings$globalExposureEffectPriorStd = globalExposureEffectPriorStd
-  }else{
-    if(dimExposurePriorMean == 1){
-      settings$globalExposureEffectPriorMean = rep(globalExposureEffectPriorMean, exposureEffectCount)
-    }else{
-      if(dimExposurePriorMean != exposureEffectCount){
+    settings$globalExposureEffectPriorMean <- globalExposureEffectPriorMean
+    settings$globalExposureEffectPriorStd <- globalExposureEffectPriorStd
+  } else if (exposureEffectCount < 1) {
+    settings$globalExposureEffectPriorMean <- globalExposureEffectPriorMean
+    settings$globalExposureEffectPriorStd <- globalExposureEffectPriorStd
+  } else {
+    if (dimExposurePriorMean == 1) {
+      settings$globalExposureEffectPriorMean <- rep(globalExposureEffectPriorMean, exposureEffectCount)
+    } else {
+      if (dimExposurePriorMean != exposureEffectCount) {
         stop("Dimension of `globalExposureEffectPriorMean` should either be 1 or match `exposureEffectCount`!")
       }
-      settings$globalExposureEffectPriorMean = globalExposureEffectPriorMean
+      settings$globalExposureEffectPriorMean <- globalExposureEffectPriorMean
     }
 
-    if(dimExposurePriorStd == 1){
-      settings$globalExposureEffectPriorStd = rep(globalExposureEffectPriorStd, exposureEffectCount)
-    }else{
-      if(dimExposurePriorStd != exposureEffectCount){
+    if (dimExposurePriorStd == 1) {
+      settings$globalExposureEffectPriorStd <- rep(globalExposureEffectPriorStd, exposureEffectCount)
+    } else {
+      if (dimExposurePriorStd != exposureEffectCount) {
         stop("Dimension of `globalExposureEffectPriorStd` should either be 1 or match `exposureEffectCount`!")
       }
-      settings$globalExposureEffectPriorStd  = globalExposureEffectPriorStd
+      settings$globalExposureEffectPriorStd <- globalExposureEffectPriorStd
     }
   }
 
@@ -161,15 +160,17 @@ generateBayesianHMAsettings <- function(primaryEffectPriorStd = 1.0,
 #'
 #' @examples
 #' data("hmaLikelihoodList")
-#' estimates = EvidenceSynthesis::computeHierarchicalMetaAnalysis(data = hmaLikelihoodList,
-#' seed = 666)
+#' estimates <- EvidenceSynthesis::computeHierarchicalMetaAnalysis(
+#'   data = hmaLikelihoodList,
+#'   seed = 666
+#' )
 #'
 #' @export
 computeHierarchicalMetaAnalysis <- function(data,
                                             settings = generateBayesianHMAsettings(),
                                             alpha = 0.05,
                                             seed = 1,
-                                            showProgressBar = TRUE){
+                                            showProgressBar = TRUE) {
   # checks...
   if (!supportsJava8()) {
     inform("Java 8 or higher is required, but older version was found. Cannot compute estimate.")
@@ -188,10 +189,10 @@ computeHierarchicalMetaAnalysis <- function(data,
   }
 
   # read settings list
-  chainLength = settings$chainLength
-  burnIn = settings$burnIn
-  subSampleFrequency = settings$subSampleFrequency
-  exposureEffectCount = settings$exposureEffectCount
+  chainLength <- settings$chainLength
+  burnIn <- settings$burnIn
+  subSampleFrequency <- settings$subSampleFrequency
+  exposureEffectCount <- settings$exposureEffectCount
 
   if (isRmdCheck() && !isUnitTest()) {
     inform(paste(
@@ -211,53 +212,59 @@ computeHierarchicalMetaAnalysis <- function(data,
 
   # build data models
   ## build a reference list of string labels and integer labels...
-  labelReferences = buildLabelReferences(data)
+  labelReferences <- buildLabelReferences(data)
 
   ## get the type of data in each element of the list
-  type = detectApproximationType(data[[1]])
+  type <- detectApproximationType(data[[1]])
 
   ## construct list of dataModel objects
   dataModelList <- rJava::.jnew("java.util.ArrayList")
-  for(i in 1:length(data)){
-    thisDataModel = constructDataModel(data[[i]])
-    #thisDataModel = rJava::.jcast(thisDataModel, "org.ohdsi.metaAnalysis.DataModel")
-    dataModelList$add(rJava::.jcast(thisDataModel,
-                                    "org.ohdsi.metaAnalysis.DataModel"))
+  for (i in 1:length(data)) {
+    thisDataModel <- constructDataModel(data[[i]])
+    # thisDataModel = rJava::.jcast(thisDataModel, "org.ohdsi.metaAnalysis.DataModel")
+    dataModelList$add(rJava::.jcast(
+      thisDataModel,
+      "org.ohdsi.metaAnalysis.DataModel"
+    ))
   }
 
   cat("Data model list built!\n\n")
 
   # convert to Java
   ## configuration
-  hmaConfiguration = rJava::.jnew("org.ohdsi.metaAnalysis.HierarchicalMetaAnalysis$HierarchicalMetaAnalysisConfiguration")
+  hmaConfiguration <- rJava::.jnew("org.ohdsi.metaAnalysis.HierarchicalMetaAnalysis$HierarchicalMetaAnalysisConfiguration")
 
-  hmaConfiguration$hierarchicalLocationPrimaryHyperStdDev = as.numeric(settings$primaryEffectPriorStd)
-  hmaConfiguration$hierarchicalLocationSecondaryHyperStdDev = as.numeric(settings$secondaryEffectPriorStd)
-  hmaConfiguration$gammaHyperPrimaryShape = as.numeric(settings$primaryEffectPrecisionPrior[1])
-  hmaConfiguration$gammaHyperPrimaryScale = as.numeric(settings$primaryEffectPrecisionPrior[2])
-  hmaConfiguration$gammaHyperSecondaryShape = as.numeric(settings$secondaryEffectPrecisionPrior[1])
-  hmaConfiguration$gammaHyperSecondaryScale = as.numeric(settings$secondaryEffectPrecisionPrior[2])
-  #hmaConfiguration$exposureHyperStdDev = as.numeric(settings$globalExposureEffectPriorStd[1])
-  hmaConfiguration$tauShape = as.numeric(settings$errorPrecisionPrior[1])
-  hmaConfiguration$tauScale = as.numeric(settings$errorPrecisionPrior[2])
-  hmaConfiguration$startingTau = as.numeric(settings$errorPrecisionStartValue)
-  hmaConfiguration$includeSecondary = as.logical(settings$includeSourceEffect)
-  hmaConfiguration$includeExposure = as.logical(settings$includeExposureEffect)
-  hmaConfiguration$separateEffectPrior = as.logical(settings$separateExposurePrior)
-  hmaConfiguration$effectCount = as.integer(exposureEffectCount)
-  hmaConfiguration$seed = rJava::.jlong(seed)
+  hmaConfiguration$hierarchicalLocationPrimaryHyperStdDev <- as.numeric(settings$primaryEffectPriorStd)
+  hmaConfiguration$hierarchicalLocationSecondaryHyperStdDev <- as.numeric(settings$secondaryEffectPriorStd)
+  hmaConfiguration$gammaHyperPrimaryShape <- as.numeric(settings$primaryEffectPrecisionPrior[1])
+  hmaConfiguration$gammaHyperPrimaryScale <- as.numeric(settings$primaryEffectPrecisionPrior[2])
+  hmaConfiguration$gammaHyperSecondaryShape <- as.numeric(settings$secondaryEffectPrecisionPrior[1])
+  hmaConfiguration$gammaHyperSecondaryScale <- as.numeric(settings$secondaryEffectPrecisionPrior[2])
+  # hmaConfiguration$exposureHyperStdDev = as.numeric(settings$globalExposureEffectPriorStd[1])
+  hmaConfiguration$tauShape <- as.numeric(settings$errorPrecisionPrior[1])
+  hmaConfiguration$tauScale <- as.numeric(settings$errorPrecisionPrior[2])
+  hmaConfiguration$startingTau <- as.numeric(settings$errorPrecisionStartValue)
+  hmaConfiguration$includeSecondary <- as.logical(settings$includeSourceEffect)
+  hmaConfiguration$includeExposure <- as.logical(settings$includeExposureEffect)
+  hmaConfiguration$separateEffectPrior <- as.logical(settings$separateExposurePrior)
+  hmaConfiguration$effectCount <- as.integer(exposureEffectCount)
+  hmaConfiguration$seed <- rJava::.jlong(seed)
 
   ## deal with exposure prior mean: pop out the 0.0 entry first
   hmaConfiguration$exposureHyperLocation$remove(rJava::.jnew("java/lang/Double", 0.0))
-  for(i in c(1:exposureEffectCount)){
-    hmaConfiguration$exposureHyperLocation$add(rJava::.jnew("java.lang.Double",
-                                                            as.numeric(settings$globalExposureEffectPriorMean[i])))
+  for (i in c(1:exposureEffectCount)) {
+    hmaConfiguration$exposureHyperLocation$add(rJava::.jnew(
+      "java.lang.Double",
+      as.numeric(settings$globalExposureEffectPriorMean[i])
+    ))
   }
   ## similarly, work on exposure prior std (pop out the default 2.0 entry)
   hmaConfiguration$exposureHyperStdDev$remove(rJava::.jnew("java/lang/Double", 2.0))
-  for(i in c(1:exposureEffectCount)){
-    hmaConfiguration$exposureHyperStdDev$add(rJava::.jnew("java.lang.Double",
-                                                            as.numeric(settings$globalExposureEffectPriorStd[i])))
+  for (i in c(1:exposureEffectCount)) {
+    hmaConfiguration$exposureHyperStdDev$add(rJava::.jnew(
+      "java.lang.Double",
+      as.numeric(settings$globalExposureEffectPriorStd[i])
+    ))
   }
 
   # construct the analysis
@@ -295,70 +302,71 @@ computeHierarchicalMetaAnalysis <- function(data,
     traces[, i - 2] <- trace
   }
   ## get summary on key parameters
-  parameterNames = parameterNames[-c(1:2)]
+  parameterNames <- parameterNames[-c(1:2)]
   ## add parameter names to the trace matrix
-  colnames(traces) = parameterNames
+  colnames(traces) <- parameterNames
 
   # cat(sprintf("All parameter names: %s \n\n",
   #             paste(parameterNames, collapse = ",")))
 
-  mainParameters = c("tau", "outcome.mean", "outcome.scale")
-  if(settings$includeSourceEffect){
-    mainParameters = c(mainParameters, c("source.mean", "source.scale"))
+  mainParameters <- c("tau", "outcome.mean", "outcome.scale")
+  if (settings$includeSourceEffect) {
+    mainParameters <- c(mainParameters, c("source.mean", "source.scale"))
   }
-  if(settings$includeExposureEffect){
+  if (settings$includeExposureEffect) {
     # if(exposureEffectCount == 1){
     #   exposureNames = c("exposure")
     # }else if(exposureEffectCount > 1){
-    if(exposureEffectCount >= 1){
-      exposureNames = paste0("exposure", c(1:exposureEffectCount))
-    }else{
-      exposureNames = NULL
+    if (exposureEffectCount >= 1) {
+      exposureNames <- paste0("exposure", c(1:exposureEffectCount))
+    } else {
+      exposureNames <- NULL
     }
-    mainParameters = c(mainParameters, exposureNames)
+    mainParameters <- c(mainParameters, exposureNames)
     ## TODO: need to modify for multiple exposure effects case!!!
-    if(settings$separateExposurePrior){
-      if(exposureEffectCount >= 1){
-        effectBiasCol = paste0("outcome",
-                               c((length(data)-exposureEffectCount+1):length(data))
+    if (settings$separateExposurePrior) {
+      if (exposureEffectCount >= 1) {
+        effectBiasCol <- paste0(
+          "outcome",
+          c((length(data) - exposureEffectCount + 1):length(data))
         )
-        effectBiasSamps = traces[,effectBiasCol]
-        effectSamps = traces[,exposureNames]
-        traces = cbind(traces, effectSamps)
-        if(exposureEffectCount == 1){
-          unadjEffectNames = c("unadjustedExposure")
-        }else{
-          unadjEffectNames = paste0("unadjustedExposure", c(1:exposureEffectCount))
+        effectBiasSamps <- traces[, effectBiasCol]
+        effectSamps <- traces[, exposureNames]
+        traces <- cbind(traces, effectSamps)
+        if (exposureEffectCount == 1) {
+          unadjEffectNames <- c("unadjustedExposure")
+        } else {
+          unadjEffectNames <- paste0("unadjustedExposure", c(1:exposureEffectCount))
         }
-        newN = ncol(traces)
-        newCols = c((newN-exposureEffectCount+1):newN)
-        colnames(traces)[newCols] = unadjEffectNames
-        if(settings$includeSourceEffect){
-          if(exposureEffectCount > 1){
-            for(i in 1:exposureEffectCount){
-              effectBiasSamps[,i] = effectBiasSamps[,i] + traces[,"source.mean"]
+        newN <- ncol(traces)
+        newCols <- c((newN - exposureEffectCount + 1):newN)
+        colnames(traces)[newCols] <- unadjEffectNames
+        if (settings$includeSourceEffect) {
+          if (exposureEffectCount > 1) {
+            for (i in 1:exposureEffectCount) {
+              effectBiasSamps[, i] <- effectBiasSamps[, i] + traces[, "source.mean"]
             }
-          }else{
-            effectBiasSamps = effectBiasSamps + traces[,"source.mean"]
+          } else {
+            effectBiasSamps <- effectBiasSamps + traces[, "source.mean"]
           }
         }
-        traces[,exposureNames] = effectSamps - effectBiasSamps
+        traces[, exposureNames] <- effectSamps - effectBiasSamps
       }
     }
   }
-  mainParameterIndices = which(parameterNames %in% mainParameters)
+  mainParameterIndices <- which(parameterNames %in% mainParameters)
 
-  estimates = apply(traces[,mainParameterIndices], 2, summarizeChain, alpha)
-  estimates = data.frame(t(estimates), row.names = NULL)
-  names(estimates) = c("mean", "median", "LB", "UB", "se")
+  estimates <- apply(traces[, mainParameterIndices], 2, summarizeChain, alpha)
+  estimates <- data.frame(t(estimates), row.names = NULL)
+  names(estimates) <- c("mean", "median", "LB", "UB", "se")
 
   # print(mainParameters)
   # print(estimates)
 
-  estimates$parameter = mainParameters
+  estimates$parameter <- mainParameters
 
   ## add attributes
-  type = detectApproximationType(data[[1]])
+  type <- detectApproximationType(data[[1]])
   attr(estimates, "traces") <- traces
   attr(estimates, "type") <- type
   attr(estimates, "ess") <- coda::effectiveSize(traces)
@@ -384,53 +392,52 @@ computeHierarchicalMetaAnalysis <- function(data,
 #' @seealso [computeHierarchicalMetaAnalysis]
 #'
 #' @export
-extractSourceSpecificEffects <- function(estimates, alpha = 0.05){
-  if(!"source.mean" %in% estimates$parameter){
+extractSourceSpecificEffects <- function(estimates, alpha = 0.05) {
+  if (!"source.mean" %in% estimates$parameter) {
     stop("Cannot find source.mean as a main parameter in the fitted model!")
   }
-  if(!"traces" %in% names(attributes(estimates))){
+  if (!"traces" %in% names(attributes(estimates))) {
     stop("Cannot find MCMC samples from the input model object!")
   }
-  traces = attr(estimates, "traces")
-  #sourceColumns = which(stringr::str_detect(colnames(traces), "source[0-9]+"))
-  sourceColumns = which(grepl("source[0-9]+", colnames(traces)))
-  if(length(sourceColumns) < 1){
+  traces <- attr(estimates, "traces")
+  # sourceColumns = which(stringr::str_detect(colnames(traces), "source[0-9]+"))
+  sourceColumns <- which(grepl("source[0-9]+", colnames(traces)))
+  if (length(sourceColumns) < 1) {
     stop("Cannot find posterior samples for source-specific effects!")
   }
-  sourceColumnNames = colnames(traces)[sourceColumns]
+  sourceColumnNames <- colnames(traces)[sourceColumns]
 
-  #effectColumns = which(stringr::str_starts(estimates$parameter, "exposure*"))
-  effectColumns = which(grepl("^exposure*",estimates$parameter))
-  if(length(effectColumns) < 1){
+  # effectColumns = which(stringr::str_starts(estimates$parameter, "exposure*"))
+  effectColumns <- which(grepl("^exposure*", estimates$parameter))
+  if (length(effectColumns) < 1) {
     stop("Cannot find main exposure effects in main parameters!")
   }
-  effectColumnNames = estimates$parameter[effectColumns]
+  effectColumnNames <- estimates$parameter[effectColumns]
 
-  newTraces = NULL #matrix(nrow = nrow(traces), ncol = length(effectColumns)*length(sourceColumns))
-  newColumns = NULL
-  for(e in effectColumnNames){
-    for(s in sourceColumnNames){
-      this.source.effect = traces[,e] - (traces[,s] - traces[,"source.mean"])
-      newTraces = cbind(newTraces, this.source.effect)
-      newColumns = c(newColumns, sprintf("%s.%s", e, s))
+  newTraces <- NULL # matrix(nrow = nrow(traces), ncol = length(effectColumns)*length(sourceColumns))
+  newColumns <- NULL
+  for (e in effectColumnNames) {
+    for (s in sourceColumnNames) {
+      this.source.effect <- traces[, e] - (traces[, s] - traces[, "source.mean"])
+      newTraces <- cbind(newTraces, this.source.effect)
+      newColumns <- c(newColumns, sprintf("%s.%s", e, s))
     }
   }
 
-  colnames(newTraces) = newColumns
+  colnames(newTraces) <- newColumns
 
-  newEstimates = apply(newTraces, 2, summarizeChain, alpha)
-  newEstimates = data.frame(t(newEstimates), row.names = NULL)
-  names(newEstimates) = c("mean", "median", "LB", "UB", "se")
-  newEstimates$parameter = newColumns
+  newEstimates <- apply(newTraces, 2, summarizeChain, alpha)
+  newEstimates <- data.frame(t(newEstimates), row.names = NULL)
+  names(newEstimates) <- c("mean", "median", "LB", "UB", "se")
+  newEstimates$parameter <- newColumns
 
-  attr(newEstimates, "traces") = newTraces
+  attr(newEstimates, "traces") <- newTraces
   attr(newEstimates, "ess") <- coda::effectiveSize(newTraces)
-  if("sourceLabels" %in% names(attributes(estimates))){
+  if ("sourceLabels" %in% names(attributes(estimates))) {
     attr(newEstimates, "sourceLabels") <- attr(estimates, "sourceLabels")
-  }else{
+  } else {
     attr(newEstimates, "sourceLabels") <- NULL
   }
 
   return(newEstimates)
-
 }

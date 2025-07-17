@@ -127,7 +127,7 @@ computeFixedEffectMetaAnalysis <- function(data, alpha = 0.05) {
     cyclopsData <- Cyclops::createCyclopsData(formula, data = population, modelType = "cpr")
     cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
     mode <- coef(cyclopsFit)["a"]
-    ci95 <- confint(cyclopsFit, parm="a", level = 0.95)
+    ci95 <- confint(cyclopsFit, parm = "a", level = 0.95)
     estimate <- data.frame(
       rr = exp(mode),
       lb = exp(ci95[2]),

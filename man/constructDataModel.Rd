@@ -19,6 +19,6 @@ Construct \code{DataModel} objects from approximate likelihood or profile likeli
 }
 \examples{
 data("likelihoodProfileLists")
-dataModel = constructDataModel(likelihoodProfileLists[[1]])
+dataModel <- constructDataModel(likelihoodProfileLists[[1]])
 
 }

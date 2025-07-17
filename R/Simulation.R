@@ -127,7 +127,7 @@ simulatePopulations.simulationSettings <- function(settings = createSimulationSe
     mean = log(settings$hazardRatio),
     sd = settings$randomEffectSd
   )
-  thetas = thetas + settings$siteEffects
+  thetas <- thetas + settings$siteEffects
   hazardRatios <- exp(thetas)
 
   simulateSite <- function(i) {
@@ -229,46 +229,51 @@ simulateMetaAnalysisWithNegativeControls <- function(meanExposureEffect = log(2)
                                                      nSites = 10,
                                                      sitePop = 2000,
                                                      seed = 42,
-                                                     ...){
-
+                                                     ...) {
   set.seed(seed)
-  metaPopulations = list()
+  metaPopulations <- list()
 
   # per outcome biases
-  biases = rnorm(mNegativeControls, mean = meanBias, sd = biasStd)
+  biases <- rnorm(mNegativeControls, mean = meanBias, sd = biasStd)
 
   # per site variations
-  siteEffects = rnorm(nSites, mean = meanSiteEffect, sd = siteEffectStd)
+  siteEffects <- rnorm(nSites, mean = meanSiteEffect, sd = siteEffectStd)
 
   # negative controls data
-  for(i in 1:mNegativeControls){
-    simulationSettings = createSimulationSettings(nSites = nSites,
-                                                  n = sitePop,
-                                                  hazardRatio = exp(biases[i]),
-                                                  siteEffects = siteEffects,
-                                                  ...)
-    metaPopulations[[i]] = simulatePopulations(simulationSettings)
+  for (i in 1:mNegativeControls) {
+    simulationSettings <- createSimulationSettings(
+      nSites = nSites,
+      n = sitePop,
+      hazardRatio = exp(biases[i]),
+      siteEffects = siteEffects,
+      ...
+    )
+    metaPopulations[[i]] <- simulatePopulations(simulationSettings)
   }
 
   # main exposure data
-  simulationSettings = createSimulationSettings(nSites = nSites,
-                                                n = sitePop,
-                                                hazardRatio = exp(meanExposureEffect + rnorm(1, meanBias, biasStd)),
-                                                siteEffects = siteEffects,
-                                                ...)
-  metaPopulations[[mNegativeControls + 1]] = simulatePopulations(simulationSettings)
+  simulationSettings <- createSimulationSettings(
+    nSites = nSites,
+    n = sitePop,
+    hazardRatio = exp(meanExposureEffect + rnorm(1, meanBias, biasStd)),
+    siteEffects = siteEffects,
+    ...
+  )
+  metaPopulations[[mNegativeControls + 1]] <- simulatePopulations(simulationSettings)
 
 
-  hyperParameters = list(meanExposureEffect = meanExposureEffect,
-                         meanBias = meanBias,
-                         biasStd = biasStd,
-                         meanSiteEffect = meanSiteEffect,
-                         siteEffectStd = siteEffectStd,
-                         mNegativeControls = mNegativeControls,
-                         nSites = nSites,
-                         sitePop = sitePop)
+  hyperParameters <- list(
+    meanExposureEffect = meanExposureEffect,
+    meanBias = meanBias,
+    biasStd = biasStd,
+    meanSiteEffect = meanSiteEffect,
+    siteEffectStd = siteEffectStd,
+    mNegativeControls = mNegativeControls,
+    nSites = nSites,
+    sitePop = sitePop
+  )
 
-  attr(metaPopulations, "hyperParameters") = hyperParameters
+  attr(metaPopulations, "hyperParameters") <- hyperParameters
 
   return(metaPopulations)
 }
@@ -285,17 +290,17 @@ createApproximations <- function(populations, approximation) {
 
 #' @export
 createApproximations.simulation <- function(populations, approximation) {
-
   fitModelInDatabase <- function(population, approximation) {
     cyclopsData <- Cyclops::createCyclopsData(Surv(time, y) ~ x + strata(stratumId),
-                                              data = population,
-                                              modelType = "cox"
+      data = population,
+      modelType = "cox"
     )
     cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData,
-                                           fixedCoefficients = c(!approximation %in% c("normal", "grid with gradients"))
+      fixedCoefficients = c(!approximation %in% c("normal", "grid with gradients"))
     )
     res <- approximateLikelihood(cyclopsFit, "x",
-                                 approximation = approximation)
+      approximation = approximation
+    )
     return(res)
   }
   data <- lapply(populations, fitModelInDatabase, approximation = approximation)
@@ -307,7 +312,6 @@ createApproximations.simulation <- function(populations, approximation) {
 
 #' @export
 createApproximations.sccsSimulation <- function(populations, approximation) {
-
   fitModelInDatabase <- function(population, approximation) {
     if (nrow(population) == 0) {
       return(NULL)
@@ -417,15 +421,15 @@ simulatePopulations.sccsSimulationSettings <- function(settings = createSimulati
 
   simulateSite <- function(i) {
     personBackgroundRate <- runif(settings$n[i],
-                                  min = settings$minBackgroundRate[i],
-                                  max = settings$maxBackgroundRate[i]
+      min = settings$minBackgroundRate[i],
+      max = settings$maxBackgroundRate[i]
     )
-    if (settings $timeCovariates[i] == 0) {
+    if (settings$timeCovariates[i] == 0) {
       designMatrix <- NULL
     } else {
       seasonKnots <- 0.5 + seq(0, 12, length.out = settings$timeCovariates[i] + 1)
       designMatrix <- cyclicSplineDesign(1:12, seasonKnots)
-      while(nrow(designMatrix) < settings$timePartitions[i]) {
+      while (nrow(designMatrix) < settings$timePartitions[i]) {
         designMatrix <- rbind(designMatrix, designMatrix)
       }
       designMatrix <- designMatrix[1:settings$timePartitions[i], ]
@@ -434,12 +438,12 @@ simulatePopulations.sccsSimulationSettings <- function(settings = createSimulati
     # Simulate time periods with covariates
     population <- data.frame(
       stratumId = rep(seq_len(settings$n[i]), each = settings$timePartitions[i]),
-      time = 1/settings$timePartitions[i],
+      time = 1 / settings$timePartitions[i],
       a = 0,
       deltaA = 0,
       backgroundRate = rep(personBackgroundRate, each = settings$timePartitions[i])
     )
-    if (settings $timeCovariates[i] != 0) {
+    if (settings$timeCovariates[i] != 0) {
       x <- do.call(rbind, replicate(settings$n[i], designMatrix, simplify = FALSE))
       population <- cbind(population, x)
       colnames(population)[-(1:5)] <- paste0("x", seq_len(settings$timeCovariates[i]))
@@ -472,7 +476,7 @@ simulatePopulations.sccsSimulationSettings <- function(settings = createSimulati
 
     # Simulate outcomes
     timeEffect <- runif(settings$timeCovariates[i], max = settings$timeEffectSize[i])
-    population$rate <- population$backgroundRate * exp(population$a * thetas[i] + rowSums(population[, ncol(population)-(seq_len(settings$timeCovariates[i])) + 1] * timeEffect))
+    population$rate <- population$backgroundRate * exp(population$a * thetas[i] + rowSums(population[, ncol(population) - (seq_len(settings$timeCovariates[i])) + 1] * timeEffect))
 
     # Normalize so higher hazard ratios don't come with more statistical power:
     population$totalRate <- population$rate * population$time
@@ -507,7 +511,7 @@ print.sccsSimulation <- function(x, ...) {
 }
 
 #' @export
-summary.sccsSimulation<- function(object, ...) {
+summary.sccsSimulation <- function(object, ...) {
   summarizeSite <- function(site) {
     return(data.frame(
       cases = length(unique(site$stratumId)),

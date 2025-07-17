@@ -109,17 +109,21 @@ getGridWithGradients <- function(cyclopsFit, parameter, bounds) {
     if (mle > bounds[1] && mle < bounds[2] && mle != 0) {
       # There appears to be a MLE, so save that. Note: if the model was fitted
       # with the parameter fixed the coefficient may not actually be the MLE.
-      mleProfile <- Cyclops::getCyclopsProfileLogLikelihood(object = cyclopsFit,
-                                                         parm = parameter,
-                                                         x = mle,
-                                                         returnDerivatives = TRUE)
+      mleProfile <- Cyclops::getCyclopsProfileLogLikelihood(
+        object = cyclopsFit,
+        parm = parameter,
+        x = mle,
+        returnDerivatives = TRUE
+      )
     }
   }
   x <- seq(bounds[1], bounds[2], length.out = 8)
-  profile <- Cyclops::getCyclopsProfileLogLikelihood(object = cyclopsFit,
-                                                     parm = parameter,
-                                                     x = x,
-                                                     returnDerivatives = TRUE)
+  profile <- Cyclops::getCyclopsProfileLogLikelihood(
+    object = cyclopsFit,
+    parm = parameter,
+    x = x,
+    returnDerivatives = TRUE
+  )
   profile <- bind_rows(mleProfile, profile) |>
     arrange(.data$point)
   invalid <- is.nan(profile$value) |
@@ -234,17 +238,17 @@ hermiteInterpolation <- function(x, profile) {
 
   # Hermite interpolation for points within the range of profile$point:
   for (i in seq_len(n - 1)) {
-    t <- (x - profile$point[i]) / (profile$point[i+1] - profile$point[i])
+    t <- (x - profile$point[i]) / (profile$point[i + 1] - profile$point[i])
     h00 <- 2 * t^3 - 3 * t^2 + 1
     h10 <- t^3 - 2 * t^2 + t
     h01 <- -2 * t^3 + 3 * t^2
     h11 <- t^3 - t^2
 
-    idx <- which(x >= profile$point[i] & x <= profile$point[i+1])
+    idx <- which(x >= profile$point[i] & x <= profile$point[i + 1])
     result[idx] <- h00[idx] * profile$value[i] +
-      h10[idx] * (profile$point[i+1] - profile$point[i]) * profile$derivative[i] +
-      h01[idx] * profile$value[i+1] +
-      h11[idx] * (profile$point[i+1] - profile$point[i]) * profile$derivative[i+1]
+      h10[idx] * (profile$point[i + 1] - profile$point[i]) * profile$derivative[i] +
+      h01[idx] * profile$value[i + 1] +
+      h11[idx] * (profile$point[i + 1] - profile$point[i]) * profile$derivative[i + 1]
   }
 
   # Extrapolate to the left (linear):
@@ -511,18 +515,18 @@ cleanApproximations <- function(data) {
     data <- cleanData(data, c("mu", "sigma", "gamma"), minValues = c(-100, 1e-05, -100))
   } else if (type == "skew normal") {
     data <- cleanData(data,
-                      c("mu", "sigma", "alpha"),
-                      minValues = c(-100, 1e-05, -10000),
-                      maxValues = c(100, 10000, 10000)
+      c("mu", "sigma", "alpha"),
+      minValues = c(-100, 1e-05, -10000),
+      maxValues = c(100, 10000, 10000)
     )
   } else if (type == "adaptive grid") {
     for (i in 1:length(data)) {
       cleanedData <- as.data.frame(data[[i]])
       cleanedData$value <- cleanedData$value - max(cleanedData$value)
       cleanedData <- cleanData(cleanedData,
-                               c("point", "value"),
-                               minValues = c(-100, -1e6),
-                               maxValues = c(100, 0)
+        c("point", "value"),
+        minValues = c(-100, -1e6),
+        maxValues = c(100, 0)
       )
       data[[i]] <- cleanedData
     }
@@ -531,9 +535,9 @@ cleanApproximations <- function(data) {
       cleanedData <- as.data.frame(data[[i]])
       cleanedData$value <- cleanedData$value - max(cleanedData$value)
       cleanedData <- cleanData(cleanedData,
-                               c("point", "value", "derivative"),
-                               minValues = c(-100, -1e6, -1e6),
-                               maxValues = c(100, 0, 1e6)
+        c("point", "value", "derivative"),
+        minValues = c(-100, -1e6, -1e6),
+        maxValues = c(100, 0, 1e6)
       )
       data[[i]] <- cleanedData
     }
@@ -541,18 +545,18 @@ cleanApproximations <- function(data) {
     if (is.list(data) && !is.data.frame(data)) {
       for (i in 1:length(data)) {
         data <- cleanData(data,
-                          colnames(data),
-                          minValues = rep(-1e6, ncol(data)),
-                          maxValues = rep(0, ncol(data)),
-                          grid = TRUE
+          colnames(data),
+          minValues = rep(-1e6, ncol(data)),
+          maxValues = rep(0, ncol(data)),
+          grid = TRUE
         )
       }
     } else {
       data <- cleanData(as.data.frame(data),
-                        colnames(data),
-                        minValues = rep(-1e6, ncol(data)),
-                        maxValues = rep(0, ncol(data)),
-                        grid = TRUE
+        colnames(data),
+        minValues = rep(-1e6, ncol(data)),
+        maxValues = rep(0, ncol(data)),
+        grid = TRUE
       )
     }
   }
@@ -632,10 +636,10 @@ cleanData <- function(data,
 #'
 #' @examples
 #' data("likelihoodProfileLists")
-#' dataModel = constructDataModel(likelihoodProfileLists[[1]])
+#' dataModel <- constructDataModel(likelihoodProfileLists[[1]])
 #'
 #' @export
-constructDataModel <- function(data, labelReferences = NULL){
+constructDataModel <- function(data, labelReferences = NULL) {
   type <- detectApproximationType(data)
   data <- cleanApproximations(data)
   if (type == "normal") {
@@ -703,12 +707,14 @@ constructDataModel <- function(data, labelReferences = NULL){
   } else if (type == "adaptive grid") {
     dataModel <- rJava::.jnew("org.ohdsi.metaAnalysis.ExtendingEmpiricalDataModel")
     for (i in 1:length(data)) {
-      if(!is.null(labelReferences) && !is.null(names(data))){
-        id = labelReferences[[names(data)[i]]]
-        cat(sprintf("Data source %s, with label %s ...\n",
-                    names(data)[i], id))
-      }else{
-        id = i
+      if (!is.null(labelReferences) && !is.null(names(data))) {
+        id <- labelReferences[[names(data)[i]]]
+        cat(sprintf(
+          "Data source %s, with label %s ...\n",
+          names(data)[i], id
+        ))
+      } else {
+        id <- i
       }
       dataModel$addLikelihoodParameters(data[[i]]$point, data[[i]]$value, id) # specify identifier
     }
@@ -721,10 +727,10 @@ constructDataModel <- function(data, labelReferences = NULL){
     data <- as.matrix(data)
     dataModel <- rJava::.jnew("org.ohdsi.metaAnalysis.ExtendingEmpiricalDataModel")
     for (i in 1:nrow(data)) {
-      if(!is.null(labelReferences) && !is.null(row.names(data))){
-        id = labelReferences[[row.names(data)[i]]]
-      }else{
-        id = i
+      if (!is.null(labelReferences) && !is.null(row.names(data))) {
+        id <- labelReferences[[row.names(data)[i]]]
+      } else {
+        id <- i
       }
       dataModel$addLikelihoodParameters(x, data[i, ], id) # specify identifier
     }
@@ -735,7 +741,7 @@ constructDataModel <- function(data, labelReferences = NULL){
       dataModel$addLikelihoodData(data[[i]]$point, data[[i]]$value, data[[i]]$derivative)
     }
     dataModel$finish()
-  }else {
+  } else {
     abort(sprintf("Approximation type '%s' not supported by this function", type))
   }
   return(dataModel)
@@ -749,36 +755,36 @@ constructDataModel <- function(data, labelReferences = NULL){
 #'
 #' @examples
 #' data("likelihoodProfileLists")
-#' refLabs = buildLabelReferences(likelihoodProfileLists)
+#' refLabs <- buildLabelReferences(likelihoodProfileLists)
 #'
 #' @export
-buildLabelReferences <- function(data){
+buildLabelReferences <- function(data) {
   type <- detectApproximationType(data[[1]])
-  if(type == "grid" || type == "adaptive grid"){
-
-    labelRefs = list()
-    counter = 1
-    for(i in 1:length(data)){
-      if(type == "grid"){
-        thisLabels = row.names(data[[i]])
-      }else{
-        thisLabels = names(data[[i]])
+  if (type == "grid" || type == "adaptive grid") {
+    labelRefs <- list()
+    counter <- 1
+    for (i in 1:length(data)) {
+      if (type == "grid") {
+        thisLabels <- row.names(data[[i]])
+      } else {
+        thisLabels <- names(data[[i]])
       }
       # if(i == 1 && is.null(thisLabels)){
       #   return(NULL)
       # }
-      for(l in thisLabels){
-        if(!l %in% names(labelRefs)){
-          labelRefs[[l]] = counter
-          counter = counter + 1
+      for (l in thisLabels) {
+        if (!l %in% names(labelRefs)) {
+          labelRefs[[l]] <- counter
+          counter <- counter + 1
         }
       }
     }
 
-    if(length(labelRefs) == 0) {labelRefs = NULL}
-
-  }else{
-    labelRefs = NULL
+    if (length(labelRefs) == 0) {
+      labelRefs <- NULL
+    }
+  } else {
+    labelRefs <- NULL
   }
 
   return(labelRefs)
@@ -798,10 +804,11 @@ buildLabelReferences <- function(data){
 prepareSccsIntervalData <- function(sccsIntervalData, covariateId) {
   ensureInstalled("tidyr")
   covariates <- tidyr::pivot_wider(collect(sccsIntervalData$covariates),
-                                   names_from = "covariateId",
-                                   names_prefix = "x",
-                                   values_from = "covariateValue",
-                                   values_fill = 0)
+    names_from = "covariateId",
+    names_prefix = "x",
+    values_from = "covariateValue",
+    values_fill = 0
+  )
   data <- covariates %>%
     rename(a = paste0("x", covariateId)) %>%
     inner_join(collect(sccsIntervalData$outcomes), by = join_by("rowId", "stratumId")) %>%

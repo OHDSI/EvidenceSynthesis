@@ -15,6 +15,6 @@ Build a list of references that map likelihood names to integer labels for later
 }
 \examples{
 data("likelihoodProfileLists")
-refLabs = buildLabelReferences(likelihoodProfileLists)
+refLabs <- buildLabelReferences(likelihoodProfileLists)
 
 }

@@ -39,8 +39,10 @@ a half normal prior is used for the standard deviation; a gamma prior is used fo
 }
 \examples{
 data("hmaLikelihoodList")
-estimates = EvidenceSynthesis::computeHierarchicalMetaAnalysis(data = hmaLikelihoodList,
-seed = 666)
+estimates <- EvidenceSynthesis::computeHierarchicalMetaAnalysis(
+  data = hmaLikelihoodList,
+  seed = 666
+)
 
 }
 \seealso{

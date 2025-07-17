@@ -122,8 +122,8 @@ computeBayesianMetaAnalysis <- function(data,
   }
 
   # refactored: using utils function to create a `dataModel` object
-  type = detectApproximationType(data)
-  dataModel = constructDataModel(data)
+  type <- detectApproximationType(data)
+  dataModel <- constructDataModel(data)
   if (is.null(dataModel)) {
     return(createNaEstimate(type))
   }

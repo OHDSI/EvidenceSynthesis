@@ -85,9 +85,9 @@ plotLikelihoodFit <- function(approximation,
     ggplot2::scale_color_manual(values = c("#000000", "#66c2a5", "#fc8d62", "#8da0cb")) +
     ggplot2::scale_y_continuous(yLabel) +
     ggplot2::scale_x_continuous(xLabel,
-                                limits = log(limits),
-                                breaks = log(breaks),
-                                labels = breaks
+      limits = log(limits),
+      breaks = log(breaks),
+      labels = breaks
     ) +
     ggplot2::theme(
       panel.grid.minor = ggplot2::element_blank(),
@@ -111,16 +111,16 @@ getLikelihoodCoordinates <- function(approximation, limits, verbose = TRUE) {
   } else if (type == "custom") {
     x <- seq(log(limits[1]), log(limits[2]), length.out = 100)
     y <- customFunction(x,
-                        mu = approximation$mu,
-                        sigma = approximation$sigma,
-                        gamma = approximation$gamma
+      mu = approximation$mu,
+      sigma = approximation$sigma,
+      gamma = approximation$gamma
     )
   } else if (type == "skew normal") {
     x <- seq(log(limits[1]), log(limits[2]), length.out = 100)
     y <- skewNormal(x,
-                    mu = approximation$mu,
-                    sigma = approximation$sigma,
-                    alpha = approximation$alpha
+      mu = approximation$mu,
+      sigma = approximation$sigma,
+      alpha = approximation$alpha
     )
   } else if (type == "adaptive grid") {
     x <- approximation$point
@@ -131,7 +131,8 @@ getLikelihoodCoordinates <- function(approximation, limits, verbose = TRUE) {
   } else if (type == "grid with gradients") {
     x <- seq(log(limits[1]), log(limits[2]), length.out = 100)
     y <- hermiteInterpolation(x,
-                              profile = approximation)
+      profile = approximation
+    )
   } else {
     abort(sprintf("Approximation type '%s' not supported by this function", type))
   }
@@ -297,8 +298,8 @@ plotPerDbMcmcTrace <- function(estimate, showEstimate = TRUE, dataCutoff = 0.01,
     plot <- plot +
       ggplot2::geom_hline(ggplot2::aes(yintercept = .data$trace), data = mode) +
       ggplot2::geom_hline(ggplot2::aes(yintercept = .data$trace),
-                          data = ci,
-                          linetype = "dashed"
+        data = ci,
+        linetype = "dashed"
       )
   }
   if (!is.null(fileName)) {
@@ -379,8 +380,8 @@ plotPosterior <- function(estimate, showEstimate = TRUE, dataCutoff = 0.01, file
     plot <- plot +
       ggplot2::geom_vline(ggplot2::aes(xintercept = .data$trace), data = mode) +
       ggplot2::geom_vline(ggplot2::aes(xintercept = .data$trace),
-                          data = ci,
-                          linetype = "dashed"
+        data = ci,
+        linetype = "dashed"
       )
   }
   if (!is.null(fileName)) {
