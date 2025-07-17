@@ -1,123 +1,56 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>/404.html</loc>
-  </url>
-  <url>
-    <loc>/articles/BayesianBiasCorrection.html</loc>
-  </url>
-  <url>
-    <loc>/articles/index.html</loc>
-  </url>
-  <url>
-    <loc>/articles/NonNormalEffectSynthesis.html</loc>
-  </url>
-  <url>
-    <loc>/articles/NonNormalMetaAnalyis.html</loc>
-  </url>
-  <url>
-    <loc>/articles/VideoVignette.html</loc>
-  </url>
-  <url>
-    <loc>/authors.html</loc>
-  </url>
-  <url>
-    <loc>/index.html</loc>
-  </url>
-  <url>
-    <loc>/news/index.html</loc>
-  </url>
-  <url>
-    <loc>/reference/approximateHierarchicalNormalPosterior.html</loc>
-  </url>
-  <url>
-    <loc>/reference/approximateLikelihood.html</loc>
-  </url>
-  <url>
-    <loc>/reference/approximateSimplePosterior.html</loc>
-  </url>
-  <url>
-    <loc>/reference/biasCorrectionInference.html</loc>
-  </url>
-  <url>
-    <loc>/reference/computeBayesianMetaAnalysis.html</loc>
-  </url>
-  <url>
-    <loc>/reference/computeConfidenceInterval.html</loc>
-  </url>
-  <url>
-    <loc>/reference/computeFixedEffectMetaAnalysis.html</loc>
-  </url>
-  <url>
-    <loc>/reference/createSimulationSettings.html</loc>
-  </url>
-  <url>
-    <loc>/reference/customFunction.html</loc>
-  </url>
-  <url>
-    <loc>/reference/detectApproximationType.html</loc>
-  </url>
-  <url>
-    <loc>/reference/EvidenceSynthesis-package.html</loc>
-  </url>
-  <url>
-    <loc>/reference/fitBiasDistribution.html</loc>
-  </url>
-  <url>
-    <loc>/reference/index.html</loc>
-  </url>
-  <url>
-    <loc>/reference/ncLikelihoods.html</loc>
-  </url>
-  <url>
-    <loc>/reference/ooiLikelihoods.html</loc>
-  </url>
-  <url>
-    <loc>/reference/plotBiasCorrectionInference.html</loc>
-  </url>
-  <url>
-    <loc>/reference/plotBiasDistribution.html</loc>
-  </url>
-  <url>
-    <loc>/reference/plotCovariateBalances.html</loc>
-  </url>
-  <url>
-    <loc>/reference/plotEmpiricalNulls.html</loc>
-  </url>
-  <url>
-    <loc>/reference/plotLikelihoodFit.html</loc>
-  </url>
-  <url>
-    <loc>/reference/plotMcmcTrace.html</loc>
-  </url>
-  <url>
-    <loc>/reference/plotMetaAnalysisForest.html</loc>
-  </url>
-  <url>
-    <loc>/reference/plotPerDbMcmcTrace.html</loc>
-  </url>
-  <url>
-    <loc>/reference/plotPerDbPosterior.html</loc>
-  </url>
-  <url>
-    <loc>/reference/plotPosterior.html</loc>
-  </url>
-  <url>
-    <loc>/reference/plotPreparedPs.html</loc>
-  </url>
-  <url>
-    <loc>/reference/preparePsPlot.html</loc>
-  </url>
-  <url>
-    <loc>/reference/sequentialFitBiasDistribution.html</loc>
-  </url>
-  <url>
-    <loc>/reference/simulatePopulations.html</loc>
-  </url>
-  <url>
-    <loc>/reference/skewNormal.html</loc>
-  </url>
-  <url>
-    <loc>/reference/supportsJava8.html</loc>
-  </url>
+<urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
+<url><loc>/404.html</loc></url>
+<url><loc>/articles/BayesianBiasCorrection.html</loc></url>
+<url><loc>/articles/NonNormalEffectSynthesis.html</loc></url>
+<url><loc>/articles/NonNormalMetaAnalyis.html</loc></url>
+<url><loc>/articles/VideoVignette.html</loc></url>
+<url><loc>/articles/index.html</loc></url>
+<url><loc>/authors.html</loc></url>
+<url><loc>/index.html</loc></url>
+<url><loc>/news/index.html</loc></url>
+<url><loc>/reference/EvidenceSynthesis-package.html</loc></url>
+<url><loc>/reference/approximateHierarchicalNormalPosterior.html</loc></url>
+<url><loc>/reference/approximateLikelihood.html</loc></url>
+<url><loc>/reference/approximateSimplePosterior.html</loc></url>
+<url><loc>/reference/biasCorrectionInference.html</loc></url>
+<url><loc>/reference/buildLabelReferences.html</loc></url>
+<url><loc>/reference/computeBayesianMetaAnalysis.html</loc></url>
+<url><loc>/reference/computeConfidenceInterval.html</loc></url>
+<url><loc>/reference/computeFixedEffectMetaAnalysis.html</loc></url>
+<url><loc>/reference/computeHierarchicalMetaAnalysis.html</loc></url>
+<url><loc>/reference/constructDataModel.html</loc></url>
+<url><loc>/reference/createApproximations.html</loc></url>
+<url><loc>/reference/createSccsSimulationSettings.html</loc></url>
+<url><loc>/reference/createSimulationSettings.html</loc></url>
+<url><loc>/reference/customFunction.html</loc></url>
+<url><loc>/reference/detectApproximationType.html</loc></url>
+<url><loc>/reference/extractSourceSpecificEffects.html</loc></url>
+<url><loc>/reference/fitBiasDistribution.html</loc></url>
+<url><loc>/reference/generateBayesianHMAsettings.html</loc></url>
+<url><loc>/reference/hermiteInterpolation.html</loc></url>
+<url><loc>/reference/hmaLikelihoodList.html</loc></url>
+<url><loc>/reference/index.html</loc></url>
+<url><loc>/reference/likelihoodProfileLists.html</loc></url>
+<url><loc>/reference/ncLikelihoods.html</loc></url>
+<url><loc>/reference/ooiLikelihoods.html</loc></url>
+<url><loc>/reference/plotBiasCorrectionInference.html</loc></url>
+<url><loc>/reference/plotBiasDistribution.html</loc></url>
+<url><loc>/reference/plotCovariateBalances.html</loc></url>
+<url><loc>/reference/plotEmpiricalNulls.html</loc></url>
+<url><loc>/reference/plotLikelihoodFit.html</loc></url>
+<url><loc>/reference/plotMcmcTrace.html</loc></url>
+<url><loc>/reference/plotMetaAnalysisForest.html</loc></url>
+<url><loc>/reference/plotPerDbMcmcTrace.html</loc></url>
+<url><loc>/reference/plotPerDbPosterior.html</loc></url>
+<url><loc>/reference/plotPosterior.html</loc></url>
+<url><loc>/reference/plotPreparedPs.html</loc></url>
+<url><loc>/reference/preparePsPlot.html</loc></url>
+<url><loc>/reference/prepareSccsIntervalData.html</loc></url>
+<url><loc>/reference/sequentialFitBiasDistribution.html</loc></url>
+<url><loc>/reference/simulateMetaAnalysisWithNegativeControls.html</loc></url>
+<url><loc>/reference/simulatePopulations.html</loc></url>
+<url><loc>/reference/skewNormal.html</loc></url>
+<url><loc>/reference/summarizeChain.html</loc></url>
+<url><loc>/reference/supportsJava8.html</loc></url>
 </urlset>
+

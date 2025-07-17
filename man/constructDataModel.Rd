@@ -8,7 +8,7 @@ constructDataModel(data, labelReferences = NULL)
 }
 \arguments{
 \item{data}{The likelihood data. Can be a single approximation, approximations
-from multiple sites, or (adaptive) gride profile likelihoods.}
+from multiple sites, or (adaptive) grid profile likelihoods.}
 
 \item{labelReferences}{Optional parameter that provides a reference list that
 maps string names to integer indices; only applies to

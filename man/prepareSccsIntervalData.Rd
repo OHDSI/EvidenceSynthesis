@@ -11,7 +11,7 @@ prepareSccsIntervalData(sccsIntervalData, covariateId)
 function in the OHDSI \code{SelfControlledCaseSeries} package.}
 
 \item{covariateId}{The ID of the covariate of interest, for which the estimate will be synthesized.
-All other coveriates will be considered nuisance variables.}
+All other covariates will be considered nuisance variables.}
 }
 \value{
 A tibble that can be used in the \code{computeBayesianMetaAnalysis()} function.

@@ -43,7 +43,7 @@ length nSites.}
 
 \item{rateRatio}{The incidence rate ratio.}
 
-\item{randomEffectSd}{Standard deviation of the log(hazardRatio). Fixed effect if equal to 0.}
+\item{randomEffectSd}{Standard deviation of the \code{log(hazardRatio)}. Fixed effect if equal to 0.}
 }
 \value{
 An object of type \code{simulationSccsSettings}, to be used in the \code{\link[=simulatePopulations]{simulatePopulations()}} function.
