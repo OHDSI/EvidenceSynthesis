@@ -22,10 +22,11 @@ jobs:
         config:
           - {os: windows-latest, r: 'release'}
           - {os: macOS-latest, r: 'release'}
-          - {os: ubuntu-20.04, r: 'release', rspm: "https://packagemanager.rstudio.com/cran/__linux__/focal/latest"}
+          - {os: ubuntu-24.04, r: 'release', rspm: "https://packagemanager.rstudio.com/cran/__linux__/noble/latest"}
 
     env:
       GITHUB_PAT: ${{ secrets.GH_TOKEN }}
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
       RSPM: ${{ matrix.config.rspm }}
       CDM5_ORACLE_CDM_SCHEMA: ${{ secrets.CDM5_ORACLE_CDM_SCHEMA }}
@@ -51,6 +52,10 @@ jobs:
       CDM5_SPARK_USER: ${{ secrets.CDM5_SPARK_USER }}
       CDM5_SPARK_PASSWORD: ${{ secrets.CDM5_SPARK_PASSWORD }}
       CDM5_SPARK_CONNECTION_STRING: ${{ secrets.CDM5_SPARK_CONNECTION_STRING }}
+      WEBAPI_TEST_WEBAPI_URL: ${{ secrets.WEBAPI_TEST_WEBAPI_URL }}
+      WEBAPI_TEST_SECURE_WEBAPI_URL: ${{ secrets.WEBAPI_TEST_SECURE_WEBAPI_URL }}
+      WEBAPI_TEST_ADMIN_USER_NAME: ${{ secrets.WEBAPI_TEST_ADMIN_USER_NAME }}
+      WEBAPI_TEST_ADMIN_USER_PASSWORD: ${{ secrets.WEBAPI_TEST_ADMIN_USER_PASSWORD }}
 
     steps:
       - uses: actions/checkout@v3
@@ -71,7 +76,7 @@ jobs:
           while read -r cmd
           do
             eval sudo $cmd
-          done < <(Rscript -e 'writeLines(remotes::system_requirements("ubuntu", "20.04"))')
+          done < <(Rscript -e 'writeLines(remotes::system_requirements("ubuntu", "24.04"))')
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
@@ -81,6 +86,7 @@ jobs:
       - uses: r-lib/actions/check-r-package@v2
         with:
           args: 'c("--no-manual", "--as-cran")'
+          build_args: 'c("--compact-vignettes=both")'
           error-on: '"warning"'
           check-dir: '"check"'
 
