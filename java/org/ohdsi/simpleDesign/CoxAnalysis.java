@@ -60,7 +60,7 @@ public class CoxAnalysis implements Analysis {
         DistributionLikelihood betaPrior = new DistributionLikelihood(new NormalDistribution(betaPriorMean, betaPriorSd));
         betaPrior.addData(beta);
 
-        prior = new CompoundLikelihood(List.of(betaPrior));
+        prior = new CompoundLikelihood(Arrays.asList(betaPrior));
 
         // Build joint
         joint = new CompoundLikelihood(Arrays.asList(likelihood, prior));
