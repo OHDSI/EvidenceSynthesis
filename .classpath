@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/jdk11.0.28_6">
+		<attributes>
+			<attribute name="module" value="true"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="src" path="java"/>
 	<classpathentry kind="lib" path="../BeastJar/inst/java/beast.jar"/>
+	<classpathentry kind="lib" path="java/lib/JRI.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

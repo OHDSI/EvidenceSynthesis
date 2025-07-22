@@ -1,4 +1,4 @@
-# Copyright 2023 Observational Health Data Sciences and Informatics
+# Copyright 2025 Observational Health Data Sciences and Informatics
 #
 # This file is part of EvidenceSynthesis
 #
@@ -19,11 +19,13 @@
 
 #' @importFrom grDevices rgb
 #' @importFrom stats density dnorm qnorm quantile runif coef confint median nlm optim pnorm
-#' printCoefmat qchisq rexp rnorm
+#' printCoefmat qchisq rexp rnorm aggregate as.formula rpois
 #' @importFrom rlang .data abort warn inform
 #' @importFrom methods is
+#' @importFrom utils installed.packages install.packages askYesNo
 #' @import BeastJar
 #' @import survival
+#' @import dplyr
 #'
 NULL
 

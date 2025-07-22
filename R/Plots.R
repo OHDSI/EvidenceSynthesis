@@ -1,4 +1,4 @@
-# Copyright 2023 Observational Health Data Sciences and Informatics
+# Copyright 2025 Observational Health Data Sciences and Informatics
 #
 # This file is part of EvidenceSynthesis
 #
@@ -128,6 +128,11 @@ getLikelihoodCoordinates <- function(approximation, limits, verbose = TRUE) {
   } else if (type == "grid") {
     x <- as.numeric(names(approximation))
     y <- approximation
+  } else if (type == "grid with gradients") {
+    x <- seq(log(limits[1]), log(limits[2]), length.out = 100)
+    y <- hermiteInterpolation(x,
+      profile = approximation
+    )
   } else {
     abort(sprintf("Approximation type '%s' not supported by this function", type))
   }

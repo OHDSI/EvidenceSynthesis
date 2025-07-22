@@ -5,7 +5,8 @@ import org.ohdsi.metaAnalysis.DataModel;
 
 public class CachedModelLikelihood extends AbstractModelLikelihood {
 
-    private final Likelihood likelihood;
+    private static final long serialVersionUID = -1939278798936183598L;
+	private final Likelihood likelihood;
     private final Parameter parameter;
 
     public CachedModelLikelihood(String name, DataModel empiricalDataModel) {
@@ -24,6 +25,7 @@ public class CachedModelLikelihood extends AbstractModelLikelihood {
         throw new RuntimeException("Unknown model");
     }
 
+    @SuppressWarnings("rawtypes")
     @Override
     protected void handleVariableChangedEvent(Variable variable, int i, Variable.ChangeType changeType) {
         if (variable == parameter) {

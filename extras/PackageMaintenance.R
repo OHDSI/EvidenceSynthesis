@@ -1,6 +1,6 @@
 # @file PackageMaintenance
 #
-# Copyright 2023 Observational Health Data Sciences and Informatics
+# Copyright 2025 Observational Health Data Sciences and Informatics
 #
 # This file is part of EvidenceSynthesis
 #
@@ -24,7 +24,7 @@ devtools::spell_check()
 
 # Create manual and vignettes:
 unlink("extras/EvidenceSynthesis.pdf")
-shell("R CMD Rd2pdf ./ --output=extras/EvidenceSynthesis.pdf")
+system("R CMD Rd2pdf ./ --output=extras/EvidenceSynthesis.pdf")
 
 rmarkdown::render("vignettes/NonNormalEffectSynthesis.Rmd",
                   output_file = "../extras/NonNormalEffectSynthesis.pdf",

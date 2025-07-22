@@ -36,7 +36,7 @@ length nSites.}
 
 \item{hazardRatio}{Hazard ratio.}
 
-\item{randomEffectSd}{Standard deviation of the log(hazardRatio). Fixed effect if equal to 0.}
+\item{randomEffectSd}{Standard deviation of the \code{log(hazardRatio)}. Fixed effect if equal to 0.}
 
 \item{siteEffects}{Fixed site effects (if assuming varying site-specific effects). Same effects if 0.}
 }

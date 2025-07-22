@@ -1,4 +1,4 @@
-# Copyright 2023 Observational Health Data Sciences and Informatics
+# Copyright 2025 Observational Health Data Sciences and Informatics
 #
 # This file is part of EvidenceSynthesis
 #
@@ -58,13 +58,25 @@ computeFixedEffectMetaAnalysis <- function(data, alpha = 0.05) {
   type <- detectApproximationType(data)
   data <- cleanApproximations(data)
   if (type == "normal") {
+    if (nrow(data) == 0) {
+      warning("No valid approximation found")
+      return(data.frame(
+        rr = NA,
+        lb = NA,
+        ub = NA,
+        logRr = NA,
+        seLogRr = NA
+      ))
+    }
     m <- meta::metagen(
       TE = data$logRr,
       seTE = data$seLogRr,
       studlab = rep("", nrow(data)),
-      byvar = NULL,
+      subgroup = NULL,
       sm = "RR",
-      level.comb = 1 - alpha
+      level.ma = 1 - alpha,
+      random = FALSE,
+      control = list(maxiter = 1000)
     )
     ffx <- summary(m)$fixed
     estimate <- data.frame(
@@ -108,6 +120,22 @@ computeFixedEffectMetaAnalysis <- function(data, alpha = 0.05) {
       seLogRr = (ci95[3] - ci95[2]) / (2 * qnorm(0.975))
     )
     return(estimate)
+  } else if (type == "pooled sccs") {
+    population <- poolPopulations(data)
+    xColnames <- colnames(population)[grep("x[0-9]+", colnames(population))]
+    formula <- as.formula(paste("y ~ a +", paste0(xColnames, collapse = " + "), " + strata(stratumId) + offset(log(time))"))
+    cyclopsData <- Cyclops::createCyclopsData(formula, data = population, modelType = "cpr")
+    cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
+    mode <- coef(cyclopsFit)["a"]
+    ci95 <- confint(cyclopsFit, parm = "a", level = 0.95)
+    estimate <- data.frame(
+      rr = exp(mode),
+      lb = exp(ci95[2]),
+      ub = exp(ci95[3]),
+      logRr = mode,
+      seLogRr = (ci95[3] - ci95[2]) / (2 * qnorm(0.975))
+    )
+    return(estimate)
   } else if (type == "adaptive grid") {
     estimate <- computeFixedEffectAdaptiveGrid(data, alpha)
     return(estimate)
@@ -120,6 +148,14 @@ computeFixedEffectMetaAnalysis <- function(data, alpha = 0.05) {
     )
     grid <- apply(data, 2, sum)
     estimate <- computeEstimateFromGrid(grid, alpha = alpha)
+    return(estimate)
+  } else if (type == "grid with gradients") {
+    estimate <- computeEstimateFromApproximation(
+      approximationFuntion = combineLogLikelihoodFunctionsList,
+      a = alpha,
+      fits = data,
+      fun = hermiteInterpolation
+    )
     return(estimate)
   } else {
     abort(sprintf("Approximation type '%s' not supported by this function", type))
@@ -174,17 +210,25 @@ combineLogLikelihoodFunctions <- function(x, fits, fun = customFunction) {
   return(ll)
 }
 
+combineLogLikelihoodFunctionsList <- function(x, fits, fun = customFunction) {
+  ll <- sapply(fits, function(fit) fun(x, fit))
+  ll <- sum(ll)
+  return(ll)
+}
+
 computeEstimateFromApproximation <- function(approximationFuntion, a = 0.05, ...) {
   fit <- suppressWarnings(optim(0, function(x) -approximationFuntion(x, ...)))
   logRr <- fit$par
   threshold <- -fit$value - qchisq(1 - a, df = 1) / 2
 
   precision <- 1e-07
+  maxIterations <- 100
 
   # Binary search for upper bound
   L <- logRr
   H <- 10
   ub <- Inf
+  i <- 0
   while (H >= L) {
     M <- L + (H - L) / 2
     llM <- approximationFuntion(M, ...)
@@ -204,12 +248,19 @@ computeEstimateFromApproximation <- function(approximationFuntion, a = 0.05, ...
       warn("Confidence interval upper bound out of range")
       break
     }
+    i <- i + 1
+    if (i > maxIterations) {
+      warn("Reached max iterations when searching for upper bound. Only approximately correct")
+      ub <- H
+      break
+    }
   }
 
   # Binary search for lower bound
   L <- -10
   H <- logRr
   lb <- -Inf
+  i <- 0
   while (H >= L) {
     M <- L + (H - L) / 2
     llM <- approximationFuntion(M, ...)
@@ -227,6 +278,12 @@ computeEstimateFromApproximation <- function(approximationFuntion, a = 0.05, ...
       break
     } else if (M == -10) {
       warn("Confidence interval lower bound out of range")
+      break
+    }
+    i <- i + 1
+    if (i > maxIterations) {
+      warn("Reached max iterations when searching for lower bound. Only approximately correct")
+      lb <- L
       break
     }
   }

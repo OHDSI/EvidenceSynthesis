@@ -1,4 +1,4 @@
-# Copyright 2023 Observational Health Data Sciences and Informatics
+# Copyright 2025 Observational Health Data Sciences and Informatics
 #
 # This file is part of EvidenceSynthesis
 #
@@ -84,7 +84,7 @@
 #' data("hmaLikelihoodList")
 #' hmaLikEx <- hmaLikelihoodList[[1]]
 #' \donttest{
-#' plot(as.numeric(hmaLikEx[2,]) ~ as.numeric(names(hmaLikEx)))
+#' plot(as.numeric(hmaLikEx[2, ]) ~ as.numeric(names(hmaLikEx)))
 #' }
 "hmaLikelihoodList"
 

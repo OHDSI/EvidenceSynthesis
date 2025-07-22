@@ -6,25 +6,6 @@ library(testthat)
 library(EvidenceSynthesis)
 library(survival)
 
-createApproximations <- function(populations, approximation) {
-  fitModelInDatabase <- function(population, approximation) {
-    cyclopsData <- Cyclops::createCyclopsData(Surv(time, y) ~ x + strata(stratumId),
-      data = population,
-      modelType = "cox"
-    )
-    cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData,
-      fixedCoefficients = c(approximation != "normal")
-    )
-    approximation <- approximateLikelihood(cyclopsFit, "x", approximation = approximation)
-    return(approximation)
-  }
-  data <- lapply(populations, fitModelInDatabase, approximation = approximation)
-  if (approximation != "adaptive grid") {
-    data <- do.call("rbind", data)
-  }
-  return(data)
-}
-
 if (recomputeGoldStandard) {
   set.seed(1)
   populations <- simulatePopulations(settings = createSimulationSettings(
@@ -39,10 +20,29 @@ if (recomputeGoldStandard) {
   saveRDS(populations, "resources/populations.rds")
   saveRDS(pooledFixedFxEstimate, "resources/pooledFixedFxEstimate.rds")
   saveRDS(pooledRandomFxEstimate, "resources/pooledRandomFxEstimate.rds")
+
+  sccsPopulations <- simulatePopulations(settings = createSccsSimulationSettings(
+    nSites = 10,
+    n = 2500,
+    atRiskTimeFraction = 0.25,
+    timePartitions = 10,
+    timeCovariates = 5,
+    timeEffectSize = log(2),
+    rateRatio = 2,
+    randomEffectSd = 0.5
+  ))
+  sccsPooledFixedFxEstimate <- computeFixedEffectMetaAnalysis(sccsPopulations)
+  sccsPooledRandomFxEstimate <- computeBayesianMetaAnalysis(sccsPopulations)
+  saveRDS(sccsPopulations, "resources/sccsPopulations.rds")
+  saveRDS(sccsPooledFixedFxEstimate, "resources/sccsPooledFixedFxEstimate.rds")
+  saveRDS(sccsPooledRandomFxEstimate, "resources/sccsPooledRandomFxEstimate.rds")
 } else {
   populations <- readRDS("resources/populations.rds")
   pooledFixedFxEstimate <- readRDS("resources/pooledFixedFxEstimate.rds")
   pooledRandomFxEstimate <- readRDS("resources/pooledRandomFxEstimate.rds")
+  sccsPopulations <- readRDS("resources/sccsPopulations.rds")
+  sccsPooledFixedFxEstimate <- readRDS("resources/sccsPooledFixedFxEstimate.rds")
+  sccsPooledRandomFxEstimate <- readRDS("resources/sccsPooledRandomFxEstimate.rds")
 }
 
 # seed <- round(runif(1, 0, 1e10))
@@ -212,6 +212,117 @@ test_that("Skew-normal approximation: pooled matches random-effects meta-analysi
   expect_equal(estimate[, c("mu95Lb", "mu95Ub", "muSe", "tau95Lb", "tau95Ub", "seLogRr")],
     pooledRandomFxEstimate[, c("mu95Lb", "mu95Ub", "muSe", "tau95Lb", "tau95Ub", "seLogRr")],
     tolerance = 1.00,
+    scale = 1,
+    check.attributes = FALSE
+  )
+})
+
+
+# Grid with gradients approximation
+data <- createApproximations(populations, "grid with gradients")
+
+test_that("Grid with gradients approximation: pooled matches fixed-effects meta-analysis", {
+  estimate <- computeFixedEffectMetaAnalysis(data)
+  expect_equal(estimate[, c("rr", "logRr")],
+    pooledFixedFxEstimate[, c("rr", "logRr")],
+    tolerance = 0.15,
+    scale = 1,
+    check.attributes = FALSE
+  )
+  expect_equal(estimate[, c("lb", "ub", "seLogRr")],
+    pooledFixedFxEstimate[, c("lb", "ub", "seLogRr")],
+    tolerance = 0.50,
+    scale = 1,
+    check.attributes = FALSE
+  )
+})
+
+test_that("Grid with gradients approximation: pooled matches random-effects meta-analysis", {
+  skip_if_not(supportsJava8())
+  estimate <- computeBayesianMetaAnalysis(data, seed = seed)
+  expect_equal(estimate[, c("mu", "tau", "logRr")],
+    pooledRandomFxEstimate[, c("mu", "tau", "logRr")],
+    tolerance = 0.15,
+    scale = 1,
+    check.attributes = FALSE
+  )
+  expect_equal(estimate[, c("mu95Lb", "mu95Ub", "muSe", "tau95Lb", "tau95Ub", "seLogRr")],
+    pooledRandomFxEstimate[, c("mu95Lb", "mu95Ub", "muSe", "tau95Lb", "tau95Ub", "seLogRr")],
+    tolerance = 0.50,
+    scale = 1,
+    check.attributes = FALSE
+  )
+})
+
+
+# SCCS Adaptive grid approximation
+data <- createApproximations(sccsPopulations, "adaptive grid")
+
+test_that("SCCS adaptive grid approximation: pooled matches fixed-effects meta-analysis", {
+  estimate <- computeFixedEffectMetaAnalysis(data)
+  expect_equal(estimate[, c("rr", "logRr")],
+    sccsPooledFixedFxEstimate[, c("rr", "logRr")],
+    tolerance = 0.15,
+    scale = 1,
+    check.attributes = FALSE
+  )
+  expect_equal(estimate[, c("lb", "ub", "seLogRr")],
+    sccsPooledFixedFxEstimate[, c("lb", "ub", "seLogRr")],
+    tolerance = 0.50,
+    scale = 1,
+    check.attributes = FALSE
+  )
+})
+
+test_that("SCCS adaptive grid approximation: pooled matches random-effects meta-analysis", {
+  skip_if_not(supportsJava8())
+  estimate <- computeBayesianMetaAnalysis(data, seed = seed)
+  expect_equal(estimate[, c("mu", "tau", "logRr")],
+    sccsPooledRandomFxEstimate[, c("mu", "tau", "logRr")],
+    tolerance = 0.10,
+    scale = 1,
+    check.attributes = FALSE
+  )
+  expect_equal(estimate[, c("mu95Lb", "mu95Ub", "muSe", "tau95Lb", "tau95Ub", "seLogRr")],
+    sccsPooledRandomFxEstimate[, c("mu95Lb", "mu95Ub", "muSe", "tau95Lb", "tau95Ub", "seLogRr")],
+    tolerance = 0.50,
+    scale = 1,
+    check.attributes = FALSE
+  )
+})
+
+
+# SCCS grid with gradients approximation
+data <- createApproximations(sccsPopulations, "grid with gradients")
+
+test_that("SCCS adaptive grid approximation: pooled matches fixed-effects meta-analysis", {
+  estimate <- computeFixedEffectMetaAnalysis(data)
+  expect_equal(estimate[, c("rr", "logRr")],
+    sccsPooledFixedFxEstimate[, c("rr", "logRr")],
+    tolerance = 0.15,
+    scale = 1,
+    check.attributes = FALSE
+  )
+  expect_equal(estimate[, c("lb", "ub", "seLogRr")],
+    sccsPooledFixedFxEstimate[, c("lb", "ub", "seLogRr")],
+    tolerance = 0.50,
+    scale = 1,
+    check.attributes = FALSE
+  )
+})
+
+test_that("SCCS adaptive grid approximation: pooled matches random-effects meta-analysis", {
+  skip_if_not(supportsJava8())
+  estimate <- computeBayesianMetaAnalysis(data, seed = seed)
+  expect_equal(estimate[, c("mu", "tau", "logRr")],
+    sccsPooledRandomFxEstimate[, c("mu", "tau", "logRr")],
+    tolerance = 0.10,
+    scale = 1,
+    check.attributes = FALSE
+  )
+  expect_equal(estimate[, c("mu95Lb", "mu95Ub", "muSe", "tau95Lb", "tau95Ub", "seLogRr")],
+    sccsPooledRandomFxEstimate[, c("mu95Lb", "mu95Ub", "muSe", "tau95Lb", "tau95Ub", "seLogRr")],
+    tolerance = 0.50,
     scale = 1,
     check.attributes = FALSE
   )

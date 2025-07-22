@@ -22,7 +22,7 @@ where each row provides profile likelihood values (over a grid) from one data so
 data("hmaLikelihoodList")
 hmaLikEx <- hmaLikelihoodList[[1]]
 \donttest{
-plot(as.numeric(hmaLikEx[2,]) ~ as.numeric(names(hmaLikEx)))
+plot(as.numeric(hmaLikEx[2, ]) ~ as.numeric(names(hmaLikEx)))
 }
 }
 \keyword{datasets}

@@ -8,13 +8,13 @@ buildLabelReferences(data)
 }
 \arguments{
 \item{data}{The likelihood data. Can be a single approximation, approximations
-from multiple sites, or (adaptive) gride profile likelihoods.}
+from multiple sites, or (adaptive) grid profile likelihoods.}
 }
 \description{
 Build a list of references that map likelihood names to integer labels for later use
 }
 \examples{
 data("likelihoodProfileLists")
-refLabs = buildLabelReferences(likelihoodProfileLists)
+refLabs <- buildLabelReferences(likelihoodProfileLists)
 
 }

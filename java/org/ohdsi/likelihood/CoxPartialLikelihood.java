@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2023 Observational Health Data Sciences and Informatics
+ * Copyright 2025 Observational Health Data Sciences and Informatics
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,21 @@
  ******************************************************************************/
 package org.ohdsi.likelihood;
 
-import dr.inference.model.*;
-
 import org.apache.commons.math.util.FastMath;
 import org.ohdsi.data.SortedCoxData;
+
+import dr.inference.model.AbstractModelLikelihood;
+import dr.inference.model.Likelihood;
+import dr.inference.model.Model;
+import dr.inference.model.Parameter;
+import dr.inference.model.Variable;
 
 /**
  * @author Marc A. Suchard
  */
 public class CoxPartialLikelihood extends AbstractModelLikelihood {
 
+	private static final long serialVersionUID = 5671381056989317642L;
 	private final Parameter beta;
 	private final SortedCoxData data;
 	private final int N;
@@ -84,6 +89,7 @@ public class CoxPartialLikelihood extends AbstractModelLikelihood {
 	@Override
 	protected void handleModelChangedEvent(Model model, Object o, int i) { }
 
+	@SuppressWarnings("rawtypes")
 	@Override
 	protected void handleVariableChangedEvent(Variable variable, int i, Variable.ChangeType changeType) {
 		if (variable == beta) {

@@ -1,4 +1,4 @@
-# Copyright 2023 Observational Health Data Sciences and Informatics
+# Copyright 2025 Observational Health Data Sciences and Informatics
 #
 # This file is part of EvidenceSynthesis
 #
@@ -25,7 +25,7 @@
 #' @param cyclopsFit      A model fitted using the [Cyclops::fitCyclopsModel()] function.
 #' @param parameter       The parameter in the `cyclopsFit` object to profile.
 #' @param approximation   The type of approximation. Valid options are `'normal'`, `'skew normal'`,
-#'                        `'custom'`, `'grid'`, or `'adaptive grid'`.
+#'                        `'custom'`, `'grid'`, `'adaptive grid'`, or `'grid with gradients'`.
 #' @param bounds          The bounds on the effect size used to fit the approximation.
 #'
 #' @seealso
@@ -53,20 +53,23 @@ approximateLikelihood <- function(cyclopsFit,
                                   parameter = 1,
                                   approximation = "custom",
                                   bounds = c(log(0.1), log(10))) {
-  if (!approximation %in% c("normal", "skew normal", "custom", "grid", "adaptive grid")) {
-    stop("'approximation' argument should be 'normal', 'skew normal', 'custom', 'grid', or 'adaptive grid'.")
+  if (!approximation %in% c("normal", "skew normal", "custom", "grid", "adaptive grid", "grid with gradients")) {
+    stop("'approximation' argument should be 'normal', 'skew normal', 'custom', 'grid', 'adaptive grid', or 'grid with gradients'.")
   }
   if (!is(cyclopsFit, "cyclopsFit")) {
     stop("'cyclopsFit' argument should be of type 'cyclopsFit'")
   }
 
-  if (approximation == "grid") {
+  if (approximation == "grid with gradients") {
+    profile <- getGridWithGradients(cyclopsFit, parameter, bounds)
+    return(profile)
+  } else if (approximation == "grid") {
     x <- seq(bounds[1], bounds[2], length.out = 1000)
     result <- getLikelihoodProfile(cyclopsFit, parameter, x)
     names(result) <- x
     return(result)
   } else if (approximation == "adaptive grid") {
-    result <- Cyclops::getCyclopsProfileLogLikelihood(cyclopsFit, parameter, bounds = bounds)
+    result <- Cyclops::getCyclopsProfileLogLikelihood(cyclopsFit, parameter, bounds = bounds, tolerance = 0.001)
     return(result)
   } else if (approximation == "normal") {
     if (cyclopsFit$return_flag != "SUCCESS") {
@@ -76,10 +79,10 @@ approximateLikelihood <- function(cyclopsFit,
       ci95 <- confint(cyclopsFit, parameter, level = 0.95)
       return(data.frame(
         rr = exp(mode),
-        ci95Lb = exp(ci95[2]),
-        ci95Ub = exp(ci95[3]),
+        ci95Lb = exp(as.numeric(ci95[2])),
+        ci95Ub = exp(as.numeric(ci95[3])),
         logRr = mode,
-        seLogRr = (ci95[3] - ci95[2]) / (2 * qnorm(0.975))
+        seLogRr = (as.numeric(ci95[3]) - as.numeric(ci95[2])) / (2 * qnorm(0.975))
       ))
     }
   } else {
@@ -96,6 +99,58 @@ approximateLikelihood <- function(cyclopsFit,
     }
     return(result)
   }
+}
+
+getGridWithGradients <- function(cyclopsFit, parameter, bounds) {
+  # Should probably move this code to Cyclops at some point:
+  mleProfile <- data.frame()
+  if (cyclopsFit$return_flag == "SUCCESS") {
+    mle <- coef(cyclopsFit)[parameter]
+    if (mle > bounds[1] && mle < bounds[2] && mle != 0) {
+      # There appears to be a MLE, so save that. Note: if the model was fitted
+      # with the parameter fixed the coefficient may not actually be the MLE.
+      mleProfile <- Cyclops::getCyclopsProfileLogLikelihood(
+        object = cyclopsFit,
+        parm = parameter,
+        x = mle,
+        returnDerivatives = TRUE
+      )
+    }
+  }
+  x <- seq(bounds[1], bounds[2], length.out = 8)
+  profile <- Cyclops::getCyclopsProfileLogLikelihood(
+    object = cyclopsFit,
+    parm = parameter,
+    x = x,
+    returnDerivatives = TRUE
+  )
+  profile <- bind_rows(mleProfile, profile) |>
+    arrange(.data$point)
+  invalid <- is.nan(profile$value) |
+    is.infinite(profile$value) |
+    is.nan(profile$derivative) |
+    is.infinite(profile$derivative)
+  if (any(invalid)) {
+    if (all(invalid)) {
+      warning("Failing to compute likelihood at entire grid.")
+      return(NULL)
+    }
+
+    start <- min(which(!invalid))
+    end <- max(which(!invalid))
+    if (start == end) {
+      warning("Failing to compute likelihood at entire grid except one. Giving up")
+      return(NULL)
+    }
+    profile <- profile[start:end, ]
+    invalid <- invalid[start:end]
+    if (any(invalid)) {
+      warning("Failing to compute likelihood in non-extreme regions. Giving up.")
+      return(NULL)
+    }
+    warning("Failing to compute likelihood at extremes. Truncating bounds.")
+  }
+  return(profile)
 }
 
 #' A custom function to approximate a log likelihood function
@@ -150,6 +205,63 @@ skewNormal <- function(x, mu, sigma, alpha) {
   return(log(2) + dnorm(x, mu, sigma, log = TRUE) + pnorm(alpha * (x - mu), 0, sigma, log.p = TRUE))
 }
 
+
+#' Cubic Hermite interpolation using both values and gradients to approximate a log likelihood function
+#'
+#' @param x       The log(hazard ratio) for which to approximate the log likelihood.
+#' @param profile A profile as created with `approximateLikelihood()` with
+#'                `approximation = "grid with gradients"`. This is a data frame
+#'                with 3 columns: `point`, `value`, and `derivative`, sorted by
+#'                `point`.
+#'
+#' @details
+#' Performs spline interpolation using cubic Hermite polynomials (Catmull et al.  1974)
+#' between the points specified in the profile. We use linear extrapolation
+#' outside the points.
+#'
+#' @examples
+#' profile <- data.frame(point = c(1.1, 2.1), value = c(1, 1), derivative = c(0.1, -0.1))
+#' hermiteInterpolation(x = 0:3, profile = profile)
+#'
+#' @return
+#' The approximate log likelihood for the given x.
+#'
+#' @references
+#' Catmull, Edwin; Rom, Raphael (1974), "A class of local interpolating splines",
+#' in Barnhill, R. E.; Riesenfeld, R. F. (eds.), Computer Aided Geometric Design,
+#' New York: Academic Press, pp. 317–326
+#'
+#' @export
+hermiteInterpolation <- function(x, profile) {
+  n <- length(profile$point)
+  result <- numeric(length(x))
+
+  # Hermite interpolation for points within the range of profile$point:
+  for (i in seq_len(n - 1)) {
+    t <- (x - profile$point[i]) / (profile$point[i + 1] - profile$point[i])
+    h00 <- 2 * t^3 - 3 * t^2 + 1
+    h10 <- t^3 - 2 * t^2 + t
+    h01 <- -2 * t^3 + 3 * t^2
+    h11 <- t^3 - t^2
+
+    idx <- which(x >= profile$point[i] & x <= profile$point[i + 1])
+    result[idx] <- h00[idx] * profile$value[i] +
+      h10[idx] * (profile$point[i + 1] - profile$point[i]) * profile$derivative[i] +
+      h01[idx] * profile$value[i + 1] +
+      h11[idx] * (profile$point[i + 1] - profile$point[i]) * profile$derivative[i + 1]
+  }
+
+  # Extrapolate to the left (linear):
+  leftIdx <- which(x < profile$point[1])
+  result[leftIdx] <- profile$value[1] + (x[leftIdx] - profile$point[1]) * profile$derivative[1]
+
+  # Extrapolate to the right (linear):
+  rightIdx <- which(x > profile$point[n])
+  result[rightIdx] <- profile$value[n] + (x[rightIdx] - profile$point[n]) * profile$derivative[n]
+
+  return(result)
+}
+
 fitLogLikelihoodFunction <- function(beta, ll, weighByLikelihood = TRUE, fun = customFunction) {
   sumSquares <- function(p, maxAnchor = TRUE, idx = NULL) {
     approxLl <- fun(beta, p[1], p[2], p[3])
@@ -165,9 +277,12 @@ fitLogLikelihoodFunction <- function(beta, ll, weighByLikelihood = TRUE, fun = c
     }
     return(result)
   }
-
-  beta <- beta[!is.nan(ll)]
-  ll <- ll[!is.nan(ll)]
+  idx <- !is.nan(ll)
+  if (!any(idx)) {
+    return(data.frame(mu = as.numeric(NA), sigma = as.numeric(NA), gamma = as.numeric(NA)))
+  }
+  beta <- beta[idx]
+  ll <- ll[idx]
 
   # Scale to standard (translate in log space so max at 0):
   ll <- ll - max(ll)
@@ -310,6 +425,13 @@ computeConfidenceInterval <- function(approximation, alpha = 0.05) {
   } else if (type == "grid") {
     estimate <- computeEstimateFromGrid(approximation, alpha = alpha)
     return(estimate)
+  } else if (type == "grid with gradients") {
+    estimate <- computeEstimateFromApproximation(
+      approximationFuntion = hermiteInterpolation,
+      a = alpha,
+      profile = approximation
+    )
+    return(estimate)
   } else {
     abort(sprintf("Approximation type '%s' not supported by this function", type))
   }
@@ -352,10 +474,22 @@ detectApproximationType <- function(data, verbose = TRUE) {
     }
     return("skew normal")
   } else if ("stratumId" %in% columnNames) {
-    if (verbose) {
-      inform("Detected (pooled) patient-level data")
+    if (any(grepl("^x[0-9]+$", columnNames))) {
+      if (verbose) {
+        inform("Detected (pooled) patient-level SCCS data")
+      }
+      return("pooled sccs")
+    } else {
+      if (verbose) {
+        inform("Detected (pooled) patient-level data")
+      }
+      return("pooled")
     }
-    return("pooled")
+  } else if ("derivative" %in% columnNames) {
+    if (verbose) {
+      inform("Detected data following grid with gradients distribution")
+    }
+    return("grid with gradients")
   } else if ("point" %in% columnNames) {
     if (verbose) {
       inform("Detected data following adaptive grid distribution")
@@ -393,6 +527,17 @@ cleanApproximations <- function(data) {
         c("point", "value"),
         minValues = c(-100, -1e6),
         maxValues = c(100, 0)
+      )
+      data[[i]] <- cleanedData
+    }
+  } else if (type == "grid with gradients") {
+    for (i in 1:length(data)) {
+      cleanedData <- as.data.frame(data[[i]])
+      cleanedData$value <- cleanedData$value - max(cleanedData$value)
+      cleanedData <- cleanData(cleanedData,
+        c("point", "value", "derivative"),
+        minValues = c(-100, -1e6, -1e6),
+        maxValues = c(100, 0, 1e6)
       )
       data[[i]] <- cleanedData
     }
@@ -484,22 +629,22 @@ cleanData <- function(data,
 #' Construct `DataModel` objects from approximate likelihood or profile likelihood data
 #'
 #' @param data             The likelihood data. Can be a single approximation, approximations
-#'                         from multiple sites, or (adaptive) gride profile likelihoods.
+#'                         from multiple sites, or (adaptive) grid profile likelihoods.
 #' @param labelReferences  Optional parameter that provides a reference list that
 #'                         maps string names to integer indices; only applies to
 #'                         "grid" or "adaptive grip" type of data.
 #'
 #' @examples
 #' data("likelihoodProfileLists")
-#' dataModel = constructDataModel(likelihoodProfileLists[[1]])
+#' dataModel <- constructDataModel(likelihoodProfileLists[[1]])
 #'
 #' @export
-constructDataModel <- function(data, labelReferences = NULL){
+constructDataModel <- function(data, labelReferences = NULL) {
   type <- detectApproximationType(data)
   data <- cleanApproximations(data)
   if (type == "normal") {
     if (nrow(data) == 0) {
-      return(createNaEstimate(type))
+      return(NULL)
     }
     dataModel <- rJava::.jnew("org.ohdsi.metaAnalysis.NormalDataModel")
     for (i in 1:nrow(data)) {
@@ -511,7 +656,7 @@ constructDataModel <- function(data, labelReferences = NULL){
     dataModel$finish()
   } else if (type == "custom") {
     if (nrow(data) == 0) {
-      return(createNaEstimate(type))
+      return(NULL)
     }
     dataModel <- rJava::.jnew("org.ohdsi.metaAnalysis.ParametricDataModel")
     for (i in 1:nrow(data)) {
@@ -523,7 +668,7 @@ constructDataModel <- function(data, labelReferences = NULL){
     dataModel$finish()
   } else if (type == "skew normal") {
     if (nrow(data) == 0) {
-      return(createNaEstimate(type))
+      return(NULL)
     }
     dataModel <- rJava::.jnew("org.ohdsi.metaAnalysis.SkewNormalDataModel")
     for (i in 1:nrow(data)) {
@@ -544,46 +689,61 @@ constructDataModel <- function(data, labelReferences = NULL){
       )
     }
     dataModel$finish()
+  } else if (type == "pooled sccs") {
+    dataModel <- rJava::.jnew("org.ohdsi.metaAnalysis.SccsDataModel")
+    for (i in 1:length(data)) {
+      x <- data[[i]] %>%
+        select(matches("^x[0-9]+$")) %>%
+        apply(2, as.numeric)
+      dataModel$addLikelihoodData(
+        as.integer(data[[i]]$y),
+        as.double(data[[i]]$a),
+        rJava::.jarray(x, dispatch = TRUE),
+        as.integer(data[[i]]$stratumId),
+        as.double(data[[i]]$time)
+      )
+    }
+    dataModel$finish()
   } else if (type == "adaptive grid") {
     dataModel <- rJava::.jnew("org.ohdsi.metaAnalysis.ExtendingEmpiricalDataModel")
     for (i in 1:length(data)) {
-      cleanedData <- as.data.frame(data[[i]])
-      cleanedData$value <- cleanedData$value - max(cleanedData$value)
-      cleanedData <- cleanData(cleanedData,
-                               c("point", "value"),
-                               minValues = c(-100, -1e6),
-                               maxValues = c(100, 0)
-      )
-      if(!is.null(labelReferences) && !is.null(names(data))){
-        id = labelReferences[[names(data)[i]]]
-        cat(sprintf("ata source %s, with label %s ...\n",
-                    names(data)[i], id))
-      }else{
-        id = i
+      if (!is.null(labelReferences) && !is.null(names(data))) {
+        id <- labelReferences[[names(data)[i]]]
+        cat(sprintf(
+          "Data source %s, with label %s ...\n",
+          names(data)[i], id
+        ))
+      } else {
+        id <- i
       }
-      dataModel$addLikelihoodParameters(cleanedData$point, cleanedData$value, id) # specify identifier
+      dataModel$addLikelihoodParameters(data[[i]]$point, data[[i]]$value, id) # specify identifier
     }
     dataModel$finish()
   } else if (type == "grid") {
     if (nrow(data) == 0) {
-      return(createNaEstimate(type))
+      return(NULL)
     }
     x <- as.numeric(colnames(data))
     data <- as.matrix(data)
     dataModel <- rJava::.jnew("org.ohdsi.metaAnalysis.ExtendingEmpiricalDataModel")
     for (i in 1:nrow(data)) {
-      if(!is.null(labelReferences) && !is.null(row.names(data))){
-        id = labelReferences[[row.names(data)[i]]]
-      }else{
-        id = i
+      if (!is.null(labelReferences) && !is.null(row.names(data))) {
+        id <- labelReferences[[row.names(data)[i]]]
+      } else {
+        id <- i
       }
       dataModel$addLikelihoodParameters(x, data[i, ], id) # specify identifier
+    }
+    dataModel$finish()
+  } else if (type == "grid with gradients") {
+    dataModel <- rJava::.jnew("org.ohdsi.metaAnalysis.GridWithGradientsDataModel")
+    for (i in 1:length(data)) {
+      dataModel$addLikelihoodData(data[[i]]$point, data[[i]]$value, data[[i]]$derivative)
     }
     dataModel$finish()
   } else {
     abort(sprintf("Approximation type '%s' not supported by this function", type))
   }
-
   return(dataModel)
 }
 
@@ -591,41 +751,67 @@ constructDataModel <- function(data, labelReferences = NULL){
 #' Build a list of references that map likelihood names to integer labels for later use
 #'
 #' @param data             The likelihood data. Can be a single approximation, approximations
-#'                         from multiple sites, or (adaptive) gride profile likelihoods.
+#'                         from multiple sites, or (adaptive) grid profile likelihoods.
 #'
 #' @examples
 #' data("likelihoodProfileLists")
-#' refLabs = buildLabelReferences(likelihoodProfileLists)
+#' refLabs <- buildLabelReferences(likelihoodProfileLists)
 #'
 #' @export
-buildLabelReferences <- function(data){
+buildLabelReferences <- function(data) {
   type <- detectApproximationType(data[[1]])
-  if(type == "grid" || type == "adaptive grid"){
-
-    labelRefs = list()
-    counter = 1
-    for(i in 1:length(data)){
-      if(type == "grid"){
-        thisLabels = row.names(data[[i]])
-      }else{
-        thisLabels = names(data[[i]])
+  if (type == "grid" || type == "adaptive grid") {
+    labelRefs <- list()
+    counter <- 1
+    for (i in 1:length(data)) {
+      if (type == "grid") {
+        thisLabels <- row.names(data[[i]])
+      } else {
+        thisLabels <- names(data[[i]])
       }
       # if(i == 1 && is.null(thisLabels)){
       #   return(NULL)
       # }
-      for(l in thisLabels){
-        if(!l %in% names(labelRefs)){
-          labelRefs[[l]] = counter
-          counter = counter + 1
+      for (l in thisLabels) {
+        if (!l %in% names(labelRefs)) {
+          labelRefs[[l]] <- counter
+          counter <- counter + 1
         }
       }
     }
 
-    if(length(labelRefs) == 0) {labelRefs = NULL}
-
-  }else{
-    labelRefs = NULL
+    if (length(labelRefs) == 0) {
+      labelRefs <- NULL
+    }
+  } else {
+    labelRefs <- NULL
   }
 
   return(labelRefs)
+}
+
+#' Prepare SCCS interval data for pooled analysis
+#'
+#' @param sccsIntervalData An object of type `SccsIntervalData` as created using the `createSccsIntervalData`
+#'                         function in the OHDSI `SelfControlledCaseSeries` package.
+#' @param covariateId      The ID of the covariate of interest, for which the estimate will be synthesized.
+#'                         All other covariates will be considered nuisance variables.
+#'
+#' @return
+#' A tibble that can be used in the `computeBayesianMetaAnalysis()` function.
+#'
+#' @export
+prepareSccsIntervalData <- function(sccsIntervalData, covariateId) {
+  ensureInstalled("tidyr")
+  covariates <- tidyr::pivot_wider(collect(sccsIntervalData$covariates),
+    names_from = "covariateId",
+    names_prefix = "x",
+    values_from = "covariateValue",
+    values_fill = 0
+  )
+  data <- covariates %>%
+    rename(a = paste0("x", covariateId)) %>%
+    inner_join(collect(sccsIntervalData$outcomes), by = join_by("rowId", "stratumId")) %>%
+    select(-"rowId")
+  return(data)
 }

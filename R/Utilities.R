@@ -1,4 +1,4 @@
-# Copyright 2023 Observational Health Data Sciences and Informatics
+# Copyright 2025 Observational Health Data Sciences and Informatics
 #
 # This file is part of EvidenceSynthesis
 #
@@ -58,4 +58,18 @@ isRmdCheck <- function() {
 
 isUnitTest <- function() {
   return(tolower(Sys.getenv("TESTTHAT", "")) == "true")
+}
+
+ensureInstalled <- function(pkgs) {
+  notInstalled <- pkgs[!(pkgs %in% rownames(utils::installed.packages()))]
+
+  if (interactive() & length(notInstalled) > 0) {
+    message("Package(s): ", paste(notInstalled, collapse = ", "), " not installed")
+    if (!isTRUE(utils::askYesNo("Would you like to install them?"))) {
+      stop("Required package(s) not installed")
+    }
+  }
+  for (package in notInstalled) {
+    utils::install.packages(package)
+  }
 }

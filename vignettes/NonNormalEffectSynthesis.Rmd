@@ -217,4 +217,4 @@ plotMetaAnalysisForest(
 )
 ```
 
-The plot also shows the (appriximated) partial likelihood curves of each site and the posterior distribution of the meta-analysis.
+The plot also shows the (approximated) partial likelihood curves of each site and the posterior distribution of the meta-analysis.

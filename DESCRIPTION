@@ -1,8 +1,8 @@
 Package: EvidenceSynthesis
 Type: Package
 Title: Synthesizing Causal Evidence in a Distributed Research Network
-Version: 0.6.1
-Date: 2023-09-15
+Version: 1.0.0
+Date: 2025-07-17
 Authors@R: c(
   person("Martijn", "Schuemie", email = "schuemie@ohdsi.org", role = c("aut", "cre")),
   person("Marc A.", "Suchard", , "msuchard@ucla.edu", role = c("aut")),
@@ -25,7 +25,7 @@ Imports:
   EmpiricalCalibration,
   rJava,
   BeastJar,
-  Cyclops (>= 3.4.1),
+  Cyclops (>= 3.6.0),
   HDInterval,
   coda,
   rlang,
@@ -34,7 +34,11 @@ Suggests:
   knitr,
   rmarkdown,
   testthat,
-  sn
+  sn,
+  tidyr
+Remotes:
+  ohdsi/Cyclops@develop
+  beast-dev/BeastJar
 License: Apache License 2.0
 URL: https://ohdsi.github.io/EvidenceSynthesis/, https://github.com/OHDSI/EvidenceSynthesis
 BugReports: https://github.com/OHDSI/EvidenceSynthesis/issues
@@ -43,4 +47,3 @@ RoxygenNote: 7.3.2
 Roxygen: list(markdown = TRUE)
 Encoding: UTF-8
 LazyData: true
-Remotes: beast-dev/BeastJar

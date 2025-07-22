@@ -1,19 +1,18 @@
-EvidenceSynthesis 0.6.1
-=======================
-
-Changes
-
-1. Providing additional example dataset -- profile likelihoods from LegendT2dm. 
-2. Refactor code for constructing `DataModel` objects. 
-
-
-EvidenceSynthesis 0.6.0
+EvidenceSynthesis 1.0.0
 =======================
 
 Changes
 
 1. Supporting Bayesian hierarchical meta analysis with bias correction using negative control outcomes
 by adding `computeHierarchicalMetaAnalysis()`. 
+
+2. Providing additional example dataset -- profile likelihoods from LegendT2dm. 
+
+3. Supporting simulation for Self-Controlled Case Series (SCCS) data. (see `createSccsSimulationSettings()`).
+
+4. Adding support for synthesizing pooled SCCS data.
+
+5. Introducing Hermite interpolation using a sparse grid with gradients. These approximations will be faster to construct, especially for models with many (nuisance) parameters such as the SCCS.
 
 
 EvidenceSynthesis 0.5.0
