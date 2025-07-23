@@ -37,7 +37,6 @@ Suggests:
   sn,
   tidyr
 Remotes:
-  ohdsi/Cyclops@develop,
   beast-dev/BeastJar
 License: Apache License 2.0
 URL: https://ohdsi.github.io/EvidenceSynthesis/, https://github.com/OHDSI/EvidenceSynthesis
