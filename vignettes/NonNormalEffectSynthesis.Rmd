@@ -99,20 +99,21 @@ Next, we approximate the likelihood function of our parameter of interest:
 approximation <- approximateLikelihood(
   cyclopsFit = cyclopsFit,
   parameter = "x",
-  approximation = "adaptive grid"
+  approximation = "grid with gradients"
 )
-head(approximation)
+approximation
 ```
 
-Here we use the adaptive grid approximation, which in research has shown to provide a good approximation in many situations. The approximation is represented as a data frame with grid points (log effect size) and values (log likelihood) at the grid points. These parameters can be shared with the study coordinator, without sharing patient-level data.
+Here we use the grid with gradients approximation, which in research has shown to provide a good approximation in many situations. The approximation is represented as a data frame with grid points (log effect size) with values (log likelihood) and gradients (first derivative) at each grid points. These parameters can be shared with the study coordinator, without sharing patient-level data.
 
-The `EvidenceSynthesis` package offers five types of approximation:
+The `EvidenceSynthesis` package offers six types of approximation:
 
 - "**normal**": A normal approximation of the likelihood. This is the traditional choice for meta-analysis, but may not be appropriate when sample sizes are small. This function has two parameters ($\mu$, and $\sigma$).
 - "**skew normal**: Uses the skew normal distribution to approximate the likelihood. This function has three parameters ($\mu$, $\sigma$, and $\alpha$).
 - "**custom**": A custom parametric function designed to approximate a Cox likelihood function. This function has three parameters ($\mu$, $\sigma$, and $\gamma$).
-- "**grid**": Records the log likelihood at various pre-defined grid points. This function has as many parameters as there are grid points, which by default is 991.
-- "**adaptive grid**": Records the log likelihood at grid points that are spaced to most efficiently capture the curvature. 
+- "**grid**": Records the log likelihood at various pre-defined grid points. This function has as many parameters as there are grid points, which by default is 1000
+- "**adaptive grid**": Records the log likelihood at grid points that are spaced to most efficiently capture the curvature.
+- "**grid with gradients**": Records the log likelihood and its gradient at 8 grid points plus the maximum likelihood (if it exists). Hermite interpolation incorporates both values and gradients, and has been shown to provide an accurate approximation with a minimum amount of computation.
 
 In case we're interested, we can see how closely our fitted function approximates the likelihood:
 
@@ -138,7 +139,7 @@ fitModelInDatabase <- function(population) {
   cyclopsFit <- fitCyclopsModel(cyclopsData)
   approximation <- approximateLikelihood(cyclopsFit,
     parameter = "x",
-    approximation = "adaptive grid"
+    approximation = "grid with gradients"
   )
   return(approximation)
 }

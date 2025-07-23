@@ -51,7 +51,7 @@
 #' @export
 approximateLikelihood <- function(cyclopsFit,
                                   parameter = 1,
-                                  approximation = "custom",
+                                  approximation = "grid with gradients",
                                   bounds = c(log(0.1), log(10))) {
   if (!approximation %in% c("normal", "skew normal", "custom", "grid", "adaptive grid", "grid with gradients")) {
     stop("'approximation' argument should be 'normal', 'skew normal', 'custom', 'grid', 'adaptive grid', or 'grid with gradients'.")

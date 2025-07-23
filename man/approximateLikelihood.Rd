@@ -7,7 +7,7 @@
 approximateLikelihood(
   cyclopsFit,
   parameter = 1,
-  approximation = "custom",
+  approximation = "grid with gradients",
   bounds = c(log(0.1), log(10))
 )
 }
