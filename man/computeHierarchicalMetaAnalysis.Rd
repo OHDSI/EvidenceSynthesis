@@ -44,5 +44,5 @@ seed = 666)
 
 }
 \seealso{
-\link{approximateLikelihood}, \link{computeBayesianMetaAnalysis}
+\link{generateBayesianHMAsettings}, \link{approximateLikelihood}, \link{computeBayesianMetaAnalysis}
 }
