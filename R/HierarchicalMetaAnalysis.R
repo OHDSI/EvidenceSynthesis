@@ -157,7 +157,7 @@ generateBayesianHMAsettings <- function(primaryEffectPriorStd = 1.0,
 #' @param seed                 Seed for the random number generator.
 #' @param showProgressBar      Showing a progress bar for MCMC?
 #' @seealso
-#' [approximateLikelihood], [computeBayesianMetaAnalysis]
+#' [generateBayesianHMAsettings], [approximateLikelihood], [computeBayesianMetaAnalysis]
 #'
 #' @return
 #' A data frame with the point estimates, 95% credible intervals and sample standard errors
