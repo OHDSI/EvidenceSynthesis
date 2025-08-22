@@ -95,7 +95,7 @@ likelihoods</h1>
 <code>EvidenceSynthesis</code> package</h3>
                         <h4 data-toc-skip class="author">Fan Bu</h4>
             
-            <h4 data-toc-skip class="date">2025-07-17</h4>
+            <h4 data-toc-skip class="date">2025-08-22</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/OHDSI/EvidenceSynthesis/blob/HEAD/vignettes/BayesianBiasCorrection.Rmd" class="external-link"><code>vignettes/BayesianBiasCorrection.Rmd</code></a></small>
       <div class="hidden name"><code>BayesianBiasCorrection.Rmd</code></div>
@@ -176,9 +176,10 @@ values.</p>
 <p>For example, we can check out the profile likelihood for one of the
 negative control outcomes at the 1st analysis period:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ohdsi.github.io/EvidenceSynthesis/" class="external-link">EvidenceSynthesis</a></span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="st">"ncLikelihoods"</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ohdsi.github.io/EvidenceSynthesis/" class="external-link">EvidenceSynthesis</a></span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## Warning: package 'survival' was built under R version 4.4.3</span></span></code></pre>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="st">"ncLikelihoods"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="st">"ooiLikelihoods"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">ncLikelihoods</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
@@ -253,14 +254,14 @@ Monte Carlo (MCMC).</p>
 <p>For instance, to learn the bias distribution at the 1st period using
 the example dataset, we can call the
 <code>fitBiasDistribution</code>:</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">singleBiasDist</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fitBiasDistribution.html">fitBiasDistribution</a></span><span class="op">(</span><span class="va">ncLikelihoods</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>,</span>
 <span>  seed <span class="op">=</span> <span class="fl">42</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p>The default setting would fit a hierarchical normal model. To fit a
 more robust distribution that can better handle heavy tails and
 outliers, we can set <code>robust = TRUE</code>:</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">singleBiasDistRobust</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fitBiasDistribution.html">fitBiasDistribution</a></span><span class="op">(</span><span class="va">ncLikelihoods</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>,</span>
 <span>  robust <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  seed <span class="op">=</span> <span class="fl">42</span></span>
@@ -273,14 +274,14 @@ adaptively learn all empirical bias distributions across all
 analysis periods in the example data, under the
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>
 model:</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">BiasDistRobust</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sequentialFitBiasDistribution.html">sequentialFitBiasDistribution</a></span><span class="op">(</span><span class="va">ncLikelihoods</span>,</span>
 <span>  robust <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  seed <span class="op">=</span> <span class="fl">1</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p>We can visualize the learned bias distributions over time using the
 <code>plotBiasDistribution</code> function:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotBiasDistribution.html">plotBiasDistribution</a></span><span class="op">(</span><span class="va">BiasDistRobust</span>, limits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">3</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><img src="BayesianBiasCorrection_files/figure-html/unnamed-chunk-4-1.png" width="700"></p>
 </div>
@@ -302,7 +303,7 @@ only, or for all analysis timepoints
 <code>biasCorrectionInference</code>. To perform bias correction for the
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mn>5</mn><annotation encoding="application/x-tex">5</annotation></semantics></math>th
 analysis, for example:</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># select profile likelihoods for the 5th analysis period</span></span>
 <span><span class="va">ooiLik5</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">ooiLikelihoods</span><span class="op">[[</span><span class="st">"5"</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="va">ncLik5</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">ncLikelihoods</span><span class="op">[[</span><span class="st">"5"</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
@@ -329,7 +330,7 @@ separately, then we can also specify it in the
 <code>biasDistributions</code> argument. This can be more convenient and
 efficient if there are more than one outcomes of interest to analyze, as
 the learned bias distributions can then be re-used. For example:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># learn bias distribution for the 5th analysis period first</span></span>
 <span><span class="va">biasDist5</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fitBiasDistribution.html">fitBiasDistribution</a></span><span class="op">(</span><span class="va">ncLikelihoods</span><span class="op">[[</span><span class="st">"5"</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
 <span></span>
@@ -349,7 +350,7 @@ probability that there is a positive effect (in column <code>p1</code>).
 Estimates without bias correction can be accessed in the
 <code>summaryRaw</code> attribute, and so we can compare the results
 with and without bias correction.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/bind_rows.html" class="external-link">bind_rows</a></span><span class="op">(</span></span>
@@ -369,19 +370,19 @@ with and without bias correction.</p>
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td align="right">0.5910</td>
-<td align="right">0.5892</td>
-<td align="right">-0.9204</td>
-<td align="right">1.9832</td>
-<td align="right">0.7909</td>
+<td align="right">0.5741</td>
+<td align="right">0.5775</td>
+<td align="right">-0.8423</td>
+<td align="right">2.0629</td>
+<td align="right">0.786</td>
 <td align="left">yes</td>
 </tr>
 <tr class="even">
 <td align="right">1.1582</td>
-<td align="right">1.1540</td>
-<td align="right">0.9034</td>
-<td align="right">1.3960</td>
-<td align="right">1.0000</td>
+<td align="right">1.1541</td>
+<td align="right">0.9046</td>
+<td align="right">1.3971</td>
+<td align="right">1.000</td>
 <td align="left">no</td>
 </tr>
 </tbody>
@@ -390,7 +391,7 @@ with and without bias correction.</p>
 time, we should supply profile likelihoods across all analysis
 periods/groups in the input. For example, if we use the already learned
 bias distributions <code>BiasDistRobust</code>:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">bbcSequential</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/biasCorrectionInference.html">biasCorrectionInference</a></span><span class="op">(</span><span class="va">ooiLikelihoods</span>,</span>
 <span>  biasDistributions <span class="op">=</span> <span class="va">BiasDistRobust</span>,</span>
 <span>  priorMean <span class="op">=</span> <span class="fl">0</span>,</span>
@@ -399,7 +400,7 @@ bias distributions <code>BiasDistRobust</code>:</p>
 <span>  seed <span class="op">=</span> <span class="fl">42</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p>We can then check out the sequential analysis results:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">bbcSequential</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span>period <span class="op">=</span> <span class="va">Id</span>, <span class="va">median</span><span class="op">:</span><span class="va">p1</span><span class="op">)</span>, digits <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <thead><tr class="header">
@@ -413,99 +414,99 @@ bias distributions <code>BiasDistRobust</code>:</p>
 <tbody>
 <tr class="odd">
 <td align="left">1</td>
-<td align="right">0.4616</td>
-<td align="right">0.7524</td>
-<td align="right">-3.5236</td>
-<td align="right">6.0599</td>
-<td align="right">0.5823</td>
+<td align="right">0.4930</td>
+<td align="right">0.7533</td>
+<td align="right">-3.6875</td>
+<td align="right">6.0413</td>
+<td align="right">0.5917</td>
 </tr>
 <tr class="even">
 <td align="left">2</td>
-<td align="right">-1.3422</td>
-<td align="right">-1.4040</td>
-<td align="right">-4.5986</td>
-<td align="right">1.3638</td>
-<td align="right">0.1407</td>
+<td align="right">-1.3379</td>
+<td align="right">-1.3911</td>
+<td align="right">-4.5902</td>
+<td align="right">1.3376</td>
+<td align="right">0.1400</td>
 </tr>
 <tr class="odd">
 <td align="left">3</td>
-<td align="right">-0.1571</td>
-<td align="right">-0.1842</td>
-<td align="right">-3.0358</td>
-<td align="right">2.8004</td>
-<td align="right">0.4432</td>
+<td align="right">-0.1510</td>
+<td align="right">-0.1702</td>
+<td align="right">-3.1077</td>
+<td align="right">2.7377</td>
+<td align="right">0.4458</td>
 </tr>
 <tr class="even">
 <td align="left">4</td>
-<td align="right">0.3477</td>
-<td align="right">0.3454</td>
-<td align="right">-2.8485</td>
-<td align="right">3.2102</td>
-<td align="right">0.6243</td>
+<td align="right">0.3532</td>
+<td align="right">0.3521</td>
+<td align="right">-2.7277</td>
+<td align="right">3.2879</td>
+<td align="right">0.6234</td>
 </tr>
 <tr class="odd">
 <td align="left">5</td>
-<td align="right">0.6093</td>
-<td align="right">0.6001</td>
-<td align="right">-2.4108</td>
-<td align="right">3.9801</td>
-<td align="right">0.6986</td>
+<td align="right">0.6046</td>
+<td align="right">0.5988</td>
+<td align="right">-2.6916</td>
+<td align="right">3.5922</td>
+<td align="right">0.6956</td>
 </tr>
 <tr class="even">
 <td align="left">6</td>
-<td align="right">0.6295</td>
-<td align="right">0.6367</td>
-<td align="right">-2.5003</td>
-<td align="right">3.7913</td>
-<td align="right">0.7133</td>
+<td align="right">0.6469</td>
+<td align="right">0.6557</td>
+<td align="right">-2.5176</td>
+<td align="right">3.9849</td>
+<td align="right">0.7087</td>
 </tr>
 <tr class="odd">
 <td align="left">7</td>
-<td align="right">0.5516</td>
-<td align="right">0.5581</td>
-<td align="right">-2.3100</td>
-<td align="right">3.2929</td>
-<td align="right">0.7022</td>
+<td align="right">0.5666</td>
+<td align="right">0.5686</td>
+<td align="right">-2.5537</td>
+<td align="right">3.1354</td>
+<td align="right">0.7034</td>
 </tr>
 <tr class="even">
 <td align="left">8</td>
-<td align="right">0.6233</td>
-<td align="right">0.6231</td>
-<td align="right">-2.1312</td>
-<td align="right">3.5785</td>
-<td align="right">0.7278</td>
+<td align="right">0.6362</td>
+<td align="right">0.6327</td>
+<td align="right">-2.3570</td>
+<td align="right">3.4962</td>
+<td align="right">0.7227</td>
 </tr>
 <tr class="odd">
 <td align="left">9</td>
-<td align="right">0.6276</td>
-<td align="right">0.6366</td>
-<td align="right">-2.2430</td>
-<td align="right">3.5756</td>
-<td align="right">0.7211</td>
+<td align="right">0.6274</td>
+<td align="right">0.6419</td>
+<td align="right">-2.2365</td>
+<td align="right">3.6083</td>
+<td align="right">0.7268</td>
 </tr>
 <tr class="even">
 <td align="left">10</td>
-<td align="right">0.6260</td>
-<td align="right">0.6355</td>
-<td align="right">-1.9643</td>
-<td align="right">3.2464</td>
-<td align="right">0.7424</td>
+<td align="right">0.6310</td>
+<td align="right">0.6248</td>
+<td align="right">-1.8520</td>
+<td align="right">3.0561</td>
+<td align="right">0.7477</td>
 </tr>
 <tr class="odd">
 <td align="left">11</td>
-<td align="right">0.6465</td>
-<td align="right">0.6449</td>
-<td align="right">-1.9959</td>
-<td align="right">3.3824</td>
-<td align="right">0.7352</td>
+<td align="right">0.6371</td>
+<td align="right">0.6433</td>
+<td align="right">-1.9949</td>
+<td align="right">3.1796</td>
+<td align="right">0.7370</td>
 </tr>
 <tr class="even">
 <td align="left">12</td>
-<td align="right">0.5859</td>
-<td align="right">0.5856</td>
-<td align="right">-2.1348</td>
-<td align="right">3.0709</td>
-<td align="right">0.7300</td>
+<td align="right">0.5759</td>
+<td align="right">0.5769</td>
+<td align="right">-1.9665</td>
+<td align="right">3.0293</td>
+<td align="right">0.7340</td>
 </tr>
 </tbody>
 </table>
@@ -515,7 +516,7 @@ example, we can visualize the posterior distributions of the bias
 corrected log RR across analysis periods, along with posterior
 probabilities for a positive effect size (<code>P(H1)</code>) or a
 non-positive effect size (<code>P(H0)</code>):</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotBiasCorrectionInference.html">plotBiasCorrectionInference</a></span><span class="op">(</span><span class="va">bbcSequential</span>,</span>
 <span>  type <span class="op">=</span> <span class="st">"corrected"</span>,</span>
 <span>  limits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">4</span>, <span class="fl">4</span><span class="op">)</span></span>
@@ -524,7 +525,7 @@ non-positive effect size (<code>P(H0)</code>):</p>
 <p>Meanwhile, we can also compare the estimates with and without bias
 correction. It is also possible to only examine certain analysis
 periods/groups by specifying the <code>ids</code> argument.</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotBiasCorrectionInference.html">plotBiasCorrectionInference</a></span><span class="op">(</span><span class="va">bbcSequential</span>,</span>
 <span>  type <span class="op">=</span> <span class="st">"compare"</span>,</span>
 <span>  limits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">4</span>, <span class="fl">4</span><span class="op">)</span>,</span>

@@ -94,7 +94,7 @@ likelihood approximations</h1>
                         <h4 data-toc-skip class="author">Martijn J.
 Schuemie</h4>
             
-            <h4 data-toc-skip class="date">2025-07-17</h4>
+            <h4 data-toc-skip class="date">2025-08-22</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/OHDSI/EvidenceSynthesis/blob/HEAD/vignettes/NonNormalEffectSynthesis.Rmd" class="external-link"><code>vignettes/NonNormalEffectSynthesis.Rmd</code></a></small>
       <div class="hidden name"><code>NonNormalEffectSynthesis.Rmd</code></div>
@@ -241,25 +241,26 @@ interest:</p>
 <code class="sourceCode R"><span><span class="va">approximation</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/approximateLikelihood.html">approximateLikelihood</a></span><span class="op">(</span></span>
 <span>  cyclopsFit <span class="op">=</span> <span class="va">cyclopsFit</span>,</span>
 <span>  parameter <span class="op">=</span> <span class="st">"x"</span>,</span>
-<span>  approximation <span class="op">=</span> <span class="st">"adaptive grid"</span></span>
+<span>  approximation <span class="op">=</span> <span class="st">"grid with gradients"</span></span>
 <span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">approximation</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 6 × 2</span></span></span>
-<span><span class="co">##   point value</span></span>
-<span><span class="co">##   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">1</span> -<span style="color: #BB0000;">2.30</span> -<span style="color: #BB0000;">122.</span></span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">2</span> -<span style="color: #BB0000;">2.29</span> -<span style="color: #BB0000;">122.</span></span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">3</span> -<span style="color: #BB0000;">2.27</span> -<span style="color: #BB0000;">122.</span></span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">4</span> -<span style="color: #BB0000;">2.25</span> -<span style="color: #BB0000;">122.</span></span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">5</span> -<span style="color: #BB0000;">2.24</span> -<span style="color: #BB0000;">122.</span></span></span>
-<span><span class="co">## <span style="color: #BCBCBC;">6</span> -<span style="color: #BB0000;">2.22</span> -<span style="color: #BB0000;">122.</span></span></span></code></pre>
-<p>Here we use the adaptive grid approximation, which in research has
-shown to provide a good approximation in many situations. The
+<span><span class="va">approximation</span></span></code></pre></div>
+<pre><code><span><span class="co">##        point     value    derivative</span></span>
+<span><span class="co">## 1 -2.3025851 -122.2049  8.068960e+00</span></span>
+<span><span class="co">## 2 -1.6447036 -117.6230  5.757552e+00</span></span>
+<span><span class="co">## 3 -0.9868222 -114.7248  3.021399e+00</span></span>
+<span><span class="co">## 4 -0.3289407 -113.6260  3.811041e-01</span></span>
+<span><span class="co">## 5 -0.2230858 -113.6059  7.105427e-15</span></span>
+<span><span class="co">## 6  0.3289407 -114.1000 -1.709196e+00</span></span>
+<span><span class="co">## 7  0.9868222 -115.7238 -3.119348e+00</span></span>
+<span><span class="co">## 8  1.6447036 -118.0815 -3.970782e+00</span></span>
+<span><span class="co">## 9  2.3025851 -120.8673 -4.450811e+00</span></span></code></pre>
+<p>Here we use the grid with gradients approximation, which in research
+has shown to provide a good approximation in many situations. The
 approximation is represented as a data frame with grid points (log
-effect size) and values (log likelihood) at the grid points. These
-parameters can be shared with the study coordinator, without sharing
-patient-level data.</p>
-<p>The <code>EvidenceSynthesis</code> package offers five types of
+effect size) with values (log likelihood) and gradients (first
+derivative) at each grid points. These parameters can be shared with the
+study coordinator, without sharing patient-level data.</p>
+<p>The <code>EvidenceSynthesis</code> package offers six types of
 approximation:</p>
 <ul>
 <li>“<strong>normal</strong>”: A normal approximation of the likelihood.
@@ -284,9 +285,14 @@ and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>γ</mi><annotation encoding="application/x-tex">\gamma</annotation></semantics></math>).</li>
 <li>“<strong>grid</strong>”: Records the log likelihood at various
 pre-defined grid points. This function has as many parameters as there
-are grid points, which by default is 991.</li>
+are grid points, which by default is 1000</li>
 <li>“<strong>adaptive grid</strong>”: Records the log likelihood at grid
 points that are spaced to most efficiently capture the curvature.</li>
+<li>“<strong>grid with gradients</strong>”: Records the log likelihood
+and its gradient at 8 grid points plus the maximum likelihood (if it
+exists). Hermite interpolation incorporates both values and gradients,
+and has been shown to provide an accurate approximation with a minimum
+amount of computation.</li>
 </ul>
 <p>In case we’re interested, we can see how closely our fitted function
 approximates the likelihood:</p>
@@ -296,7 +302,7 @@ approximates the likelihood:</p>
 <span>  cyclopsFit <span class="op">=</span> <span class="va">cyclopsFit</span>,</span>
 <span>  parameter <span class="op">=</span> <span class="st">"x"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Detected data following adaptive grid distribution</span></span></code></pre>
+<pre><code><span><span class="co">## Detected data following grid with gradients distribution</span></span></code></pre>
 <p><img src="NonNormalEffectSynthesis_files/figure-html/unnamed-chunk-6-1.png" width="700"></p>
 <div class="section level3">
 <h3 id="generating-approximations-at-all-sites">Generating approximations at all sites<a class="anchor" aria-label="anchor" href="#generating-approximations-at-all-sites"></a>
@@ -313,7 +319,7 @@ described above.</p>
 <span>  <span class="va">cyclopsFit</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/Cyclops/man/fitCyclopsModel.html" class="external-link">fitCyclopsModel</a></span><span class="op">(</span><span class="va">cyclopsData</span><span class="op">)</span></span>
 <span>  <span class="va">approximation</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/approximateLikelihood.html">approximateLikelihood</a></span><span class="op">(</span><span class="va">cyclopsFit</span>,</span>
 <span>    parameter <span class="op">=</span> <span class="st">"x"</span>,</span>
-<span>    approximation <span class="op">=</span> <span class="st">"adaptive grid"</span></span>
+<span>    approximation <span class="op">=</span> <span class="st">"grid with gradients"</span></span>
 <span>  <span class="op">)</span></span>
 <span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="va">approximation</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
@@ -341,8 +347,8 @@ homogeneous, and have recruited very similar individuals. We use the
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">estimate</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/computeFixedEffectMetaAnalysis.html">computeFixedEffectMetaAnalysis</a></span><span class="op">(</span><span class="va">approximations</span><span class="op">)</span></span>
 <span><span class="va">estimate</span></span></code></pre></div>
-<pre><code><span><span class="co">##        rr       lb       ub     logRr   seLogRr</span></span>
-<span><span class="co">## 1 2.02095 1.088238 4.117701 0.7035677 0.3394794</span></span></code></pre>
+<pre><code><span><span class="co">##         rr      lb       ub     logRr   seLogRr</span></span>
+<span><span class="co">## 1 2.020845 1.08513 4.195519 0.7035156 0.3449853</span></span></code></pre>
 </div>
 <div class="section level3">
 <h3 id="bayesian-random-effects-model-">Bayesian random-effects model.<a class="anchor" aria-label="anchor" href="#bayesian-random-effects-model-"></a>
@@ -363,7 +369,7 @@ combine the approximations into a single estimate:</p>
 <code class="sourceCode R"><span><span class="va">estimate</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/computeBayesianMetaAnalysis.html">computeBayesianMetaAnalysis</a></span><span class="op">(</span><span class="va">approximations</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">estimate</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##         mu    mu95Lb   mu95Ub</span></span>
-<span><span class="co">## 1 2.213675 0.9699116 4.830842</span></span></code></pre>
+<span><span class="co">## 1 2.159065 0.9914702 5.158672</span></span></code></pre>
 <p>We output the point estimate and 95% credible interval of our main
 parameter of interest
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>μ</mi><annotation encoding="application/x-tex">\mu</annotation></semantics></math>,
@@ -406,7 +412,7 @@ size will be small:</p>
 <code class="sourceCode R"><span><span class="va">estimate2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/computeBayesianMetaAnalysis.html">computeBayesianMetaAnalysis</a></span><span class="op">(</span><span class="va">approximations</span>, priorSd <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">0.1</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">estimate2</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##         mu   mu95Lb   mu95Ub</span></span>
-<span><span class="co">## 1 2.107269 1.088775 4.257461</span></span></code></pre>
+<span><span class="co">## 1 2.132264 1.079887 4.160389</span></span></code></pre>
 <p>Here we still use a prior with a standard deviation of 2 on
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>μ</mi><annotation encoding="application/x-tex">\mu</annotation></semantics></math>,
 but for
