@@ -84,7 +84,7 @@ appropriate.</p>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">approximateLikelihood</span><span class="op">(</span></span>
 <span>  <span class="va">cyclopsFit</span>,</span>
 <span>  parameter <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  approximation <span class="op">=</span> <span class="st">"custom"</span>,</span>
+<span>  approximation <span class="op">=</span> <span class="st">"grid with gradients"</span>,</span>
 <span>  bounds <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">0.1</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">10</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -135,8 +135,15 @@ appropriate.</p>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>BLR convergence criterion failed; coefficient may be infinite</span>
 <span class="r-in"><span><span class="va">approximation</span> <span class="op">&lt;-</span> <span class="fu">approximateLikelihood</span><span class="op">(</span><span class="va">cyclopsFit</span>, <span class="st">"x"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">approximation</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>          mu    sigma     gamma</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 -2.931092 4.139151 0.2912286</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        point     value  derivative</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 -2.3025851 -16.42905 -0.06928413</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2 -1.6447036 -16.49283 -0.13090344</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3 -0.9868222 -16.61222 -0.24271450</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4 -0.3289407 -16.82989 -0.43534046</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5  0.3289407 -17.20965 -0.73942484</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6  0.9868222 -17.82865 -1.15932035</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 7  1.6447036 -18.74959 -1.64390824</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8  2.3025851 -19.98523 -2.10007041</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># (Estimates in this example will vary due to the random simulation)</span></span></span>
 <span class="r-in"><span></span></span>

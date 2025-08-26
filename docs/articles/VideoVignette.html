@@ -95,7 +95,7 @@ the EvidenceSynthesis package</h3>
                         <h4 data-toc-skip class="author">Martijn
 Schuemie</h4>
             
-            <h4 data-toc-skip class="date">2025-07-17</h4>
+            <h4 data-toc-skip class="date">2025-08-22</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/OHDSI/EvidenceSynthesis/blob/HEAD/vignettes/VideoVignette.Rmd" class="external-link"><code>vignettes/VideoVignette.Rmd</code></a></small>
       <div class="hidden name"><code>VideoVignette.Rmd</code></div>
@@ -303,7 +303,7 @@ EvidenceSynthesis package: <a href="https://youtu.be/dho7E97vpgQ" class="externa
 <code class="sourceCode R"><span><span class="va">randomFxPooled</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/computeBayesianMetaAnalysis.html">computeBayesianMetaAnalysis</a></span><span class="op">(</span><span class="va">populations</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">randomFxPooled</span><span class="op">[</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##         mu   mu95Lb   mu95Ub</span></span>
-<span><span class="co">## 1 2.576975 1.199708 4.823377</span></span></code></pre>
+<span><span class="co">## 1 2.705529 1.416858 5.465772</span></span></code></pre>
 <p>Normal approximation:</p>
 <div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">randomFxNormal</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/computeBayesianMetaAnalysis.html">computeBayesianMetaAnalysis</a></span><span class="op">(</span><span class="va">normalApproximations</span><span class="op">)</span></span></code></pre></div>
@@ -314,13 +314,13 @@ EvidenceSynthesis package: <a href="https://youtu.be/dho7E97vpgQ" class="externa
 <div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">randomFxNormal</span><span class="op">[</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##         mu    mu95Lb   mu95Ub</span></span>
-<span><span class="co">## 1 1.590153 0.8000561 3.214139</span></span></code></pre>
+<span><span class="co">## 1 1.597623 0.7221914 3.083936</span></span></code></pre>
 <p>Adaptive grid approximation:</p>
 <div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">randomFxAdaptiveGrid</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/computeBayesianMetaAnalysis.html">computeBayesianMetaAnalysis</a></span><span class="op">(</span><span class="va">adaptiveGridApproximations</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">randomFxAdaptiveGrid</span><span class="op">[</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">##         mu   mu95Lb   mu95Ub</span></span>
-<span><span class="co">## 1 2.662577 1.340213 5.243211</span></span></code></pre>
+<pre><code><span><span class="co">##        mu   mu95Lb   mu95Ub</span></span>
+<span><span class="co">## 1 2.59455 1.283359 5.064328</span></span></code></pre>
 <div class="section level4">
 <h4 id="visualization-1">Visualization<a class="anchor" aria-label="anchor" href="#visualization-1"></a>
 </h4>

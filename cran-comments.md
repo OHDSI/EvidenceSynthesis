@@ -1,4 +1,4 @@
-Includes 5 changes (see NEWS.md).
+This is a major release with 5 changes (see NEWS.md).
 
 ---
 
