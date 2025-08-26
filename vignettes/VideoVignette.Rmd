@@ -178,8 +178,15 @@ plotMetaAnalysisForest(
 
 Gold standard (pooling data):
 
-```{r cache = TRUE, message = FALSE,cache=TRUE}
+```{r eval = FALSE}
 randomFxPooled <- computeBayesianMetaAnalysis(populations)
+exp(randomFxPooled[, 1:3])
+```
+```{r echo = FALSE,message = FALSE}
+# randomFxPooled <- computeBayesianMetaAnalysis(populations)
+# attr(randomFxPooled, "traces") <- NULL
+# saveRDS(randomFxPooled, "randomFxPooled.rds")
+randomFxPooled <- readRDS("randomFxPooled.rds")
 exp(randomFxPooled[, 1:3])
 ```
 

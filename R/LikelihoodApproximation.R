@@ -692,8 +692,8 @@ constructDataModel <- function(data, labelReferences = NULL) {
   } else if (type == "pooled sccs") {
     dataModel <- rJava::.jnew("org.ohdsi.metaAnalysis.SccsDataModel")
     for (i in 1:length(data)) {
-      x <- data[[i]] %>%
-        select(matches("^x[0-9]+$")) %>%
+      x <- data[[i]] |>
+        select(matches("^x[0-9]+$")) |>
         apply(2, as.numeric)
       dataModel$addLikelihoodData(
         as.integer(data[[i]]$y),
@@ -809,9 +809,9 @@ prepareSccsIntervalData <- function(sccsIntervalData, covariateId) {
     values_from = "covariateValue",
     values_fill = 0
   )
-  data <- covariates %>%
-    rename(a = paste0("x", covariateId)) %>%
-    inner_join(collect(sccsIntervalData$outcomes), by = join_by("rowId", "stratumId")) %>%
+  data <- covariates |>
+    rename(a = paste0("x", covariateId)) |>
+    inner_join(collect(sccsIntervalData$outcomes), by = join_by("rowId", "stratumId")) |>
     select(-"rowId")
   return(data)
 }

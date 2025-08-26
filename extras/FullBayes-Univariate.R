@@ -5,12 +5,12 @@ library(dplyr)
 library(survival)
 
 
-data <- readRDS("extras/data/InteractionDataForMarc.rds") %>% filter(siteId == 1)
+data <- readRDS("extras/data/InteractionDataForMarc.rds") |> filter(siteId == 1)
 
 outcomeOfInterest <- 77
 
 cyclopsFits <- lapply(unique(data$siteId), function(id) {
-  subset <- data %>% filter(outcomeId == outcomeOfInterest,
+  subset <- data |> filter(outcomeId == outcomeOfInterest,
                            siteId == id)
 
 
@@ -110,7 +110,7 @@ coda::effectiveSize(traces)
 
 # Using pure java
 
-demo <- readRDS("extras/data/InteractionDataForMarc.rds") %>%
+demo <- readRDS("extras/data/InteractionDataForMarc.rds") |>
   filter(siteId == 1,
          outcomeId == 77)
 

@@ -66,7 +66,7 @@ profile <- profile |>
   arrange(point)
 
 isConvex <- function(df) {
-  df <- df %>% arrange(point)  # Ensure points are ordered
+  df <- df |> arrange(point)  # Ensure points are ordered
 
   # Compute second derivative approximation
   secondDerivatives <- diff(df$derivative) / diff(df$point)

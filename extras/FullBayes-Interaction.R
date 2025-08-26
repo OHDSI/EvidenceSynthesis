@@ -6,12 +6,12 @@ library(survival)
 # Read interaction data
 
 data <- readRDS("extras/data/InteractionDataForMarc.rds")
-# %>% filter(siteId == 1)
+# |> filter(siteId == 1)
 
 outcomeOfInterest <- 77
 
 cyclopsFits <- lapply(unique(data$siteId), function(id) {
-  subset <- data %>% filter(outcomeId == outcomeOfInterest,
+  subset <- data |> filter(outcomeId == outcomeOfInterest,
                             siteId == id)
 
 

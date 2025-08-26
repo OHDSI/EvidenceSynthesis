@@ -155,10 +155,10 @@ Estimates without bias correction can be accessed in the `summaryRaw` attribute,
 library(dplyr)
 
 knitr::kable(bind_rows(
-  bbcResult5 %>% mutate(biasCorrection = "yes"),
-  attr(bbcResult5, "summaryRaw") %>%
+  bbcResult5 |> mutate(biasCorrection = "yes"),
+  attr(bbcResult5, "summaryRaw") |>
     mutate(biasCorrection = "no")
-) %>%
+) |>
   select(-Id), digits = 4)
 ```
 
@@ -177,7 +177,7 @@ bbcSequential <- biasCorrectionInference(ooiLikelihoods,
 
 We can then check out the sequential analysis results:
 ```{r, message=FALSE, warning=FALSE}
-knitr::kable(bbcSequential %>% select(period = Id, median:p1), digits = 4)
+knitr::kable(bbcSequential |> select(period = Id, median:p1), digits = 4)
 ```
 
 The `plotBiasCorrectionInference` function provides some simple plotting functionality to visualize the analysis results.

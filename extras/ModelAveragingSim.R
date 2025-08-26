@@ -50,7 +50,7 @@ runSingleSimulation <- function(seed, settings) {
         tOutcome = rexp(nComparatorAdjusted, hazardComparator),
         tCensor = rexp(nComparatorAdjusted, settings$censorHazard)
       )
-      data <- bind_rows(target, comparator) %>%
+      data <- bind_rows(target, comparator) |>
         mutate(time = min(tOutcome, tCensor),
                outcome = tOutcome <= tCensor)
       cyclopsData <- Cyclops::createCyclopsData(Surv(time, outcome) ~ exposure, data = data, modelType = "cox")
@@ -102,9 +102,9 @@ cluster <- ParallelLogger::makeCluster(20)
 ParallelLogger::clusterRequire(cluster, "dplyr")
 ParallelLogger::clusterRequire(cluster, "survival")
 estimates <- ParallelLogger::clusterApply(cluster, seq_len(100), runSingleSimulation, settings = settings)
-estimates <- estimates %>%
+estimates <- estimates |>
   bind_rows()
-estimates %>%
+estimates |>
   summarise(
     coverage = mean(lb < settings$trueHazardRatio & ub > settings$trueHazardRatio),
     meanHr = exp(mean(logRr))
