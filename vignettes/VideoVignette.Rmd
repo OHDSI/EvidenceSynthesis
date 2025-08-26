@@ -131,7 +131,7 @@ normalApproximations <- do.call(rbind, (normalApproximations))
 
 Gold standard (pooling data):
 
-```{r message = FALSE,cache = TRUE}
+```{r message = FALSE}
 fixedFxPooled <- computeFixedEffectMetaAnalysis(populations)
 fixedFxPooled
 ```
