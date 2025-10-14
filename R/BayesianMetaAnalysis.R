@@ -30,6 +30,32 @@ createNaEstimate <- function(type) {
   return(estimate)
 }
 
+computePredictionInterval <- function(traces, alpha = 0.05) {
+  qmixnorm <- function(p, means, sds) {
+    pmix <- function(x) {
+      mean(pnorm(x, mean = means, sd = sds))
+    }
+    sapply(p, function(pVal) {
+      if (pVal <= 0) return(-Inf)
+      if (pVal >= 1) return(Inf)
+      objective_function <- function(x) {
+        pmix(x) - pVal
+      }
+      search_interval <- c(min(means) - 10 * max(sds), max(means) + 10 * max(sds))
+      uniroot(objective_function, interval = search_interval)$root
+    })
+  }
+
+  predictionInterval <- HDInterval::hdi(qmixnorm, credMass = 1 - alpha, means = traces[, 1], sds = traces[, 2])
+  return(predictionInterval)
+
+  # To verify: use very large sample:
+  # predictionInterval
+  # predictions <- do.call(c, lapply(seq_len(nrow(traces)), function(i) rnorm(100000, traces[i, 1], traces[i, 2])))
+  # predictionInterval <- HDInterval::hdi(predictions, credMass = 1 - alpha)
+  # predictionInterval
+}
+
 #' Compute a Bayesian random-effects meta-analysis
 #'
 #' @description
@@ -68,11 +94,10 @@ createNaEstimate <- function(type) {
 #'     modelType = "cox"
 #'   )
 #'   cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
-#'   approximation <- approximateLikelihood(cyclopsFit, parameter = "x", approximation = "custom")
+#'   approximation <- approximateLikelihood(cyclopsFit, parameter = "x", approximation = "grid with gradients")
 #'   return(approximation)
 #' }
 #' approximations <- lapply(populations, fitModelInDatabase)
-#' approximations <- do.call("rbind", approximations)
 #'
 #' # At study coordinating center, perform meta-analysis using per-site approximations:
 #' estimate <- computeBayesianMetaAnalysis(approximations)
@@ -179,6 +204,7 @@ computeBayesianMetaAnalysis <- function(data,
   hdiMu <- HDInterval::hdi(traces[, 1], credMass = 1 - alpha)
   hdiTau <- HDInterval::hdi(traces[, 2], credMass = 1 - alpha)
   mu <- mean(traces[, 1])
+  predictionInterval <- computePredictionInterval(traces, alpha)
   estimate <- data.frame(
     mu = mu,
     mu95Lb = hdiMu[1],
@@ -187,6 +213,8 @@ computeBayesianMetaAnalysis <- function(data,
     tau = median(traces[, 2]),
     tau95Lb = hdiTau[1],
     tau95Ub = hdiTau[2],
+    predictionInterval95Lb = predictionInterval[1],
+    predictionInterval95Ub = predictionInterval[2],
     logRr = mu,
     seLogRr = sqrt(mean((traces[, 1] - mu)^2)),
     row.names = NULL

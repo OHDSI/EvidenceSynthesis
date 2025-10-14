@@ -44,7 +44,7 @@
 #'   modelType = "cox"
 #' )
 #' cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
-#' approximation <- approximateLikelihood(cyclopsFit, parameter = "x", approximation = "custom")
+#' approximation <- approximateLikelihood(cyclopsFit, parameter = "x", approximation = "grid with gradients")
 #'
 #' plotLikelihoodFit(approximation, cyclopsFit, parameter = "x")
 #'
@@ -167,12 +167,11 @@ getLikelihoodCoordinates <- function(approximation, limits, verbose = TRUE) {
 #'     modelType = "cox"
 #'   )
 #'   cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
-#'   approximation <- approximateLikelihood(cyclopsFit, parameter = "x", approximation = "custom")
+#'   approximation <- approximateLikelihood(cyclopsFit, parameter = "x", approximation = "grid with gradients")
 #'   return(approximation)
 #' }
 #' approximations <- lapply(populations, fitModelInDatabase)
-#' approximations <- do.call("rbind", approximations)
-#'
+##'
 #' # At study coordinating center, perform meta-analysis using per-site approximations:
 #' estimate <- computeBayesianMetaAnalysis(approximations)
 #' plotMcmcTrace(estimate)
@@ -253,11 +252,10 @@ plotMcmcTrace <- function(estimate, showEstimate = TRUE, dataCutoff = 0.01, file
 #'     modelType = "cox"
 #'   )
 #'   cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
-#'   approximation <- approximateLikelihood(cyclopsFit, parameter = "x", approximation = "custom")
+#'   approximation <- approximateLikelihood(cyclopsFit, parameter = "x", approximation = "grid with gradients")
 #'   return(approximation)
 #' }
 #' approximations <- lapply(populations, fitModelInDatabase)
-#' approximations <- do.call("rbind", approximations)
 #'
 #' # At study coordinating center, perform meta-analysis using per-site approximations:
 #' estimate <- computeBayesianMetaAnalysis(approximations)
@@ -337,11 +335,10 @@ plotPerDbMcmcTrace <- function(estimate, showEstimate = TRUE, dataCutoff = 0.01,
 #'     modelType = "cox"
 #'   )
 #'   cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
-#'   approximation <- approximateLikelihood(cyclopsFit, parameter = "x", approximation = "custom")
+#'   approximation <- approximateLikelihood(cyclopsFit, parameter = "x", approximation = "grid with gradients")
 #'   return(approximation)
 #' }
 #' approximations <- lapply(populations, fitModelInDatabase)
-#' approximations <- do.call("rbind", approximations)
 #'
 #' # At study coordinating center, perform meta-analysis using per-site approximations:
 #' estimate <- computeBayesianMetaAnalysis(approximations)
@@ -417,11 +414,10 @@ plotPosterior <- function(estimate, showEstimate = TRUE, dataCutoff = 0.01, file
 #'     modelType = "cox"
 #'   )
 #'   cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
-#'   approximation <- approximateLikelihood(cyclopsFit, parameter = "x", approximation = "custom")
+#'   approximation <- approximateLikelihood(cyclopsFit, parameter = "x", approximation = "grid with gradients")
 #'   return(approximation)
 #' }
 #' approximations <- lapply(populations, fitModelInDatabase)
-#' approximations <- do.call("rbind", approximations)
 #'
 #' # At study coordinating center, perform meta-analysis using per-site approximations:
 #' estimate <- computeBayesianMetaAnalysis(approximations)

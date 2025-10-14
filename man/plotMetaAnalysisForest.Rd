@@ -12,6 +12,7 @@ plotMetaAnalysisForest(
   summaryLabel = "Summary",
   limits = c(0.1, 10),
   alpha = 0.05,
+  showPredictionInterval = TRUE,
   showLikelihood = TRUE,
   fileName = NULL
 )
@@ -22,7 +23,8 @@ likelihood data. One row per database.}
 
 \item{labels}{A vector of labels for the data sources.}
 
-\item{estimate}{The meta-analytic estimate as created using either ['computeFixedEffectMetaAnalysis()\verb{] or [}computeBayesianMetaAnalysis()`] function.}
+\item{estimate}{The meta-analytic estimate as created using either \link{computeFixedEffectMetaAnalysis}
+or \link{computeBayesianMetaAnalysis} function.}
 
 \item{xLabel}{The label on the x-axis: the name of the effect estimate.}
 
@@ -31,6 +33,8 @@ likelihood data. One row per database.}
 \item{limits}{The limits of the effect size axis.}
 
 \item{alpha}{The alpha (expected type I error).}
+
+\item{showPredictionInterval}{Show the prediction interval (for random effects models).}
 
 \item{showLikelihood}{Show the likelihood curve for each estimate?}
 
@@ -58,11 +62,10 @@ fitModelInDatabase <- function(population) {
     modelType = "cox"
   )
   cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
-  approximation <- approximateLikelihood(cyclopsFit, parameter = "x", approximation = "custom")
+  approximation <- approximateLikelihood(cyclopsFit, parameter = "x", approximation = "grid with gradients")
   return(approximation)
 }
 approximations <- lapply(populations, fitModelInDatabase)
-approximations <- do.call("rbind", approximations)
 
 # At study coordinating center, perform meta-analysis using per-site approximations:
 estimate <- computeBayesianMetaAnalysis(approximations)

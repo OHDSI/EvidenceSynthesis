@@ -1,3 +1,13 @@
+EvidenceSynthesis 1.1.0
+=======================
+
+Changes
+
+1. Adding prediction intervals to the output of `computeBayesianMetaAnalysis()`.
+
+2. Updated style of `plotMetaAnalysisForest()` and added prediction intervals.
+
+
 EvidenceSynthesis 1.0.0
 =======================
 

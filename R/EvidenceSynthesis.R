@@ -18,7 +18,7 @@
 "_PACKAGE"
 
 #' @importFrom grDevices rgb
-#' @importFrom stats density dnorm qnorm quantile runif coef confint median nlm optim pnorm
+#' @importFrom stats density dnorm qnorm quantile runif coef confint median nlm optim pnorm uniroot
 #' printCoefmat qchisq rexp rnorm aggregate as.formula rpois
 #' @importFrom rlang .data abort warn inform
 #' @importFrom methods is

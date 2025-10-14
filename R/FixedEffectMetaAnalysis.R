@@ -42,11 +42,10 @@
 #'     modelType = "cox"
 #'   )
 #'   cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
-#'   approximation <- approximateLikelihood(cyclopsFit, parameter = "x", approximation = "custom")
+#'   approximation <- approximateLikelihood(cyclopsFit, parameter = "x", approximation = "grid with gradients")
 #'   return(approximation)
 #' }
 #' approximations <- lapply(populations, fitModelInDatabase)
-#' approximations <- do.call("rbind", approximations)
 #'
 #' # At study coordinating center, perform meta-analysis using per-site approximations:
 #' computeFixedEffectMetaAnalysis(approximations)

@@ -76,8 +76,8 @@ test_that("Custom approximation: pooled matches random-effects meta-analysis", {
     scale = 1,
     check.attributes = FALSE
   )
-  expect_equal(estimate[, c("mu95Lb", "mu95Ub", "muSe", "tau95Lb", "tau95Ub", "seLogRr")],
-    pooledRandomFxEstimate[, c("mu95Lb", "mu95Ub", "muSe", "tau95Lb", "tau95Ub", "seLogRr")],
+  expect_equal(estimate[, c("mu95Lb", "mu95Ub", "muSe", "tau95Lb", "tau95Ub", "seLogRr", "predictionInterval95Lb", "predictionInterval95Ub")],
+    pooledRandomFxEstimate[, c("mu95Lb", "mu95Ub", "muSe", "tau95Lb", "tau95Ub", "seLogRr", "predictionInterval95Lb", "predictionInterval95Ub")],
     tolerance = 0.50,
     scale = 1,
     check.attributes = FALSE
@@ -112,8 +112,8 @@ test_that("Grid approximation: pooled matches random-effects meta-analysis", {
     scale = 1,
     check.attributes = FALSE
   )
-  expect_equal(estimate[, c("mu95Lb", "mu95Ub", "muSe", "tau95Lb", "tau95Ub", "seLogRr")],
-    pooledRandomFxEstimate[, c("mu95Lb", "mu95Ub", "muSe", "tau95Lb", "tau95Ub", "seLogRr")],
+  expect_equal(estimate[, c("mu95Lb", "mu95Ub", "muSe", "tau95Lb", "tau95Ub", "seLogRr", "predictionInterval95Lb", "predictionInterval95Ub")],
+    pooledRandomFxEstimate[, c("mu95Lb", "mu95Ub", "muSe", "tau95Lb", "tau95Ub", "seLogRr", "predictionInterval95Lb", "predictionInterval95Ub")],
     tolerance = 0.50,
     scale = 1,
     check.attributes = FALSE
@@ -148,8 +148,8 @@ test_that("Adaptive grid approximation: pooled matches random-effects meta-analy
     scale = 1,
     check.attributes = FALSE
   )
-  expect_equal(estimate[, c("mu95Lb", "mu95Ub", "muSe", "tau95Lb", "tau95Ub", "seLogRr")],
-    pooledRandomFxEstimate[, c("mu95Lb", "mu95Ub", "muSe", "tau95Lb", "tau95Ub", "seLogRr")],
+  expect_equal(estimate[, c("mu95Lb", "mu95Ub", "muSe", "tau95Lb", "tau95Ub", "seLogRr", "predictionInterval95Lb", "predictionInterval95Ub")],
+    pooledRandomFxEstimate[, c("mu95Lb", "mu95Ub", "muSe", "tau95Lb", "tau95Ub", "seLogRr", "predictionInterval95Lb", "predictionInterval95Ub")],
     tolerance = 0.50,
     scale = 1,
     check.attributes = FALSE
@@ -209,8 +209,8 @@ test_that("Skew-normal approximation: pooled matches random-effects meta-analysi
     scale = 1,
     check.attributes = FALSE
   )
-  expect_equal(estimate[, c("mu95Lb", "mu95Ub", "muSe", "tau95Lb", "tau95Ub", "seLogRr")],
-    pooledRandomFxEstimate[, c("mu95Lb", "mu95Ub", "muSe", "tau95Lb", "tau95Ub", "seLogRr")],
+  expect_equal(estimate[, c("mu95Lb", "mu95Ub", "muSe", "tau95Lb", "tau95Ub", "seLogRr", "predictionInterval95Lb", "predictionInterval95Ub")],
+    pooledRandomFxEstimate[, c("mu95Lb", "mu95Ub", "muSe", "tau95Lb", "tau95Ub", "seLogRr", "predictionInterval95Lb", "predictionInterval95Ub")],
     tolerance = 1.00,
     scale = 1,
     check.attributes = FALSE
@@ -246,8 +246,8 @@ test_that("Grid with gradients approximation: pooled matches random-effects meta
     scale = 1,
     check.attributes = FALSE
   )
-  expect_equal(estimate[, c("mu95Lb", "mu95Ub", "muSe", "tau95Lb", "tau95Ub", "seLogRr")],
-    pooledRandomFxEstimate[, c("mu95Lb", "mu95Ub", "muSe", "tau95Lb", "tau95Ub", "seLogRr")],
+  expect_equal(estimate[, c("mu95Lb", "mu95Ub", "muSe", "tau95Lb", "tau95Ub", "seLogRr", "predictionInterval95Lb", "predictionInterval95Ub")],
+    pooledRandomFxEstimate[, c("mu95Lb", "mu95Ub", "muSe", "tau95Lb", "tau95Ub", "seLogRr", "predictionInterval95Lb", "predictionInterval95Ub")],
     tolerance = 0.50,
     scale = 1,
     check.attributes = FALSE
@@ -283,8 +283,8 @@ test_that("SCCS adaptive grid approximation: pooled matches random-effects meta-
     scale = 1,
     check.attributes = FALSE
   )
-  expect_equal(estimate[, c("mu95Lb", "mu95Ub", "muSe", "tau95Lb", "tau95Ub", "seLogRr")],
-    sccsPooledRandomFxEstimate[, c("mu95Lb", "mu95Ub", "muSe", "tau95Lb", "tau95Ub", "seLogRr")],
+  expect_equal(estimate[, c("mu95Lb", "mu95Ub", "muSe", "tau95Lb", "tau95Ub", "seLogRr", "predictionInterval95Lb", "predictionInterval95Ub")],
+    sccsPooledRandomFxEstimate[, c("mu95Lb", "mu95Ub", "muSe", "tau95Lb", "tau95Ub", "seLogRr", "predictionInterval95Lb", "predictionInterval95Ub")],
     tolerance = 0.50,
     scale = 1,
     check.attributes = FALSE
@@ -320,8 +320,8 @@ test_that("SCCS adaptive grid approximation: pooled matches random-effects meta-
     scale = 1,
     check.attributes = FALSE
   )
-  expect_equal(estimate[, c("mu95Lb", "mu95Ub", "muSe", "tau95Lb", "tau95Ub", "seLogRr")],
-    sccsPooledRandomFxEstimate[, c("mu95Lb", "mu95Ub", "muSe", "tau95Lb", "tau95Ub", "seLogRr")],
+  expect_equal(estimate[, c("mu95Lb", "mu95Ub", "muSe", "tau95Lb", "tau95Ub", "seLogRr", "predictionInterval95Lb", "predictionInterval95Ub")],
+    sccsPooledRandomFxEstimate[, c("mu95Lb", "mu95Ub", "muSe", "tau95Lb", "tau95Ub", "seLogRr", "predictionInterval95Lb", "predictionInterval95Ub")],
     tolerance = 0.50,
     scale = 1,
     check.attributes = FALSE

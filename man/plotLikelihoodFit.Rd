@@ -52,7 +52,7 @@ cyclopsData <- Cyclops::createCyclopsData(Surv(time, y) ~ x + strata(stratumId),
   modelType = "cox"
 )
 cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
-approximation <- approximateLikelihood(cyclopsFit, parameter = "x", approximation = "custom")
+approximation <- approximateLikelihood(cyclopsFit, parameter = "x", approximation = "grid with gradients")
 
 plotLikelihoodFit(approximation, cyclopsFit, parameter = "x")
 
