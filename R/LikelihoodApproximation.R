@@ -640,7 +640,7 @@ cleanData <- function(data,
 #'
 #' @export
 constructDataModel <- function(data, labelReferences = NULL) {
-  type <- detectApproximationType(data)
+  type <- detectApproximationType(data, verbose = FALSE)
   data <- cleanApproximations(data)
   if (type == "normal") {
     if (nrow(data) == 0) {

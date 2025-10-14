@@ -18,7 +18,7 @@ Depends:
   R (>= 4.1.0)
 Imports:
   dplyr,
-  ggplot2,
+  ggplot2 (>= 4.0.0),
   ggdist,
   gridExtra,
   meta,

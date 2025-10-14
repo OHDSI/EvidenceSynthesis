@@ -7,6 +7,8 @@ Changes
 
 2. Updated style of `plotMetaAnalysisForest()` and added prediction intervals.
 
+3. Adhering to `ggplot2' version 4 syntax to avoid deprecation warnings.
+
 
 EvidenceSynthesis 1.0.0
 =======================

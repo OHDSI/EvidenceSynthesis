@@ -30,6 +30,16 @@ test_that("Plot forest using grid approximation", {
   expect_s3_class(plot, "gtable")
 })
 
+test_that("Plot forest using grid approximation, no likelihood", {
+  plot <- plotMetaAnalysisForest(data = approximations, labels = labels, estimate = estimate, showLikelihood = FALSE, fileName = tempFile)
+  expect_s3_class(plot, "gtable")
+})
+
+test_that("Plot forest using grid approximation, no likelihood, no prediction interval", {
+  plot <- plotMetaAnalysisForest(data = approximations, labels = labels, estimate = estimate, showLikelihood = FALSE, showPredictionInterval = FALSE, fileName = tempFile)
+  expect_s3_class(plot, "gtable")
+})
+
 test_that("Plot MCMC traces using grid approximation", {
   plot <- plotMcmcTrace(estimate, fileName = tempFile)
   expect_s3_class(plot, "ggplot")

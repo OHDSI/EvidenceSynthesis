@@ -48,12 +48,6 @@ computePredictionInterval <- function(traces, alpha = 0.05) {
 
   predictionInterval <- HDInterval::hdi(qmixnorm, credMass = 1 - alpha, means = traces[, 1], sds = traces[, 2])
   return(predictionInterval)
-
-  # To verify: use very large sample:
-  # predictionInterval
-  # predictions <- do.call(c, lapply(seq_len(nrow(traces)), function(i) rnorm(100000, traces[i, 1], traces[i, 2])))
-  # predictionInterval <- HDInterval::hdi(predictions, credMass = 1 - alpha)
-  # predictionInterval
 }
 
 #' Compute a Bayesian random-effects meta-analysis
@@ -204,7 +198,6 @@ computeBayesianMetaAnalysis <- function(data,
   hdiMu <- HDInterval::hdi(traces[, 1], credMass = 1 - alpha)
   hdiTau <- HDInterval::hdi(traces[, 2], credMass = 1 - alpha)
   mu <- mean(traces[, 1])
-  predictionInterval <- computePredictionInterval(traces, alpha)
   estimate <- data.frame(
     mu = mu,
     mu95Lb = hdiMu[1],
@@ -213,12 +206,19 @@ computeBayesianMetaAnalysis <- function(data,
     tau = median(traces[, 2]),
     tau95Lb = hdiTau[1],
     tau95Ub = hdiTau[2],
-    predictionInterval95Lb = predictionInterval[1],
-    predictionInterval95Ub = predictionInterval[2],
     logRr = mu,
     seLogRr = sqrt(mean((traces[, 1] - mu)^2)),
     row.names = NULL
   )
+  if (!robust) {
+    predictionInterval <- computePredictionInterval(traces, alpha)
+    estimate <- estimate |>
+      mutate(
+        predictionInterval95Lb = predictionInterval[1],
+        predictionInterval95Ub = predictionInterval[2]
+      )
+  }
+
   attr(estimate, "traces") <- traces
   attr(estimate, "type") <- type
   attr(estimate, "ess") <- coda::effectiveSize(traces)

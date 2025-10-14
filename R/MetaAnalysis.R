@@ -93,10 +93,10 @@ plotMetaAnalysisForest <- function(data,
     label = "Source"
   )
   getEstimate <- function(approximation) {
-    ci <- suppressMessages(computeConfidenceInterval(
+    ci <- suppressMessages(suppressWarnings(computeConfidenceInterval(
       approximation = approximation,
       alpha = alpha
-    ))
+    )))
     return(tibble(
       logRr = ci$logRr,
       logLb95Ci = log(ci$lb),
@@ -106,7 +106,9 @@ plotMetaAnalysisForest <- function(data,
   }
   d2 <- lapply(data, getEstimate)
   d2 <- bind_rows(d2) |>
-    mutate(label = labels)
+    mutate(logLb95Ci = if_else(.data$logLb95Ci < -10, -Inf, .data$logLb95Ci),
+           logUb95Ci = if_else(.data$logUb95Ci > 10, Inf, .data$logUb95Ci),
+           label = !!labels)
 
   if ("rr" %in% colnames(estimate)) {
     # Estimate produced by computeFixedEffectMetaAnalysis
@@ -117,26 +119,38 @@ plotMetaAnalysisForest <- function(data,
       type = "ma",
       label = summaryLabel
     )
+    hasSub <- FALSE
+    hasPredictionInterval <- FALSE
   } else if ("mu" %in% colnames(estimate)) {
     # Estimate produced by computeBayesianMetaAnalysis
+    # Testing servers may fail because they are unable to render the character for tau:
+    if (isRmdCheck()) {
+      tauString <- "tau"
+    } else {
+      tauString <- "\u03C4"
+    }
     d3 <- tibble(
-      logRr = c(estimate$logRr, NA),
+      logRr = c(estimate$logRr, -100),
       logLb95Ci = c(estimate$mu95Lb, NA),
       logUb95Ci = c(estimate$mu95Ub, NA),
       type = c("ma", "maSub"),
-      label = c("Bayesian random effects", sprintf("\u03C4 = %.2f (%.2f - %.2f)", estimate$tau, estimate$tau95Lb, estimate$tau95Ub))
+      label = c(summaryLabel, sprintf("%s = %.2f (%.2f - %.2f)", tauString, estimate$tau, estimate$tau95Lb, estimate$tau95Ub))
     )
+    hasSub <- TRUE
     if (showPredictionInterval) {
       d3 <- bind_rows(
         d3,
         tibble(
-          logRr = NA,
+          logRr = -100,
           logLb95Ci = estimate$predictionInterval95Lb,
           logUb95Ci = estimate$predictionInterval95Ub,
           type = "pi",
           label = "Prediction interval"
         )
       )
+      hasPredictionInterval <- TRUE
+    } else {
+      hasPredictionInterval <- FALSE
     }
   } else {
     stop("Unknown summary estimate type")
@@ -168,12 +182,21 @@ plotMetaAnalysisForest <- function(data,
   rowHeight <- 0.5
   breaks <- c(0.1, 0.25, 0.5, 1, 2, 4, 6, 8, 10)
   yLimits <- c(min(d$y) - rowHeight / 2, max(d$y) + rowHeight / 2)
-  rightPlot <- ggplot2::ggplot(plotD, ggplot2::aes(x = exp(.data$logRr), y = .data$y)) +
-    ggplot2::geom_rect(xmin = -10, xmax = 10, ymin = 0, ymax = maBoundaryY, size = 0, fill = "#69AED5", alpha = 0.25, data = tibble(logRr = 1, y = 1)) +
-    ggplot2::geom_segment(ggplot2::aes(x = .data$x, y = .data$y, xend = .data$x, yend = .data$yend), color = "#AAAAAA",  size = 0.2, data = data.frame(x = breaks, y = 0, yend = max(d$y) - 0.5)) +
-    ggplot2::geom_segment(ggplot2::aes(x = .data$x, y = .data$y, xend = .data$x, yend = .data$yend), size = 0.5, data = data.frame(x = 1, y = 0, yend = max(d$y) - 0.5)) +
+  rightPlot <- ggplot2::ggplot(plotD, ggplot2::aes(x = exp(.data$logRr), y = .data$y))
+  if (showLikelihood) {
+    rightPlot <- addLikelihoodPlots(plot = rightPlot,
+                                    data = data,
+                                    limits = limits,
+                                    alpha = alpha,
+                                    hasSub = hasSub,
+                                    hasPredictionInterval = hasPredictionInterval)
+  }
+  rightPlot <- rightPlot +
+    ggplot2::geom_rect(xmin = -10, xmax = 10, ymin = 0, ymax = maBoundaryY, linewidth = 0, fill = "#69AED5", alpha = 0.25, data = tibble(logRr = 1, y = 1)) +
+    ggplot2::geom_segment(ggplot2::aes(x = .data$x, y = .data$y, xend = .data$x, yend = .data$yend), color = "#AAAAAA",  linewidth = 0.2, data = data.frame(x = breaks, y = 0, yend = max(d$y) - 0.5)) +
+    ggplot2::geom_segment(ggplot2::aes(x = .data$x, y = .data$y, xend = .data$x, yend = .data$yend), linewidth = 0.5, data = data.frame(x = 1, y = 0, yend = max(d$y) - 0.5)) +
     ggplot2::geom_hline(ggplot2::aes(yintercept = max(d$y) - 0.5)) +
-    ggplot2::geom_errorbarh(ggplot2::aes(xmin = exp(.data$logLb95Ci), xmax = exp(.data$logUb95Ci)), height = 0.15) +
+    ggplot2::geom_errorbar(ggplot2::aes(xmin = exp(.data$logLb95Ci), xmax = exp(.data$logUb95Ci)), width = 0.15, orientation = "y") +
     ggplot2::geom_point(size = 3, shape = 16) +
     ggplot2::geom_polygon(ggplot2::aes(x = .data$x, y = .data$y, group = .data$group), data = diamondData) +
     ggplot2::scale_x_continuous(xLabel, trans = "log10", breaks = breaks, labels = breaks) +
@@ -184,14 +207,15 @@ plotMetaAnalysisForest <- function(data,
       panel.background = ggplot2::element_blank(),
       legend.position = "none",
       panel.border = ggplot2::element_blank(),
-      axis.text.x = ggplot2::element_text(color = "black"),
+      axis.text.x = ggplot2::element_text(size = 10, color = "black"),
+      axis.title.x = ggplot2::element_text(color = "black"),
       axis.text.y = ggplot2::element_blank(),
       axis.ticks.y = ggplot2::element_blank(),
       axis.title.y = ggplot2::element_blank(),
       axis.line.x.bottom = ggplot2::element_line(),
-      plot.margin = ggplot2::unit(c(0, 0, 0, -0.19), "lines")
+      plot.margin = ggplot2::unit(c(0, 0, 0, 0), "lines")
     )
-  rightPlot
+  # rightPlot
   d$logLb95Ci[is.infinite(d$logLb95Ci)] <- NA
   d$logUb95Ci[is.infinite(d$logUb95Ci)] <- NA
   d$logRr[exp(d$logRr) < limits[1] | exp(d$logRr) > limits[2]] <- NA
@@ -214,10 +238,11 @@ plotMetaAnalysisForest <- function(data,
   widths <- c(1.5, 1)
   width <- 7
   leftPlot <- ggplot2::ggplot(textTable, ggplot2::aes(x = .data$x, y = .data$y, label = .data$label)) +
-    ggplot2::geom_rect(xmin = -10, xmax = 10, ymin = 0, ymax = maBoundaryY, size = 0, fill = "#69AED5", alpha = 0.25, data = tibble(x = 1, y = 1, label = "NA")) +
+    ggplot2::geom_rect(xmin = -10, xmax = 10, ymin = 0, ymax = maBoundaryY, linewidth = 0, fill = "#69AED5", alpha = 0.25, data = tibble(x = 1, y = 1, label = "NA")) +
     ggplot2::geom_text(ggplot2::aes(fontface = .data$fontface), size = 4, hjust = 0, vjust = 0.5) +
     ggplot2::geom_hline(ggplot2::aes(yintercept = max(d$y) - 0.5)) +
     ggplot2::labs(x = "", y = "") +
+    ggplot2::scale_x_continuous("Dummy") +
     ggplot2::coord_cartesian(xlim = xLimits, ylim = yLimits) +
     ggplot2::theme(
       panel.grid.major = ggplot2::element_blank(),
@@ -225,9 +250,11 @@ plotMetaAnalysisForest <- function(data,
       panel.background = ggplot2::element_blank(),
       legend.position = "none",
       panel.border = ggplot2::element_blank(),
-      axis.text.x = ggplot2::element_text(color = "white"),
+      axis.text.x = ggplot2::element_text(size = 10, color = "#FFFFFF00"),
+      axis.title.x = ggplot2::element_text(color = "#FFFFFF00"),
       axis.text.y = ggplot2::element_blank(),
-      axis.ticks = ggplot2::element_blank(),
+      axis.ticks.x = ggplot2::element_line(color = "#FFFFFF00"),
+      axis.ticks.y = ggplot2::element_blank(),
       axis.title.y = ggplot2::element_blank(),
       axis.line.x.bottom = ggplot2::element_line(),
       plot.margin = ggplot2::unit(c(0, 0, 0, 0), "lines")
@@ -238,3 +265,54 @@ plotMetaAnalysisForest <- function(data,
   }
   invisible(plot)
 }
+
+addLikelihoodPlots <- function(plot, data, limits, alpha, hasSub, hasPredictionInterval) {
+  yLimit <- -qchisq(1 - alpha, df = 1) / 2
+  xLimits <- c(limits[1] / 2, limits[2] * 2)
+  rowHeight <- 0.5
+  transformY <- function(coords, yOffset) {
+    coords$y <- coords$y - max(coords$y)
+    coords <- coords[coords$y >= yLimit, ]
+    coords$y <- rowHeight / 2 - (coords$y * rowHeight / yLimit) + yOffset
+    coords$y2 <- yOffset - rowHeight / 2
+    return(coords)
+  }
+  getCoords <- function(i) {
+    yOffset <- 2
+    if (hasSub) {
+      yOffset <- yOffset + 0.5
+    }
+    if (hasPredictionInterval) {
+      yOffset <- yOffset + 1
+    }
+
+    coords <- getLikelihoodCoordinates(data[[i]], xLimits, verbose = FALSE)
+    coords <- transformY(coords, length(data) - i + yOffset)
+    coords$group <- length(data) - i + 2
+    return(coords)
+  }
+  llData <- lapply(seq_along(data), getCoords)
+  llData <- bind_rows(llData)
+
+  uniqueYs <- unique(llData$y2)
+  nSteps <- 10
+  ys <- rep(uniqueYs, nSteps) + rep((rowHeight / 2) * ((seq_len(nSteps) - 1) / nSteps), each = length(uniqueYs))
+  fadeData <- data.frame(
+    xmin = xLimits[1],
+    xmax = xLimits[2],
+    ymin = ys-0.01,
+    ymax = ys + rowHeight / 2 / nSteps,
+    alpha = 1 - rep(seq_len(nSteps) / nSteps, each = length(uniqueYs)),
+    logRr = 0,
+    y = 1
+  )
+  plot <- plot + ggplot2::geom_ribbon(
+    ggplot2::aes(x = exp(.data$x), ymax = .data$y, ymin = .data$y2, group = .data$group),
+    fill = "black",
+    alpha = 0.25,
+    data = llData
+  ) +
+    ggplot2::geom_rect(ggplot2::aes(xmin = .data$xmin, xmax = .data$xmax, ymin = .data$ymin, ymax = .data$ymax, alpha = .data$alpha), fill = "#FFFFFF", data = fadeData)
+  return(plot)
+}
+
