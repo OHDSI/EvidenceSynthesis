@@ -88,7 +88,9 @@ computePredictionInterval <- function(traces, alpha = 0.05) {
 #'     modelType = "cox"
 #'   )
 #'   cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
-#'   approximation <- approximateLikelihood(cyclopsFit, parameter = "x", approximation = "grid with gradients")
+#'   approximation <- approximateLikelihood(cyclopsFit,
+#'                                          parameter = "x",
+#'                                          approximation = "grid with gradients")
 #'   return(approximation)
 #' }
 #' approximations <- lapply(populations, fitModelInDatabase)

@@ -44,7 +44,9 @@
 #'   modelType = "cox"
 #' )
 #' cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
-#' approximation <- approximateLikelihood(cyclopsFit, parameter = "x", approximation = "grid with gradients")
+#' approximation <- approximateLikelihood(cyclopsFit,
+#'                                        parameter = "x",
+#'                                        approximation = "grid with gradients")
 #'
 #' plotLikelihoodFit(approximation, cyclopsFit, parameter = "x")
 #'
@@ -167,7 +169,9 @@ getLikelihoodCoordinates <- function(approximation, limits, verbose = TRUE) {
 #'     modelType = "cox"
 #'   )
 #'   cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
-#'   approximation <- approximateLikelihood(cyclopsFit, parameter = "x", approximation = "grid with gradients")
+#'   approximation <- approximateLikelihood(cyclopsFit,
+#'                                          parameter = "x",
+#'                                          approximation = "grid with gradients")
 #'   return(approximation)
 #' }
 #' approximations <- lapply(populations, fitModelInDatabase)
@@ -252,7 +256,9 @@ plotMcmcTrace <- function(estimate, showEstimate = TRUE, dataCutoff = 0.01, file
 #'     modelType = "cox"
 #'   )
 #'   cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
-#'   approximation <- approximateLikelihood(cyclopsFit, parameter = "x", approximation = "grid with gradients")
+#'   approximation <- approximateLikelihood(cyclopsFit,
+#'                                          parameter = "x",
+#'                                          approximation = "grid with gradients")
 #'   return(approximation)
 #' }
 #' approximations <- lapply(populations, fitModelInDatabase)
@@ -335,7 +341,9 @@ plotPerDbMcmcTrace <- function(estimate, showEstimate = TRUE, dataCutoff = 0.01,
 #'     modelType = "cox"
 #'   )
 #'   cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
-#'   approximation <- approximateLikelihood(cyclopsFit, parameter = "x", approximation = "grid with gradients")
+#'   approximation <- approximateLikelihood(cyclopsFit,
+#'                                          parameter = "x",
+#'                                          approximation = "grid with gradients")
 #'   return(approximation)
 #' }
 #' approximations <- lapply(populations, fitModelInDatabase)
@@ -414,7 +422,9 @@ plotPosterior <- function(estimate, showEstimate = TRUE, dataCutoff = 0.01, file
 #'     modelType = "cox"
 #'   )
 #'   cyclopsFit <- Cyclops::fitCyclopsModel(cyclopsData)
-#'   approximation <- approximateLikelihood(cyclopsFit, parameter = "x", approximation = "grid with gradients")
+#'   approximation <- approximateLikelihood(cyclopsFit,
+#'                                          parameter = "x",
+#'                                          approximation = "grid with gradients")
 #'   return(approximation)
 #' }
 #' approximations <- lapply(populations, fitModelInDatabase)
