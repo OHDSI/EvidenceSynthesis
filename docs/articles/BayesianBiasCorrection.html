@@ -32,7 +32,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">EvidenceSynthesis</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.0.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.1.0</span>
       </span>
     </div>
 
@@ -95,7 +95,7 @@ likelihoods</h1>
 <code>EvidenceSynthesis</code> package</h3>
                         <h4 data-toc-skip class="author">Fan Bu</h4>
             
-            <h4 data-toc-skip class="date">2025-08-22</h4>
+            <h4 data-toc-skip class="date">2025-10-15</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/OHDSI/EvidenceSynthesis/blob/HEAD/vignettes/BayesianBiasCorrection.Rmd" class="external-link"><code>vignettes/BayesianBiasCorrection.Rmd</code></a></small>
       <div class="hidden name"><code>BayesianBiasCorrection.Rmd</code></div>
@@ -176,10 +176,9 @@ values.</p>
 <p>For example, we can check out the profile likelihood for one of the
 negative control outcomes at the 1st analysis period:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ohdsi.github.io/EvidenceSynthesis/" class="external-link">EvidenceSynthesis</a></span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Warning: package 'survival' was built under R version 4.4.3</span></span></code></pre>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="st">"ncLikelihoods"</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ohdsi.github.io/EvidenceSynthesis/" class="external-link">EvidenceSynthesis</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="st">"ncLikelihoods"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="st">"ooiLikelihoods"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">ncLikelihoods</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
@@ -254,14 +253,14 @@ Monte Carlo (MCMC).</p>
 <p>For instance, to learn the bias distribution at the 1st period using
 the example dataset, we can call the
 <code>fitBiasDistribution</code>:</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">singleBiasDist</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fitBiasDistribution.html">fitBiasDistribution</a></span><span class="op">(</span><span class="va">ncLikelihoods</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>,</span>
 <span>  seed <span class="op">=</span> <span class="fl">42</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p>The default setting would fit a hierarchical normal model. To fit a
 more robust distribution that can better handle heavy tails and
 outliers, we can set <code>robust = TRUE</code>:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">singleBiasDistRobust</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fitBiasDistribution.html">fitBiasDistribution</a></span><span class="op">(</span><span class="va">ncLikelihoods</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span>,</span>
 <span>  robust <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  seed <span class="op">=</span> <span class="fl">42</span></span>
@@ -274,14 +273,14 @@ adaptively learn all empirical bias distributions across all
 analysis periods in the example data, under the
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>t</mi><annotation encoding="application/x-tex">t</annotation></semantics></math>
 model:</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">BiasDistRobust</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sequentialFitBiasDistribution.html">sequentialFitBiasDistribution</a></span><span class="op">(</span><span class="va">ncLikelihoods</span>,</span>
 <span>  robust <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  seed <span class="op">=</span> <span class="fl">1</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p>We can visualize the learned bias distributions over time using the
 <code>plotBiasDistribution</code> function:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotBiasDistribution.html">plotBiasDistribution</a></span><span class="op">(</span><span class="va">BiasDistRobust</span>, limits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">3</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><img src="BayesianBiasCorrection_files/figure-html/unnamed-chunk-4-1.png" width="700"></p>
 </div>
@@ -303,7 +302,7 @@ only, or for all analysis timepoints
 <code>biasCorrectionInference</code>. To perform bias correction for the
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mn>5</mn><annotation encoding="application/x-tex">5</annotation></semantics></math>th
 analysis, for example:</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># select profile likelihoods for the 5th analysis period</span></span>
 <span><span class="va">ooiLik5</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">ooiLikelihoods</span><span class="op">[[</span><span class="st">"5"</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="va">ncLik5</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">ncLikelihoods</span><span class="op">[[</span><span class="st">"5"</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
@@ -330,7 +329,7 @@ separately, then we can also specify it in the
 <code>biasDistributions</code> argument. This can be more convenient and
 efficient if there are more than one outcomes of interest to analyze, as
 the learned bias distributions can then be re-used. For example:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># learn bias distribution for the 5th analysis period first</span></span>
 <span><span class="va">biasDist5</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fitBiasDistribution.html">fitBiasDistribution</a></span><span class="op">(</span><span class="va">ncLikelihoods</span><span class="op">[[</span><span class="st">"5"</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
 <span></span>
@@ -350,14 +349,14 @@ probability that there is a positive effect (in column <code>p1</code>).
 Estimates without bias correction can be accessed in the
 <code>summaryRaw</code> attribute, and so we can compare the results
 with and without bias correction.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/bind_rows.html" class="external-link">bind_rows</a></span><span class="op">(</span></span>
-<span>  <span class="va">bbcResult5</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>biasCorrection <span class="op">=</span> <span class="st">"yes"</span><span class="op">)</span>,</span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">bbcResult5</span>, <span class="st">"summaryRaw"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>  <span class="va">bbcResult5</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>biasCorrection <span class="op">=</span> <span class="st">"yes"</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">bbcResult5</span>, <span class="st">"summaryRaw"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>biasCorrection <span class="op">=</span> <span class="st">"no"</span><span class="op">)</span></span>
-<span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">Id</span><span class="op">)</span>, digits <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <thead><tr class="header">
@@ -391,7 +390,7 @@ with and without bias correction.</p>
 time, we should supply profile likelihoods across all analysis
 periods/groups in the input. For example, if we use the already learned
 bias distributions <code>BiasDistRobust</code>:</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">bbcSequential</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/biasCorrectionInference.html">biasCorrectionInference</a></span><span class="op">(</span><span class="va">ooiLikelihoods</span>,</span>
 <span>  biasDistributions <span class="op">=</span> <span class="va">BiasDistRobust</span>,</span>
 <span>  priorMean <span class="op">=</span> <span class="fl">0</span>,</span>
@@ -400,8 +399,8 @@ bias distributions <code>BiasDistRobust</code>:</p>
 <span>  seed <span class="op">=</span> <span class="fl">42</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p>We can then check out the sequential analysis results:</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">bbcSequential</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span>period <span class="op">=</span> <span class="va">Id</span>, <span class="va">median</span><span class="op">:</span><span class="va">p1</span><span class="op">)</span>, digits <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">bbcSequential</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span>period <span class="op">=</span> <span class="va">Id</span>, <span class="va">median</span><span class="op">:</span><span class="va">p1</span><span class="op">)</span>, digits <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
 <thead><tr class="header">
 <th align="left">period</th>
@@ -516,7 +515,7 @@ example, we can visualize the posterior distributions of the bias
 corrected log RR across analysis periods, along with posterior
 probabilities for a positive effect size (<code>P(H1)</code>) or a
 non-positive effect size (<code>P(H0)</code>):</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotBiasCorrectionInference.html">plotBiasCorrectionInference</a></span><span class="op">(</span><span class="va">bbcSequential</span>,</span>
 <span>  type <span class="op">=</span> <span class="st">"corrected"</span>,</span>
 <span>  limits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">4</span>, <span class="fl">4</span><span class="op">)</span></span>
@@ -525,7 +524,7 @@ non-positive effect size (<code>P(H0)</code>):</p>
 <p>Meanwhile, we can also compare the estimates with and without bias
 correction. It is also possible to only examine certain analysis
 periods/groups by specifying the <code>ids</code> argument.</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotBiasCorrectionInference.html">plotBiasCorrectionInference</a></span><span class="op">(</span><span class="va">bbcSequential</span>,</span>
 <span>  type <span class="op">=</span> <span class="st">"compare"</span>,</span>
 <span>  limits <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">4</span>, <span class="fl">4</span><span class="op">)</span>,</span>

@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">EvidenceSynthesis</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.0.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.1.0</span>
       </span>
     </div>
 
@@ -114,17 +114,18 @@ error (seLogRr).</p>
 <span class="r-in"><span>    modelType <span class="op">=</span> <span class="st">"cox"</span></span></span>
 <span class="r-in"><span>  <span class="op">)</span></span></span>
 <span class="r-in"><span>  <span class="va">cyclopsFit</span> <span class="op">&lt;-</span> <span class="fu">Cyclops</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/Cyclops/man/fitCyclopsModel.html" class="external-link">fitCyclopsModel</a></span><span class="op">(</span><span class="va">cyclopsData</span><span class="op">)</span></span></span>
-<span class="r-in"><span>  <span class="va">approximation</span> <span class="op">&lt;-</span> <span class="fu"><a href="approximateLikelihood.html">approximateLikelihood</a></span><span class="op">(</span><span class="va">cyclopsFit</span>, parameter <span class="op">=</span> <span class="st">"x"</span>, approximation <span class="op">=</span> <span class="st">"custom"</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  <span class="va">approximation</span> <span class="op">&lt;-</span> <span class="fu"><a href="approximateLikelihood.html">approximateLikelihood</a></span><span class="op">(</span><span class="va">cyclopsFit</span>,</span></span>
+<span class="r-in"><span>                                         parameter <span class="op">=</span> <span class="st">"x"</span>,</span></span>
+<span class="r-in"><span>                                         approximation <span class="op">=</span> <span class="st">"grid with gradients"</span><span class="op">)</span></span></span>
 <span class="r-in"><span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="va">approximation</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 <span class="r-in"><span><span class="va">approximations</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">populations</span>, <span class="va">fitModelInDatabase</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">approximations</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="st">"rbind"</span>, <span class="va">approximations</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># At study coordinating center, perform meta-analysis using per-site approximations:</span></span></span>
 <span class="r-in"><span><span class="fu">computeFixedEffectMetaAnalysis</span><span class="op">(</span><span class="va">approximations</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Detected data following custom parameric distribution</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         rr        lb       ub     logRr   seLogRr</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 1.343546 0.5870484 2.792583 0.2953125 0.3978683</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Detected data following grid with gradients distribution</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         rr       lb       ub     logRr   seLogRr</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 1.344071 0.595867 2.755084 0.2957031 0.3906158</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># (Estimates in this example will vary due to the random simulation)</span></span></span>
 <span class="r-in"><span></span></span>

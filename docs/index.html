@@ -33,7 +33,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="index.html">EvidenceSynthesis</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.0.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.1.0</span>
       </span>
     </div>
 
@@ -122,7 +122,9 @@
 <span>                                            data <span class="op">=</span> <span class="va">population</span>,</span>
 <span>                                            modelType <span class="op">=</span> <span class="st">"cox"</span><span class="op">)</span></span>
 <span>  <span class="va">cyclopsFit</span> <span class="op">&lt;-</span> <span class="fu">Cyclops</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/Cyclops/man/fitCyclopsModel.html" class="external-link">fitCyclopsModel</a></span><span class="op">(</span><span class="va">cyclopsData</span><span class="op">)</span></span>
-<span>  <span class="va">approximation</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/approximateLikelihood.html">approximateLikelihood</a></span><span class="op">(</span><span class="va">cyclopsFit</span>, parameter <span class="op">=</span> <span class="st">"x"</span>, approximation <span class="op">=</span> <span class="st">"grid with gradients"</span><span class="op">)</span></span>
+<span>  <span class="va">approximation</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/approximateLikelihood.html">approximateLikelihood</a></span><span class="op">(</span><span class="va">cyclopsFit</span>, </span>
+<span>                                         parameter <span class="op">=</span> <span class="st">"x"</span>, </span>
+<span>                                         approximation <span class="op">=</span> <span class="st">"grid with gradients"</span><span class="op">)</span></span>
 <span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="va">approximation</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span><span class="va">approximations</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">populations</span>, <span class="va">fitModelInDatabase</span><span class="op">)</span></span>
