@@ -4,4 +4,5 @@
 /bin/
 .idea
 extras/build
+extras/*.rds
 .DS_Store
