@@ -106,6 +106,11 @@ public class HierarchicalMetaAnalysis implements Analysis {
 		Parameter taus;
 		List<Integer> betaToTauIndexMap = null; // map each beta to a tau (secondary/source level) index
 
+		// To-do: build some other index mapping from beta to entries in the \Sigma covariance matrix???
+		List<Integer> betaToSigmaIndexMap = null;
+
+		// Some code has to happen here
+
         if (cg.includeSecondary && cg.useHeteroscedasticModel) {
 			// Heteroscedastic model: one tau per secondary/source level
 			int secondaryCount = getMaxIdentifier(allMetaAnalysisDataModels);
@@ -243,12 +248,19 @@ public class HierarchicalMetaAnalysis implements Analysis {
 		}
 
 		// Assemble pieces for the linear model
-		SimpleLinearModel allEffectDistribution;
-		if (cg.includeSecondary && cg.useHeteroscedasticModel) {
-			// Assumes a new constructor in SimpleLinearModel for heteroscedasticity
+		// To-do: build a `BlockLinearModel` class to allow block diagonal covariance matrix, in place of the scalar/vector tau
+		if (cg.includeSecondary && cg.blockCovariance) {
+			// To-do: need to use new constructor!! (hasn't been defined)
+			BlockLinearModel allEffectDistribution;
+			allEffectDistribution = new BlockLinearModel("linearModel",
+					allBetas, designMatrix, allEffects, taus, betaToSigmaIndexMap);
+		}if (cg.includeSecondary && cg.useHeteroscedasticModel) {
+			SimpleLinearModel allEffectDistribution;
+			// Uses new constructor in SimpleLinearModel for heteroscedasticity
 			allEffectDistribution = new SimpleLinearModel("linearModel",
 					allBetas, designMatrix, allEffects, taus, betaToTauIndexMap);
 		} else {
+			SimpleLinearModel allEffectDistribution;
 			// Uses the original constructor for the homoscedastic case
 			allEffectDistribution = new SimpleLinearModel("linearModel",
 					allBetas, designMatrix, allEffects, taus);
@@ -384,6 +396,9 @@ public class HierarchicalMetaAnalysis implements Analysis {
 
 		// using a heteroscedastic model (for the variance tau)?
 		public boolean useHeteroscedasticModel = false;
+
+		// using a block diagonal covariance model for the error terms?
+		public boolean blockCovariance = false;
 
 		// using HMC sampler?
 		public boolean useHMC = false;
@@ -607,38 +622,27 @@ public class HierarchicalMetaAnalysis implements Analysis {
 
 
 		List<DataModel> allDataModels = new ArrayList<>();
-		allDataModels.add(new ExtendingEmpiricalDataModel("ForDavid/grids_example_1.csv"));
-		allDataModels.add(new ExtendingEmpiricalDataModel("ForDavid/grids_example_2.csv"));
-		allDataModels.add(new ExtendingEmpiricalDataModel("ForDavid/grids_example_3.csv"));
+		allDataModels.add(new ExtendingEmpiricalDataModel("extras/DM_example/grids_example_1.csv"));
+		allDataModels.add(new ExtendingEmpiricalDataModel("extras/DM_example/grids_example_2.csv"));
+		allDataModels.add(new ExtendingEmpiricalDataModel("extras/DM_example/grids_example_3.csv"));
 
-		// just add the main outcome again profiles, pretending there are 2 main outcomes
-		allDataModels.add(new ExtendingEmpiricalDataModel("ForDavid/grids_example_4.csv"));
+		// uncomment this to try settings with 2 main outcomes
+		// allDataModels.add(new ExtendingEmpiricalDataModel("extras/DM_example/grids_example_4.csv"));
 
 		HierarchicalMetaAnalysisConfiguration cg = new HierarchicalMetaAnalysisConfiguration();
 
-		//cg.tauShape = 1.0;
-		//cg.tauScale = 100.0; // change up prior for tau, precision for the iid normal error term
-		//cg.startingTau = 0.5;
+		// set number of effectCount to 2 for the example with 2 main outcomes
+		// cg.effectCount = 2;
+		// cg.exposureHyperStdDev.add(10.0);
 
-		//cg.hierarchicalLocationPrimaryHyperStdDev = 0.0001; // trying forcing outcome.mean to be very close to 0
-		//cg.gammaHyperPrimaryShape = 1000000; // change up prior for across-outcome / across-datasource precision term
-		//cg.gammaHyperPrimaryScale = 0.0001;
+		// uncomment this to fit heteroscedastic model
+		// cg.useHeteroscedasticModel = true;
 
-		//cg.hierarchicalLocationSecondaryHyperStdDev = 0.0001; // force source.mean to be very close to 0
-		//cg.gammaHyperSecondaryShape = 100000;
-		//cg.gammaHyperSecondaryScale = 0.0001;
+		// set to `true` to use HMC; `false` to use  random-walk MH
+		// cg.useHMC = true;
 
-		//cg.separateEffectPrior = true; // try with separate prior on main effect
-		//cg.exposureHyperLocation = 3; // try very strong prior for main effect
-		//cg.exposureHyperStdDev = 0.01;
-
-		cg.effectCount = 2; // try a fake example with 2 main outcomes
-		//cg.exposureHyperLocation.add(2.0);
-		cg.exposureHyperStdDev.add(10.0);
-
-		cg.useHeteroscedasticModel = true; // try using heteroscedastic variances
-
-		cg.useHMC = true; // set to `true` to use HMC; `false` to use regular MH
+		// uncomment this to turn on option for block covariance matrix for the error terms
+		cg.blockCovariance = true;
 
 		HierarchicalMetaAnalysis analysis = new HierarchicalMetaAnalysis(allDataModels,
 				cg);

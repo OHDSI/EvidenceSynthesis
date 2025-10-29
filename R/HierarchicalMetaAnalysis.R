@@ -57,6 +57,7 @@ summarizeChain <- function(chain, alpha = 0.05){
 #' @param exposureEffectCount            Number of main outcomes of interest to estimate effect for? Default = 1
 #' @param separateExposurePrior          Use a separable prior on the main exposure effect? Default is FALSE.
 #' @param useHeteroscedasticModel        Heteroscedastic model with difference variances across sources? Default is FALSE.
+#' @param blockCovariance                Use block diagonal covariance matrix for error terms from the outcome? Default is FALSE. NOT IMPLEMENTED YET!
 #' @param useHMC                         Use Hamiltonian Monte Carlo (HMC)? Default is FALSE.
 #' @param chainLength                    Number of MCMC iterations.
 #' @param burnIn                         Number of MCMC iterations to consider as burn in.
@@ -81,6 +82,7 @@ generateBayesianHMAsettings <- function(primaryEffectPriorStd = 1.0,
                                         exposureEffectCount = 1,
                                         separateExposurePrior = FALSE,
                                         useHeteroscedasticModel = FALSE,
+                                        blockCovariance = FALSE,
                                         useHMC = FALSE,
                                         chainLength = 1100000,
                                         burnIn = 1e+05,
@@ -98,6 +100,7 @@ generateBayesianHMAsettings <- function(primaryEffectPriorStd = 1.0,
     exposureEffectCount = exposureEffectCount,
     separateExposurePrior = separateExposurePrior,
     useHeteroscedasticModel = useHeteroscedasticModel,
+    blockCovariance = blockCovariance,
     useHMC = useHMC,
     chainLength = chainLength,
     burnIn = burnIn,

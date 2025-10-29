@@ -18,6 +18,7 @@ generateBayesianHMAsettings(
   exposureEffectCount = 1,
   separateExposurePrior = FALSE,
   useHeteroscedasticModel = FALSE,
+  blockCovariance = FALSE,
   useHMC = FALSE,
   chainLength = 1100000,
   burnIn = 1e+05,
@@ -55,6 +56,8 @@ normal model for random errors.}
 \item{separateExposurePrior}{Use a separable prior on the main exposure effect? Default is FALSE.}
 
 \item{useHeteroscedasticModel}{Heteroscedastic model with difference variances across sources? Default is FALSE.}
+
+\item{blockCovariance}{Use block diagonal covariance matrix for error terms from the outcome? Default is FALSE. NOT IMPLEMENTED YET!}
 
 \item{useHMC}{Use Hamiltonian Monte Carlo (HMC)? Default is FALSE.}
 

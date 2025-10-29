@@ -66,7 +66,7 @@ public class SimpleLinearModel extends AbstractModelLikelihood {
                              Parameter argument,
                              DesignMatrix designMatrix,
                              Parameter effects,
-                             Parameter precision,
+                             Parameter precision, //to-do: make this into a covariance matrix (LKJ prior on correlation)
                              List<Integer> betaToTauIndexMap) {
         super(name);
 
