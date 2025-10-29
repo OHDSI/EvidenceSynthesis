@@ -110,12 +110,16 @@ public class SimpleLinearModel extends AbstractModelLikelihood {
         }
     }
 
-    private double calculateLogLikelihood() {
-
+    protected void checkInnerProduct() {
         if (!innerProductKnown) {
             computeInnerProduct(innerProduct);
             innerProductKnown = true;
         }
+    }
+
+    protected double calculateLogLikelihood() {
+
+        checkInnerProduct();
 
         double logLikelihood = 0.0;
 
@@ -215,10 +219,7 @@ public class SimpleLinearModel extends AbstractModelLikelihood {
     public final Parameter getPrecision() { return precision; }
 
     public final double[] getInnerProduct() {
-        if (!innerProductKnown) {
-            computeInnerProduct(innerProduct);
-            innerProductKnown = true;
-        }
+        checkInnerProduct();
         return innerProduct;
     }
 
