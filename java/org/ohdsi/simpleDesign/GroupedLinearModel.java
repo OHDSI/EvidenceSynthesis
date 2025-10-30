@@ -15,17 +15,81 @@
  ******************************************************************************/
 package org.ohdsi.simpleDesign;
 
+import dr.inference.distribution.MultivariateNormalDistributionModel;
 import dr.inference.model.*;
+import dr.math.distributions.WishartSufficientStatistics;
+import dr.math.interfaces.ConjugateWishartStatisticsProvider;
 
-public class GroupedLinearModel extends SimpleLinearModel {
+public class GroupedLinearModel extends SimpleLinearModel implements ConjugateWishartStatisticsProvider {
+
+    public enum Grouping {
+        BY_ROW {
+            @Override
+            public int getDimension(MatrixParameterInterface argument) {
+                return argument.getColumnDimension();
+            }
+
+            @Override
+            public int index(int group, int dimensionWithinGroup, int stride) {
+                return dimensionWithinGroup * stride + group;
+            }
+        },
+        BY_COLUMN {
+            @Override
+            public int getDimension(MatrixParameterInterface argument) {
+                return argument.getRowDimension();
+            }
+
+            @Override
+            public int index(int group, int dimensionWithinGroup, int stride) {
+                return group * stride + dimensionWithinGroup;
+            }
+        };
+
+        public abstract int getDimension(MatrixParameterInterface argument);
+
+        public abstract int index(int group, int dimensionWithinGroup, int stride);
+    }
+
+    private final Grouping grouping;
+    private final int numGroups;
+    private final int mvnDim;
+    private final MatrixParameterInterface precision;
+    private final MultivariateNormalDistributionModel mvn;
+
+    private final double[] delta;
 
     public GroupedLinearModel(String name,
-                              Parameter argument,
+                              MatrixParameter argument,
                               DesignMatrix designMatrix,
                               Parameter effects,
-                              Parameter precision) {
+                              MatrixParameter precision,
+                              Grouping grouping) {
 
         super(name, argument, designMatrix, effects, precision);
+        this.mvnDim = grouping.getDimension(argument);
+
+        assert mvnDim == precision.getRowDimension();
+        assert mvnDim == precision.getColumnDimension();
+
+        this.mvn = new MultivariateNormalDistributionModel(
+                new Parameter.Default(mvnDim, 0.0), precision);
+
+        this.precision = precision;
+        this.grouping = grouping;
+        this.numGroups = argument.getDimension() / mvnDim;
+        this.delta = new double[mvnDim];
+
+        addModel(mvn);
+    }
+
+    @Override
+    protected void handleModelChangedEvent(Model model, Object o, int i) {
+        if (model == mvn) {
+            likelihoodKnown = false;
+        } else {
+            throw new RuntimeException("Should not occur");
+        }
     }
 
     @Override
@@ -33,15 +97,56 @@ public class GroupedLinearModel extends SimpleLinearModel {
 
         checkInnerProduct();
 
-//        double tau = precision.getParameterValue(0);
-//        double sd = 1.0 / Math.sqrt(tau);
-//
         double logLikelihood = 0.0;
-//        for (int i = 0; i < argument.getDimension(); ++i) {
-//            logLikelihood += NormalDistribution.logPdf(argument.getParameterValue(i), innerProduct[i], sd);
-//        }
+        for (int g = 0; g < numGroups; ++g) {
+            logLikelihood += mvn.logPdf(getDeltaForGroup(g));
+        }
 
         return logLikelihood;
     }
 
+    private double[] getDeltaForGroup(int group) {
+
+        for (int j = 0; j < mvnDim; ++j) {
+            int index = grouping.index(group, j, numGroups);
+            delta[j] = argument.getParameterValue(index) - innerProduct[index];
+        }
+
+        return delta;
+    }
+
+    private int getDf() { return numGroups; }
+
+    private double[] getOuterProducts() {
+
+        checkInnerProduct();
+
+        double[] outerProducts = new double[mvnDim * mvnDim];
+
+        for (int g = 0; g < numGroups; ++g) {
+
+            double[] delta = getDeltaForGroup(g);
+            int index = 0;
+            for (int i = 0; i < mvnDim; ++i) {
+                for (int j = 0; j < mvnDim; ++j) {
+                    outerProducts[index] += delta[i] * delta[j];
+                    ++index;
+                }
+            }
+        }
+
+        return outerProducts;
+    }
+
+    @Override
+    public WishartSufficientStatistics getWishartStatistics() {
+        int df = getDf();
+        double[] outerProducts = getOuterProducts();
+        return new WishartSufficientStatistics(df, outerProducts);
+    }
+
+    @Override
+    public MatrixParameterInterface getPrecisionParameter() {
+        return precision;
+    }
 }

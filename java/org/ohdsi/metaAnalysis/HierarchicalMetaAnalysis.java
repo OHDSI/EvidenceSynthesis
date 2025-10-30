@@ -15,7 +15,9 @@
  ******************************************************************************/
 package org.ohdsi.metaAnalysis;
 
+import dr.evomodel.operators.PrecisionMatrixGibbsOperator;
 import dr.inference.distribution.DistributionLikelihood;
+import dr.inference.distribution.MultivariateDistributionLikelihood;
 import dr.inference.distribution.NormalDistributionModel;
 import dr.inference.hmc.CompoundDerivative;
 import dr.inference.hmc.CompoundGradient;
@@ -28,10 +30,13 @@ import dr.inference.operators.hmc.*;
 import dr.math.MathUtils;
 import dr.math.distributions.GammaDistribution;
 import dr.math.distributions.NormalDistribution;
+import dr.math.distributions.WishartDistribution;
+import dr.math.distributions.WishartStatistics;
 import org.ohdsi.hmc.HmcOptions;
 import org.ohdsi.likelihood.CachedModelLikelihood;
 import org.ohdsi.mcmc.Analysis;
 import org.ohdsi.mcmc.Runner;
+import org.ohdsi.simpleDesign.GroupedLinearModel;
 import org.ohdsi.simpleDesign.SimpleLinearModel;
 import org.ohdsi.simpleDesign.SimpleLinearModelGradientWrtArgument;
 import org.ohdsi.simpleDesign.SimpleLinearModelGradientWrtEffects;
@@ -90,7 +95,7 @@ public class HierarchicalMetaAnalysis implements Analysis {
 			++metaAnalysisCount;
 		}
 
-		CompoundParameter allBetas = new CompoundParameter("all.beta");
+		MatrixParameter allBetas = new MatrixParameter("all.beta");
 		for (Parameter beta : allParameters) {
 			allBetas.addParameter(beta);
 		}
@@ -105,11 +110,9 @@ public class HierarchicalMetaAnalysis implements Analysis {
 		// Variance term: enable a heteroscedastic model where variance depends on the secondary (data source) effect
 		Parameter taus;
 		List<Integer> betaToTauIndexMap = null; // map each beta to a tau (secondary/source level) index
+		GroupedLinearModel.Grouping grouping = GroupedLinearModel.Grouping.BY_ROW; // TODO pass as option?
 
-		// To-do: build some other index mapping from beta to entries in the \Sigma covariance matrix???
-		List<Integer> betaToSigmaIndexMap = null;
-
-		// Some code has to happen here
+		WishartStatistics wishartStatistics = null;
 
         if (cg.includeSecondary && cg.useHeteroscedasticModel) {
 			// Heteroscedastic model: one tau per secondary/source level
@@ -126,7 +129,10 @@ public class HierarchicalMetaAnalysis implements Analysis {
 				MCMCOperator tauOperator_i = new ScaleOperator(tau_i, 0.75, cg.mode, cg.operatorWeight);
 				allPriors.add(tauPrior);
 				allParameters.add(tau_i);
-				allOperators.add(tauOperator_i);
+
+				if (cg.sampleTau) {
+					allOperators.add(tauOperator_i);
+				}
 			}
 			taus = allTaus;
 
@@ -138,6 +144,24 @@ public class HierarchicalMetaAnalysis implements Analysis {
 					betaToTauIndexMap.add(id - 1);
 				}
 			}
+		} else if (cg.includeSecondary && cg.blockCovariance) {
+			int precisionDim = grouping.getDimension(allBetas);
+			Parameter tau = new MatrixParameter("precision", precisionDim, precisionDim);
+			double[][] scaleMatrix = new double[precisionDim][precisionDim];
+			for (int i = 0; i < precisionDim; ++i) {
+				tau.setParameterValue(i * precisionDim + i, cg.startingTau); // TODO more sophisticated initialization
+				scaleMatrix[i][i] = cg.tauScale;
+			}
+
+			WishartDistribution wishartDistribution = new WishartDistribution(precisionDim, scaleMatrix);
+			MultivariateDistributionLikelihood tauPrior = new MultivariateDistributionLikelihood(wishartDistribution);
+			wishartStatistics = wishartDistribution;
+
+			tauPrior.addData(tau);
+			// TODO add operator
+			allPriors.add(tauPrior);
+			allParameters.add(tau);
+			taus = tau;
 		} else {
 			// Homoscedastic model: one tau for all beta coefficients
 			Parameter tau = new Parameter.Default("tau", cg.startingTau, 0.0, Double.POSITIVE_INFINITY);
@@ -147,7 +171,10 @@ public class HierarchicalMetaAnalysis implements Analysis {
 			MCMCOperator tauOperator = new ScaleOperator(tau, 0.75, cg.mode, cg.operatorWeight);
 			allPriors.add(tauPrior);
 			allParameters.add(tau);
-			allOperators.add(tauOperator);
+
+			if (cg.sampleTau) {
+				allOperators.add(tauOperator);
+			}
 			taus = tau;
 		}
 
@@ -249,24 +276,32 @@ public class HierarchicalMetaAnalysis implements Analysis {
 
 		// Assemble pieces for the linear model
 		// To-do: build a `BlockLinearModel` class to allow block diagonal covariance matrix, in place of the scalar/vector tau
+		SimpleLinearModel allEffectDistribution;
 		if (cg.includeSecondary && cg.blockCovariance) {
 			// To-do: need to use new constructor!! (hasn't been defined)
-			BlockLinearModel allEffectDistribution;
-			allEffectDistribution = new BlockLinearModel("linearModel",
-					allBetas, designMatrix, allEffects, taus, betaToSigmaIndexMap);
-		}if (cg.includeSecondary && cg.useHeteroscedasticModel) {
-			SimpleLinearModel allEffectDistribution;
+			allEffectDistribution = new GroupedLinearModel("linearModel", // TODO update to GroupedLinearModel
+					allBetas, designMatrix, allEffects, (MatrixParameter) taus, grouping);
+		} else if (cg.includeSecondary && cg.useHeteroscedasticModel) {
 			// Uses new constructor in SimpleLinearModel for heteroscedasticity
 			allEffectDistribution = new SimpleLinearModel("linearModel",
 					allBetas, designMatrix, allEffects, taus, betaToTauIndexMap);
 		} else {
-			SimpleLinearModel allEffectDistribution;
-			// Uses the original constructor for the homoscedastic case
 			allEffectDistribution = new SimpleLinearModel("linearModel",
 					allBetas, designMatrix, allEffects, taus);
 		}
 		allPriors.add(allEffectDistribution);
 
+		if (cg.sampleTau && cg.blockCovariance) {
+
+				// TODO add operator to allOperators
+				MCMCOperator tauOperator = new PrecisionMatrixGibbsOperator(
+						(GroupedLinearModel) allEffectDistribution,
+						(MatrixParameterInterface) taus,
+						wishartStatistics, null,
+						cg.operatorWeight, null);
+//				throw new RuntimeException("Not yet implemented");
+				allOperators.add(tauOperator);
+		}
 
 		// Finalize
 		this.prior = new CompoundLikelihood(allPriors); // TODO Use multiple threads?
@@ -374,7 +409,7 @@ public class HierarchicalMetaAnalysis implements Analysis {
 		// gamma prior for std of the random error
 		public double tauShape = 1.0;
 		public double tauScale = 1.0;
-		public double startingTau = 1.0;
+		public double startingTau = 2.0;
 
 		AdaptationMode mode = AdaptationMode.ADAPTATION_ON;
 		public double operatorWeight = 1.0;
@@ -402,6 +437,8 @@ public class HierarchicalMetaAnalysis implements Analysis {
 
 		// using HMC sampler?
 		public boolean useHMC = false;
+
+		public boolean sampleTau = true;
 	}
 
 	static class HierarchicalNormalComponents {
@@ -616,6 +653,8 @@ public class HierarchicalMetaAnalysis implements Analysis {
 
 	public static void main(String[] args) {
 
+		MathUtils.setSeed(666);
+
 		int chainLength = 1100000;
 		int burnIn = 100000;
 		int subSampleFrequency = 1000;
@@ -643,6 +682,7 @@ public class HierarchicalMetaAnalysis implements Analysis {
 
 		// uncomment this to turn on option for block covariance matrix for the error terms
 		cg.blockCovariance = true;
+//		cg.sampleTau = false;
 
 		HierarchicalMetaAnalysis analysis = new HierarchicalMetaAnalysis(allDataModels,
 				cg);

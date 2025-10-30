@@ -22,13 +22,13 @@ import java.util.List;
 
 public class SimpleLinearModel extends AbstractModelLikelihood {
 
-    private final Parameter argument;
+    protected final Parameter argument;
     private final DesignMatrix designMatrix;
-    private final Parameter effects;
+    protected final Parameter effects;
     private final Parameter precision;
     private final List<Integer> betaToTauIndexMap; // For heteroscedastic model
 
-    private boolean likelihoodKnown;
+    protected boolean likelihoodKnown;
     private boolean storedLikelihoodKnown;
 
     private boolean innerProductKnown;
@@ -37,7 +37,7 @@ public class SimpleLinearModel extends AbstractModelLikelihood {
     private double logLikelihood;
     private double storedLogLikelihood;
 
-    private double[] innerProduct;
+    protected double[] innerProduct;
     private double[] storedInnerProduct;
 
     /**
