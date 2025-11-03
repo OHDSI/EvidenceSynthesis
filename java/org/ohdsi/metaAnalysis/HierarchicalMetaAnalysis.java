@@ -110,7 +110,11 @@ public class HierarchicalMetaAnalysis implements Analysis {
 		// Variance term: enable a heteroscedastic model where variance depends on the secondary (data source) effect
 		Parameter taus;
 		List<Integer> betaToTauIndexMap = null; // map each beta to a tau (secondary/source level) index
-		GroupedLinearModel.Grouping grouping = GroupedLinearModel.Grouping.BY_ROW; // TODO pass as option?
+
+		GroupedLinearModel.Grouping grouping = GroupedLinearModel.Grouping.BY_ROW;
+		if (cg.blockByPrimary) {
+			grouping = GroupedLinearModel.Grouping.BY_COLUMN;
+		}
 
 		WishartStatistics wishartStatistics = null;
 
@@ -416,6 +420,7 @@ public class HierarchicalMetaAnalysis implements Analysis {
 
 		public long seed = 666;
 
+		// labels for effects
 		public String primaryEffectName = "outcome";
 		public String secondaryEffectName = "source";
 		public String exposureEffectName = "exposure";
@@ -434,6 +439,11 @@ public class HierarchicalMetaAnalysis implements Analysis {
 
 		// using a block diagonal covariance model for the error terms?
 		public boolean blockCovariance = false;
+
+		// block precision/covariance matrix grouping (for residual error terms)
+		// if TRUE: group by each outcome/primary effect level, precision matrix across sources
+		// if FALSE: group by each source/secondary effect level, precision matrix across outcomes
+		public boolean blockByPrimary = true; //
 
 		// using HMC sampler?
 		public boolean useHMC = false;
@@ -666,7 +676,9 @@ public class HierarchicalMetaAnalysis implements Analysis {
 		allDataModels.add(new ExtendingEmpiricalDataModel("extras/DM_example/grids_example_3.csv"));
 
 		// uncomment this to try settings with 2 main outcomes
-		// allDataModels.add(new ExtendingEmpiricalDataModel("extras/DM_example/grids_example_4.csv"));
+		// try with nOutcomes > nSources (`allBetas` has more columns than rows) -- this throws an error?
+		allDataModels.add(new ExtendingEmpiricalDataModel("extras/DM_example/grids_example_3.csv"));
+		allDataModels.add(new ExtendingEmpiricalDataModel("extras/DM_example/grids_example_2.csv"));
 
 		HierarchicalMetaAnalysisConfiguration cg = new HierarchicalMetaAnalysisConfiguration();
 
@@ -674,15 +686,18 @@ public class HierarchicalMetaAnalysis implements Analysis {
 		// cg.effectCount = 2;
 		// cg.exposureHyperStdDev.add(10.0);
 
+		// cg.includeExposure = false;
+
 		// uncomment this to fit heteroscedastic model
 		// cg.useHeteroscedasticModel = true;
-
-		// set to `true` to use HMC; `false` to use  random-walk MH
-		// cg.useHMC = true;
 
 		// uncomment this to turn on option for block covariance matrix for the error terms
 		cg.blockCovariance = true;
 //		cg.sampleTau = false;
+
+		// set to `true` to use HMC; `false` to use  random-walk MH / Gibbs
+		// NOTE: do NOT run with `cg.blockCovariance = true` !!! not yet implemented
+		// cg.useHMC = true;
 
 		HierarchicalMetaAnalysis analysis = new HierarchicalMetaAnalysis(allDataModels,
 				cg);
