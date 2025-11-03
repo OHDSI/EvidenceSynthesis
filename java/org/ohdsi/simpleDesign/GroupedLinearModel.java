@@ -30,8 +30,8 @@ public class GroupedLinearModel extends SimpleLinearModel implements ConjugateWi
             }
 
             @Override
-            public int index(int group, int dimensionWithinGroup, int stride) {
-                return dimensionWithinGroup * stride + group;
+            public int index(int group, int dimensionWithinGroup, int numGroups, int mvnDim) {
+                return dimensionWithinGroup * numGroups + group;
             }
         },
         BY_COLUMN {
@@ -41,14 +41,14 @@ public class GroupedLinearModel extends SimpleLinearModel implements ConjugateWi
             }
 
             @Override
-            public int index(int group, int dimensionWithinGroup, int stride) {
-                return group * stride + dimensionWithinGroup;
+            public int index(int group, int dimensionWithinGroup, int numGroups, int mvnDim) {
+                return group * mvnDim + dimensionWithinGroup;
             }
         };
 
         public abstract int getDimension(MatrixParameterInterface argument);
 
-        public abstract int index(int group, int dimensionWithinGroup, int stride);
+        public abstract int index(int group, int dimensionWithinGroup, int numGroups, int mvnDim);
     }
 
     private final Grouping grouping;
@@ -108,7 +108,7 @@ public class GroupedLinearModel extends SimpleLinearModel implements ConjugateWi
     private double[] getDeltaForGroup(int group) {
 
         for (int j = 0; j < mvnDim; ++j) {
-            int index = grouping.index(group, j, numGroups);
+            int index = grouping.index(group, j, numGroups, mvnDim);
             delta[j] = argument.getParameterValue(index) - innerProduct[index];
         }
 

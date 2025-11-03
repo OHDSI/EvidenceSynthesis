@@ -111,10 +111,9 @@ public class HierarchicalMetaAnalysis implements Analysis {
 		Parameter taus;
 		List<Integer> betaToTauIndexMap = null; // map each beta to a tau (secondary/source level) index
 
-		GroupedLinearModel.Grouping grouping = GroupedLinearModel.Grouping.BY_ROW;
-		if (cg.blockByPrimary) {
-			grouping = GroupedLinearModel.Grouping.BY_COLUMN;
-		}
+		GroupedLinearModel.Grouping grouping = cg.blockByPrimary ?
+				GroupedLinearModel.Grouping.BY_COLUMN :
+				GroupedLinearModel.Grouping.BY_ROW;
 
 		WishartStatistics wishartStatistics = null;
 
