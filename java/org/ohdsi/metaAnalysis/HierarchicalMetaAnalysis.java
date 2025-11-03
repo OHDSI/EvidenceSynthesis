@@ -486,7 +486,7 @@ public class HierarchicalMetaAnalysis implements Analysis {
 
 		List<MCMCOperator> operators = new ArrayList<>();
 		MCMCOperator effectsOperator = new RandomWalkOperator(effects, null, 0.75,
-				RandomWalkOperator.BoundaryCondition.reflecting, weight * effects.getDimension(), mode); // caputure operators on the effects
+				RandomWalkOperator.BoundaryCondition.reflecting, weight * effects.getDimension(), mode); // capture operators on the effects
 		operators.add(effectsOperator);
 		operators.add(new RandomWalkOperator(mean, null, 0.75,
 				RandomWalkOperator.BoundaryCondition.reflecting, weight, mode)); // TODO Gibbs sample
