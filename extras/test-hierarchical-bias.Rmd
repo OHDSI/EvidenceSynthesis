@@ -1,7 +1,7 @@
 ---
 title: "Hierarchical bias correction"
 author: "Fan Bu"
-date: "10/25/2023"
+date: "11/10/2024"
 output: html_document
 ---
 
@@ -170,18 +170,24 @@ estimateAsString <- function(v, digits = 3, exponentiate = TRUE){
   return(s)
 }
 
-fitModels <- function(trueRR, metaLPs, seed = 666){
+fitModels <- function(trueRR, metaLPs, cachePath = "cache", seed = 666){
   
   res = list(RR = trueRR)
   
   # 1 ## fit a joint model with main exposure effect included (uninformative mean):
-  resFile = file.path("cache", sprintf("fittedModel-uninformed-%s.rds", trueRR))
+  resFile = file.path(cachePath, 
+                      sprintf("fittedModel-uninformed-%s.rds", trueRR))
   if(file.exists(resFile)){
     maWithExposure = readRDS(resFile)
   }else{
+    settings = generateBayesianHMAsettings(globalExposureEffectPriorMean = c(0),
+                                           globalExposureEffectPriorStd = c(10.0),
+                                           exposureEffectCount = 1,
+                                           chainLength = 2000,
+                                           burnIn = 100)
     maWithExposure = computeHierarchicalMetaAnalysis(data = metaLPs,
-                                                   globalExposureEffectPrior = c(0, 10.0),
-                                                   seed = seed)
+                                                     settings = settings,
+                                                     seed = seed)
     saveRDS(maWithExposure, file = resFile)
   }
   
@@ -189,13 +195,19 @@ fitModels <- function(trueRR, metaLPs, seed = 666){
   rm(maWithExposure)
   
   # 2. try using a "friendlier" prior for the meta-analytic effect
-  resFile = file.path("cache", sprintf("fittedModel-informed-%s.rds", trueRR))
+  resFile = file.path(cachePath, 
+                      sprintf("fittedModel-informed-%s.rds", trueRR))
   if(file.exists(resFile)){
     maWithExposure = readRDS(resFile)
   }else{
+    settings = generateBayesianHMAsettings(globalExposureEffectPriorMean = c(log(trueRR)),
+                                           globalExposureEffectPriorStd = c(10.0),
+                                           exposureEffectCount = 1,
+                                           chainLength = 50000,
+                                           burnIn = 1000)
     maWithExposure = computeHierarchicalMetaAnalysis(data = metaLPs,
-                                                   globalExposureEffectPrior = c(log(trueRR), 2.0),
-                                                   seed = seed)
+                                                     settings = settings,
+                                                     seed = seed)
     saveRDS(maWithExposure, file = resFile)
   }
   
@@ -203,14 +215,20 @@ fitModels <- function(trueRR, metaLPs, seed = 666){
   rm(maWithExposure)
   
   #3.(try with the option that does the separate prior on biased effect estimand
-  resFile = file.path("cache", sprintf("fittedModel-separate-%s.rds", trueRR))
+  resFile = file.path(cachePath, 
+                      sprintf("fittedModel-separate-%s.rds", trueRR))
   if(file.exists(resFile)){
     maWithExposure = readRDS(resFile)
   }else{
+    settings = generateBayesianHMAsettings(globalExposureEffectPriorMean = c(log(trueRR)),
+                                           globalExposureEffectPriorStd = c(10.0),
+                                           exposureEffectCount = 1, 
+                                           separateExposurePrior = TRUE,
+                                           chainLength = 50000,
+                                           burnIn = 1000)
     maWithExposure = computeHierarchicalMetaAnalysis(data = metaLPs,
-                                                   globalExposureEffectPrior = c(log(trueRR), 10.0),
-                                                   separateExposurePrior = TRUE,
-                                                   seed = seed)
+                                                     settings = settings,
+                                                     seed = seed)
     saveRDS(maWithExposure, file = resFile)
   }
   
@@ -218,13 +236,18 @@ fitModels <- function(trueRR, metaLPs, seed = 666){
   rm(maWithExposure)
   
   #4. two-stage approach
-  resFile = file.path("cache", sprintf("fittedModel-twoStage-%s.rds", trueRR))
+  resFile = file.path(cachePath, 
+                      sprintf("fittedModel-twoStage-%s.rds", trueRR))
   if(file.exists(resFile)){
     adjustedMainEffectSamps= readRDS(resFile)
   }else{
+    settings = generateBayesianHMAsettings(includeExposureEffect = FALSE,
+                                           chainLength = 50000,
+                                           burnIn = 1000)
+    
     maNCsOnly = computeHierarchicalMetaAnalysis(data = metaLPs[1:(length(metaLPs)-1)],
                                                 seed = seed,
-                                                includeExposureEffect = FALSE)
+                                                settings = settings)
     traces = attr(maNCsOnly, "traces")
     newBiasSamps = rnorm(nrow(traces), 
                          mean = traces[,"outcome.mean"] + traces[,"source.mean"], 
@@ -253,6 +276,9 @@ fitModels <- function(trueRR, metaLPs, seed = 666){
 rJava::.jinit(parameters="-Xmx32g", force.init = TRUE)
 options(java.parameters = c("-Xms200g", "-Xmx200g"))
 
+theCachePath = "cache-3"
+if(!dir.exists(theCachePath)){dir.create(theCachePath)}
+
 trueRRs = c(1, 2, 4, 6, 8)
 
 res = NULL
@@ -266,7 +292,7 @@ for(trueRR in trueRRs){
     metaLPs = simulateAndApproximate(trueRR)
     saveRDS(metaLPs, file = LPfile)
   }
-  this.res = fitModels(trueRR, metaLPs)
+  this.res = fitModels(trueRR, metaLPs, cachePath = theCachePath)
   res = dplyr::bind_rows(res, this.res)
   cat("Done!\n\n")
 }
@@ -274,9 +300,9 @@ for(trueRR in trueRRs){
 
 
 ```{r saveResults, echo=FALSE, include=FALSE, eval = TRUE}
-if(!dir.exists("cache")){
-  dir.create("cache/")
-}
+# if(!dir.exists("cache")){
+#   dir.create("cache/")
+# }
 
 saveRDS(res, "cache/hmaSimulations.rds")
 ```
