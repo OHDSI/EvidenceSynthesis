@@ -188,12 +188,12 @@ fitModels <- function(trueRR, metaLPs, seed = 666, exportAsString = TRUE,
     # newBiasSamps = rnorm(nrow(traces),
     #                      mean = traces[,"outcome.mean"] + traces[,"source.mean"],
     #                      sd = 1/sqrt(traces[,"outcome.scale"]))
-    newBiasSamps = traces[,"outcome.mean"] + traces[,"source.mean"] # try the mean bias samples only...
+    newBiasSamps = traces[,"outcome.mean"] + traces[,"source.mean"] # use the mean bias samples
 
     maExposure = computeBayesianMetaAnalysis(data = metaLPs[[length(metaLPs)]],
                                              seed = seed,
-                                             chainLength = 300000,
-                                             burnIn = 5e+04)
+                                             chainLength = 6e+5,
+                                             burnIn = 1e+5)
     tracesExposure = attr(maExposure, "traces")
     mainEffectSamps = tracesExposure[,1]
     adjustedMainEffectSamps = mainEffectSamps - newBiasSamps

@@ -57,7 +57,8 @@ summarizeChain <- function(chain, alpha = 0.05){
 #' @param exposureEffectCount            Number of main outcomes of interest to estimate effect for? Default = 1
 #' @param separateExposurePrior          Use a separable prior on the main exposure effect? Default is FALSE.
 #' @param useHeteroscedasticModel        Heteroscedastic model with difference variances across sources? Default is FALSE.
-#' @param blockCovariance                Use block diagonal covariance matrix for error terms from the outcome? Default is FALSE. NOT IMPLEMENTED YET!
+#' @param blockCovariance                Use block diagonal covariance matrix for error terms from the outcome? Default is FALSE.
+#'                                       If TRUE, by default a covariance matrix across outcomes within each source is learned rather than a single precision tau.
 #' @param useHMC                         Use Hamiltonian Monte Carlo (HMC)? Default is FALSE.
 #' @param chainLength                    Number of MCMC iterations.
 #' @param burnIn                         Number of MCMC iterations to consider as burn in.
@@ -218,6 +219,12 @@ computeHierarchicalMetaAnalysis <- function(data,
     stop("data must a list of likelihood functions or data models!")
   }
 
+  # TO-DO: implement HMC with block covariance setup
+  # stop if blockCovariance and useHMC are both TRUE -- not implemented yet
+  if (settings$blockCovariance && settings$useHMC) {
+    stop("Model with block covariance matrix with HMC sampling is not implemented yet!")
+  }
+
   # build data models
   ## build a reference list of string labels and integer labels...
   labelReferences = buildLabelReferences(data)
@@ -255,21 +262,26 @@ computeHierarchicalMetaAnalysis <- function(data,
   hmaConfiguration$separateEffectPrior = as.logical(settings$separateExposurePrior)
   hmaConfiguration$effectCount = as.integer(exposureEffectCount)
   hmaConfiguration$useHeteroscedasticModel = as.logical(settings$useHeteroscedasticModel)
+  hmaConfiguration$blockCovariance = as.logical(settings$blockCovariance)
+  # TO-DO: block grouping config
   hmaConfiguration$useHMC = as.logical(settings$useHMC)
   hmaConfiguration$seed = rJava::.jlong(seed)
 
-  ## deal with exposure prior mean: pop out the 0.0 entry first
-  hmaConfiguration$exposureHyperLocation$remove(rJava::.jnew("java/lang/Double", 0.0))
-  for(i in c(1:exposureEffectCount)){
-    hmaConfiguration$exposureHyperLocation$add(rJava::.jnew("java.lang.Double",
-                                                            as.numeric(settings$globalExposureEffectPriorMean[i])))
-  }
-  ## similarly, work on exposure prior std (pop out the default 2.0 entry)
-  hmaConfiguration$exposureHyperStdDev$remove(rJava::.jnew("java/lang/Double", 2.0))
-  for(i in c(1:exposureEffectCount)){
-    hmaConfiguration$exposureHyperStdDev$add(rJava::.jnew("java.lang.Double",
+  if(settings$includeExposureEffect && settings$exposureEffectCount >= 1){
+    ## deal with exposure prior mean: pop out the 0.0 entry first
+    hmaConfiguration$exposureHyperLocation$remove(rJava::.jnew("java/lang/Double", 0.0))
+    for(i in c(1:exposureEffectCount)){
+      hmaConfiguration$exposureHyperLocation$add(rJava::.jnew("java.lang.Double",
+                                                              as.numeric(settings$globalExposureEffectPriorMean[i])))
+    }
+    ## similarly, work on exposure prior std (pop out the default 2.0 entry)
+    hmaConfiguration$exposureHyperStdDev$remove(rJava::.jnew("java/lang/Double", 2.0))
+    for(i in c(1:exposureEffectCount)){
+      hmaConfiguration$exposureHyperStdDev$add(rJava::.jnew("java.lang.Double",
                                                             as.numeric(settings$globalExposureEffectPriorStd[i])))
+    }
   }
+
 
   # construct the analysis
   hierarchicalMetaAnalysis <- rJava::.jnew(
@@ -314,7 +326,7 @@ computeHierarchicalMetaAnalysis <- function(data,
   #             paste(parameterNames, collapse = ",")))
 
   mainParameters = c("outcome.mean", "outcome.scale")
-  if(!settings$useHeteroscedasticModel){
+  if(!settings$useHeteroscedasticModel && !settings$blockCovariance){
     mainParameters = c("tau", mainParameters)
   }
   if(settings$includeSourceEffect){
@@ -382,6 +394,8 @@ computeHierarchicalMetaAnalysis <- function(data,
   attr(estimates, "ess") <- coda::effectiveSize(traces)
   attr(estimates, "sourceLabels") <- labelReferences
   attr(estimates, "settings") <- settings
+  attr(estimates, "parameterNames") <- parameterNames
+  attr(estimates, "mainParameters") <- mainParameters
 
   return(estimates)
 }

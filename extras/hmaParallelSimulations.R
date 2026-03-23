@@ -9,7 +9,7 @@ library(EvidenceSynthesis)
 library(dplyr)
 
 #### settings of the simulation experiments -----
-#setwd("./extras")
+setwd("./extras") # set working directory to "extras" folder
 cachepath = "cache-6"
 if(!dir.exists(cachepath)){dir.create(cachepath)}
 
@@ -235,7 +235,6 @@ estimatesAsVector <- function(v, label = "standard", exponentiate = TRUE){
 
 exportStrings = FALSE # export numeric results for later processing
 
-
 ## parallel function to do simulations ----
 paraSimulate <- function(id,
                          trueRRs = c(1, 1.5, 2, 4),
@@ -276,8 +275,8 @@ paraSimulate <- function(id,
                          cachePath = cachepath,
                          repId = id,
                          exportAsString = FALSE,
-                         chainLength = 300000,
-                         burnIn = 5e+04, ...)
+                         chainLength = 6e+5,
+                         burnIn = 1e+05, ...)
 
     res = dplyr::bind_rows(res, this.res)
     cat("Done!\n\n")
@@ -291,7 +290,7 @@ paraSimulate <- function(id,
 ### run simulations in parallel ----
 numrep = 50
 
-## experiments using HMC...
+## experiments using MH vs HMC...
 # cluster <- ParallelLogger::makeCluster(14)
 # ParallelLogger::clusterRequire(cluster, c("dplyr", "EvidenceSynthesis"))
 # simRes <- ParallelLogger::clusterApply(cluster, 1:numrep, paraSimulate)
@@ -301,12 +300,13 @@ numrep = 50
 # saveRDS(simRes, file.path(cachepath, "hmaSimulationsRes-3.rds"))
 
 ## experiments using homoscedastic/heteroscedastic model or regular MH/HMC
-cluster <- ParallelLogger::makeCluster(14)
+numCores = 10 # update according to machine setup
+cluster <- ParallelLogger::makeCluster(numCores)
 ParallelLogger::clusterRequire(cluster, c("dplyr", "EvidenceSynthesis"))
 simRes <- ParallelLogger::clusterApply(cluster, 1:numrep, paraSimulate,
                                        cachepath="cache-6",
                                        useHeteroscedasticModel = FALSE, # = TRUE for heteroscedastic model
-                                       useHMC = FALSE) # = TRUE is using HMC; HMC is better but slower!
+                                       useHMC = TRUE) # TRUE: HMC, FALSE: MH. HMC is better but slower!
 ParallelLogger::stopCluster(cluster)
 simRes <- bind_rows(simRes)
 
@@ -318,10 +318,11 @@ saveRDS(simRes, file.path(cachepath, "hmaSimulationsRes-6.rds"))
 
 ## load pre-saved results ...
 cachepath = "cache-6"
+#cachepath = "cache-5"
 # cachepath = "cache-hetero"
 # res = readRDS(file.path(cachepath, "hmaSimulationsRes-3.rds"))
 # res = readRDS(file.path(cachepath, "hmaSimulationsRes-4.rds"))
-# res = readRDS(file.path(cachepath, "hmaSimulationsRes-5.rds"))
+#res = readRDS(file.path(cachepath, "hmaSimulationsRes-5.rds"))
 res = readRDS(file.path(cachepath, "hmaSimulationsRes-6.rds"))
 
 ## process numeric results in the big dataframe

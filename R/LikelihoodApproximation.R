@@ -556,7 +556,7 @@ constructDataModel <- function(data, labelReferences = NULL){
       )
       if(!is.null(labelReferences) && !is.null(names(data))){
         id = labelReferences[[names(data)[i]]]
-        cat(sprintf("ata source %s, with label %s ...\n",
+        cat(sprintf("data source %s, with label %s ...\n",
                     names(data)[i], id))
       }else{
         id = i
